@@ -1,0 +1,38 @@
+{
+  "name": "DrumLabVR",
+  "description": "An interactive drum machine in VR",
+  "private": true,
+  "author": "Michael Marlow",
+  "version": "1.0.0",
+  "repository": "",
+  "scripts": {
+    "start": "brunch watch --server",
+    "build": "brunch build --production",
+    "deploy": "surge"
+  },
+  "dependencies": {
+    "aframe": "^0.7.1",
+    "aframe-aabb-collider-component": "^2.2.1",
+    "aframe-animation-component": "^3.2.5",
+    "aframe-bmfont-text-component": "^0.1.4",
+    "aframe-controller-cursor-component": "^0.2.7",
+    "aframe-dev-components": "^1.0.0",
+    "aframe-event-set-component": "^3.0.3",
+    "aframe-extras": "^3.13.1",
+    "aframe-fps-counter-component": "^1.0.1",
+    "aframe-particle-system-component": "^1.0.10",
+    "aframe-react": "^4.3.0",
+    "aframe-teleport-controls": "^0.3.1",
+    "preact": "^8.1.0"
+  },
+  "devDependencies": {
+    "auto-reload-brunch": "^2",
+    "babel-brunch": "~6.0",
+    "babel-plugin-transform-react-jsx": "^6.24.1",
+    "babel-preset-latest": "^6",
+    "brunch": "^2",
+    "clean-css-brunch": "^2",
+    "ghpages": "0.0.3",
+    "uglify-js-brunch": "^2"
+  }
+}
