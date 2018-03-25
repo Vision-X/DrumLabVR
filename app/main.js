@@ -235,7 +235,7 @@ class Main extends Component {
           rotation="0 0 0"
           material="color: #104"
           sound="src: url(/sounds/kick-1.wav); poolSize: 10; on: mousedown">
-          <a-animation attribute="material.color" begin="mousedown" from="lightblue" to="#104" dur="100"></a-animation>
+          <a-animation attribute="material.color" begin="mouseover" from="lightblue" to="#104" dur="100"></a-animation>
           <a-animation attribute="rotation" begin="mousedown" dur="100" fill="forwards" to="0 90 0"></a-animation>
         </a-entity>
 

@@ -115411,7 +115411,7 @@ var Main = function (_Component) {
               rotation: '0 0 0',
               material: 'color: #104',
               sound: 'src: url(/sounds/kick-1.wav); poolSize: 10; on: mousedown' },
-            (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mousedown', from: 'lightblue', to: '#104', dur: '100' }),
+            (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mouseover', from: 'lightblue', to: '#104', dur: '100' }),
             (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
           ),
           (0, _preact.h)(
