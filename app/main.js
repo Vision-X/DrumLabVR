@@ -13,8 +13,8 @@ import 'aframe-dev-components';
 import 'aframe-fps-counter-component';
 import 'aframe-teleport-controls';
 import 'aframe-aabb-collider-component';
-
-
+// import 'aframe-text-component';
+import 'aframe-text-geometry-component';
 const COLORS = ['#D92B6A', '#9564F2', '#FFCF59'];
 
 class Main extends Component {
@@ -79,6 +79,16 @@ class Main extends Component {
           <img src="https://img.gs/bbdkhfbzkk/stretch/https://i.imgur.com/25P1geh.png" id="grid" crossorigin="anonymous" />
           <img src="https://img.gs/bbdkhfbzkk/2048x1024,stretch/http://i.imgur.com/WMNH2OF.jpg" id="chrome" crossorigin="anonymous" />
           <img id="sky" src="https://img.gs/bbdkhfbzkk/2048x2048,stretch/http://i.imgur.com/WqlqEkq.jpg" crossorigin="anonymous" />
+          <a-asset-item id="dawningFont" src="https://cdn.glitch.com/c719c986-c0c5-48b8-967c-3cd8b8aa17f3%2FdawningOfANewDayRegular.typeface.json?1490305922844"></a-asset-item>
+          <a-asset-item id="exoFont" src="https://cdn.glitch.com/c719c986-c0c5-48b8-967c-3cd8b8aa17f3%2Fexo2Black.typeface.json?1490305922150"></a-asset-item>
+          <a-asset-item id="exoItalicFont" src="https://cdn.glitch.com/c719c986-c0c5-48b8-967c-3cd8b8aa17f3%2Fexo2BlackItalic.typeface.json?1490305922725"></a-asset-item>
+          <a-mixin id="curved-panel"
+            material="side:back;"
+            geometry="radius:5; theta-start:165; theta-length:30; open-ended:true;height:2;">
+          </a-mixin>
+          <a-mixin id="translucent-black"
+            material="color:black; opacity:0.25;">
+          </a-mixin>
       { /*    <audio id="k3" src="./assets/sounds/kick-1" preload="auto" />
       <a-asset-item id="k1" src="kick1" response-type="arraybuffer"></a-asset-item>
           <audio id="k1" src="./assets/sounds/kick-1" preload="auto" />
@@ -104,21 +114,22 @@ class Main extends Component {
          <a-entity teleport-controls="startEvents: teleportstart; endEvents: teleportend; type: line"></a-entity>
          */}
         <a-entity id="cameraRig">
-          <a-entity id="head" camera wasd-controls look-controls></a-entity>
-          <a-entity id="my-raycaster" aabb-collider="objects: .clickable;" raycaster="objects: .clickable;" line="color: blue;" oculus-touch-controls="hand: left;" laser-controls="hand: left; objects: .clickable;"></a-entity>
-          <a-entity fps-counter id="right-hand" raycaster="objects: .clickable;" oculus-touch-controls="hand: right;" teleport-controls="cameraRig: #cameraRig; teleportOrigin: #head; type: parabolic;"></a-entity>
+          <a-entity id="head" wasd-controls camera look-controls></a-entity>
+          <a-entity id="my-raycaster" teleport-controls="startEvents: teleportstart; endEvents: teleportend; type: parabolic;" aabb-collider="objects: .clickable;" raycaster="objects: .clickable;" line="color: blue;" oculus-touch-controls="hand: left;" laser-controls="hand: left; objects: .clickable;"></a-entity>
+          <a-entity id="right-hand" wasd-controls oculus-touch-controls="hand: right;" teleport-controls="startEvents: teleportstart; endEvents: teleportend; type: parabolic;" fps-counter></a-entity>
         </a-entity>
+{/*        <a-entity fps-counter id="right-hand" oculus-touch-controls="hand: right;" teleport-controls="hand: right; cameraRig: #cameraRig; teleportOrigin: #head; type: parabolic;"></a-entity> */}
 
 
-        <a-entity
+        <a-entity id="ground"
           geometry="primitive: plane; width: 10000; height: 10000;" rotation="-90 0 0"
-          material="src: #grid; repeat: 10000 10000; transparent: true;metalness:0.6; roughness: 0.4; sphericalEnvMap: #sky;"></a-entity>
+          material="src: #grid; repeat: 10000 10000; transparent: true;metalness:0.6; roughness: 0.4; sphericalEnvMap: #sky;">
+        </a-entity>
         <a-entity light="color: #ccccff; intensity: 1; type: ambient;" visible=""></a-entity>
-        <a-entity light="color: #ffaaff; intensity: 1.5" position="5 5 5"></a-entity>
+{/*        <a-entity light="color: #ffaaff; intensity: 1.5" position="5 5 5"></a-entity> */}
         <a-entity light="color: white; intensity: 0.5" position="-5 5 15"></a-entity>
         <a-entity light="color: white; type: ambient;"></a-entity>
         <a-sky src="#sky" rotation="0 -90 0"></a-sky>
-        <a-entity fps-counter></a-entity>
 
         {/* <Shape onClick={this._handleClick}/> */}
         { /*
@@ -176,9 +187,49 @@ class Main extends Component {
           position="0.5 0.75 -2"
           <a-entity audio-visualizer="src: url(/sounds/kick-1.wav)" audio-visualizer-kick></a-entity>
           material="color: #FFC65D" /> */}
+{/*        <a-entity position="0 2 0">
+          <a-entity position="0 0 0" rotation="0 -60 0">
+            <a-entity geometry="primitive: cylinder"
+                        mixin="curved-panel translucent-black"
+                        scale="1.5 1.5 0.75">
+                <a-entity layout="type:line; margin: 0.5" rotation="0 0 -90" position="-2.5 0.7 -3.7">
+                  <a-entity bmfont-text="text: Welcome; color: white; align: center;" rotation="0 0 90"></a-entity>
+                  <a-entity bmfont-text="text: to; color: white; align: center;" rotation="0 0 90"></a-entity>
+                  <a-entity bmfont-text="text: DrumLabVR; color: white; align: center;" rotation="0 0 90"></a-entity>
+                  <a-entity bmfont-text="text: by Mike Marlow; color: white; align: center;" rotation="0 0 90"></a-entity>
+                </a-entity>
+            </a-entity>
+          </a-entity>
+        </a-entity> */}
+
+    {/*    <a-entity position="0 2 0">
+                <a-entity position="0 0 0" rotation="0 60 0">
+                  <a-entity geometry="primitive: cylinder"
+                             mixin="curved-panel translucent-black"
+                             scale="1.5 1.5 0.75"
+                             text="value: Suck my choade!; color: white; transparent: false;">
+                  </a-entity>
+                  <a-entity layout="type:line; margin: 0.5" rotation="0 0 -90" position="-2.5 0.7 -3.7">
+                     <a-entity text="text: By location;color:white;align: center;" rotation="0 0 90"></a-entity>
+                     <a-entity text="text: By map;color:white;align: center;" rotation="0 0 90"></a-entity>
+                     <a-entity text="text: Search;color:white;align: center;" rotation="0 0 90"></a-entity>
+                     <a-entity text="text: Settings;color:white;align: center;" rotation="0 0 90"></a-entity>
+                  </a-entity>
+                </a-entity>
+        </a-entity> */}
+        <a-entity position="-9.5 2 -9" rotation="10 25 0">
 
 
-        <a-entity collider-check class="one clickable" onClick={this._handleClick.bind(this)}
+          <a-entity position="0.5 1.8 4" scale="0.6 1.2 1" text-geometry="value: DrumLab; font: #exoFont; bevelEnabled: true; bevelSize: 0.1; bevelThickness: 0.1; curveSegments: 1; size: 1.0; height: 0.5;" material="color:pink; metalness:0.9; roughness: 0.05; sphericalEnvMap: #chrome;"></a-entity>
+
+          <a-entity position="4.2 1.8 4.6" text-geometry="value: VR; font: #exoItalicFont; style: italic; size: 0.8; weight: bold; height: 0;"
+                    material="shader: flat; color: white"></a-entity>
+          <a-entity position="4.2 1.8 4.6" text-geometry="value: VR; font: #exoItalicFont; style: italic; size: 0.8; weight: bold; height: 0; bevelEnabled: true; bevelSize: 0.04; bevelThickness: 0.04; curveSegments: 1"
+                    material="shader: flat; color: white; transparent: true; opacity: 0.4"></a-entity>
+        </a-entity>
+
+//////////////////////////////////////////
+        <a-entity collider-check class="one clickable" onMouseDown={this._handleMouseDown.bind(this)} onClick={this._handleClick.bind(this)}
           geometry="primitive: box; depth=0.2 height=0.5 width=0.5"
           position="0.5 0.5 -4"
           rotation="0 0 0"
@@ -213,7 +264,7 @@ class Main extends Component {
           position="2 0.5 -4"
           rotation="0 0 0"
           material="color: #404"
-          sound="src: url(/sounds/snare-1.wav); poolSize: 10; mousedown">
+          sound="src: url(/sounds/snare-1.wav); poolSize: 10; on: mousedown">
           <a-animation attribute="material.color" begin="mousedown" from="red" to="#404" dur="100"></a-animation>
           <a-animation attribute="rotation" begin="mousedown" dur="100" fill="forwards" to="0 90 0"></a-animation>
         </a-entity>
@@ -269,11 +320,6 @@ class Main extends Component {
           <a-animation attribute="rotation" begin="mousedown" dur="250" fill="forwards" to="0 90 0"></a-animation>
         </a-entity>
 
-      { /*  <a-entity
-          geometry="primitive: plane; width: 4; height: 4"
-          position="0 0 -4"
-          rotation="-90 0 0"
-          material="color: #7BC8A4" />  */}
 
     {/*    <Entity primitive="a-camera" look-controls>
           <Entity
@@ -299,13 +345,33 @@ class Main extends Component {
     )
   }
 
+  _handleMouseDown(event) {
+    console.log("mouse down fired!!!");
+    var entity = document.querySelector('[sound]')
+    console.log(entity.components.sound, ".... sound");
+    // if (event.type == 'mousedown') {
+    //   var myInterval = setInterval(() => {
+    //     yah();
+    //   }, 500);
+    //   function yah() {
+    //     entity.components.sound.playSound();
+    //   }
+    // }
+    // if (event.type == 'mouseup') {
+    //   console.log("mouseupppppppp");
+    //   clearInterval(myInterval);
+    // }
+  }
+
   _handleClick(event) {
     console.log("clicked");
-    console.log("event.target", event.target);
-    var entity = document.querySelector('.clickable');
-    console.log("sounddd entity val: ", entity.components.sound);
-    console.log(event, " ....wtf is this event evaluate to?");
-    if (event) {
+    // console.log("event.target", event.target);
+    var entity = document.querySelector('[sound]');
+    // entity.components.sound.playSound();
+    // console.log("sounddd entity val: ", entity.components.sound);
+    // console.log(event, " ....wtf is this event evaluate to?");
+    // console.log(event.type, "  === event.type");
+    if (event.type == 'mousedown') {
       console.log("event!!!!");
       // if (entity.components.sound.evtDetail.isPlaying == true) {
       //   console.log("jeyahhh boiiiiiiiiiiiiii");

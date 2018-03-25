@@ -12312,6 +12312,59 @@ require.register("aframe-teleport-controls/lib/cylinderTexture.js", function(exp
   })();
 });
 
+require.register("aframe-text-geometry-component/index.js", function(exports, require, module) {
+  require = __makeRelativeRequire(require, {}, "aframe-text-geometry-component");
+  (function() {
+    /**
+ * TextGeometry component for A-Frame.
+ */
+var debug = AFRAME.utils.debug;
+
+var error = debug('aframe-text-component:error');
+
+var fontLoader = new THREE.FontLoader();
+
+AFRAME.registerComponent('text-geometry', {
+  schema: {
+    bevelEnabled: {default: false},
+    bevelSize: {default: 8, min: 0},
+    bevelThickness: {default: 12, min: 0},
+    curveSegments: {default: 12, min: 0},
+    font: {type: 'asset', default: 'https://rawgit.com/ngokevin/kframe/master/components/text-geometry/lib/helvetiker_regular.typeface.json'},
+    height: {default: 0.05, min: 0},
+    size: {default: 0.5, min: 0},
+    style: {default: 'normal', oneOf: ['normal', 'italics']},
+    weight: {default: 'normal', oneOf: ['normal', 'bold']},
+    value: {default: ''}
+  },
+
+  /**
+   * Called when component is attached and when component data changes.
+   * Generally modifies the entity based on the data.
+   */
+  update: function (oldData) {
+    var data = this.data;
+    var el = this.el;
+
+    var mesh = el.getOrCreateObject3D('mesh', THREE.Mesh);
+    if (data.font.constructor === String) {
+      // Load typeface.json font.
+      fontLoader.load(data.font, function (response) {
+        var textData = AFRAME.utils.clone(data);
+        textData.font = response;
+        mesh.geometry = new THREE.TextGeometry(data.value, textData);
+      });
+    } else if (data.font.constructor === Object) {
+      // Set font if already have a typeface.json through setAttribute.
+      mesh.geometry = new THREE.TextGeometry(data.value, data);
+    } else {
+      error('Must provide `font` (typeface.json) or `fontPath` (string) to text component.');
+    }
+  }
+});
+  })();
+});
+
 require.register("aframe/dist/aframe-master.js", function(exports, require, module) {
   require = __makeRelativeRequire(require, {"transform":["browserify-css","envify"]}, "aframe");
   var _Buffer = require('buffer'); var Buffer = _Buffer && _Buffer.Buffer;
@@ -115188,7 +115241,7 @@ var _main2 = _interopRequireDefault(_main);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 /**
- * @fileoverview 
+ * @fileoverview
  * This file imports all our required packages.
  * It also includes 3rd party A-Frame components.
  * Finally, it mounts the app to the root node.
@@ -115227,6 +115280,8 @@ require('aframe-teleport-controls');
 
 require('aframe-aabb-collider-component');
 
+require('aframe-text-geometry-component');
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
@@ -115236,6 +115291,9 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 * This is our main A-Frame application.
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 * It defines the main A-Frame Scene which gets mounted root div.
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 */
+
+// import 'aframe-text-component';
+
 
 var COLORS = ['#D92B6A', '#9564F2', '#FFCF59'];
 
@@ -115311,27 +115369,43 @@ var Main = function (_Component) {
             (0, _preact.h)('img', { id: 'pink', src: 'https://img.gs/bbdkhfbzkk/stretch/http://i.imgur.com/1hyyIUi.jpg', crossorigin: 'anonymous' }),
             (0, _preact.h)('img', { src: 'https://img.gs/bbdkhfbzkk/stretch/https://i.imgur.com/25P1geh.png', id: 'grid', crossorigin: 'anonymous' }),
             (0, _preact.h)('img', { src: 'https://img.gs/bbdkhfbzkk/2048x1024,stretch/http://i.imgur.com/WMNH2OF.jpg', id: 'chrome', crossorigin: 'anonymous' }),
-            (0, _preact.h)('img', { id: 'sky', src: 'https://img.gs/bbdkhfbzkk/2048x2048,stretch/http://i.imgur.com/WqlqEkq.jpg', crossorigin: 'anonymous' })
+            (0, _preact.h)('img', { id: 'sky', src: 'https://img.gs/bbdkhfbzkk/2048x2048,stretch/http://i.imgur.com/WqlqEkq.jpg', crossorigin: 'anonymous' }),
+            (0, _preact.h)('a-asset-item', { id: 'dawningFont', src: 'https://cdn.glitch.com/c719c986-c0c5-48b8-967c-3cd8b8aa17f3%2FdawningOfANewDayRegular.typeface.json?1490305922844' }),
+            (0, _preact.h)('a-asset-item', { id: 'exoFont', src: 'https://cdn.glitch.com/c719c986-c0c5-48b8-967c-3cd8b8aa17f3%2Fexo2Black.typeface.json?1490305922150' }),
+            (0, _preact.h)('a-asset-item', { id: 'exoItalicFont', src: 'https://cdn.glitch.com/c719c986-c0c5-48b8-967c-3cd8b8aa17f3%2Fexo2BlackItalic.typeface.json?1490305922725' }),
+            (0, _preact.h)('a-mixin', { id: 'curved-panel',
+              material: 'side:back;',
+              geometry: 'radius:5; theta-start:165; theta-length:30; open-ended:true;height:2;' }),
+            (0, _preact.h)('a-mixin', { id: 'translucent-black',
+              material: 'color:black; opacity:0.25;' })
           ),
           (0, _preact.h)(
             'a-entity',
             { id: 'cameraRig' },
-            (0, _preact.h)('a-entity', { id: 'head', camera: true, 'wasd-controls': true, 'look-controls': true }),
-            (0, _preact.h)('a-entity', { id: 'my-raycaster', 'aabb-collider': 'objects: .clickable;', raycaster: 'objects: .clickable;', line: 'color: blue;', 'oculus-touch-controls': 'hand: left;', 'laser-controls': 'hand: left; objects: .clickable;' }),
-            (0, _preact.h)('a-entity', { 'fps-counter': true, id: 'right-hand', raycaster: 'objects: .clickable;', 'oculus-touch-controls': 'hand: right;', 'teleport-controls': 'cameraRig: #cameraRig; teleportOrigin: #head; type: parabolic;' })
+            (0, _preact.h)('a-entity', { id: 'head', 'wasd-controls': true, camera: true, 'look-controls': true }),
+            (0, _preact.h)('a-entity', { id: 'my-raycaster', 'teleport-controls': 'startEvents: teleportstart; endEvents: teleportend; type: parabolic;', 'aabb-collider': 'objects: .clickable;', raycaster: 'objects: .clickable;', line: 'color: blue;', 'oculus-touch-controls': 'hand: left;', 'laser-controls': 'hand: left; objects: .clickable;' }),
+            (0, _preact.h)('a-entity', { id: 'right-hand', 'wasd-controls': true, 'oculus-touch-controls': 'hand: right;', 'teleport-controls': 'startEvents: teleportstart; endEvents: teleportend; type: parabolic;', 'fps-counter': true })
           ),
-          (0, _preact.h)('a-entity', {
+          (0, _preact.h)('a-entity', { id: 'ground',
             geometry: 'primitive: plane; width: 10000; height: 10000;', rotation: '-90 0 0',
             material: 'src: #grid; repeat: 10000 10000; transparent: true;metalness:0.6; roughness: 0.4; sphericalEnvMap: #sky;' }),
           (0, _preact.h)('a-entity', { light: 'color: #ccccff; intensity: 1; type: ambient;', visible: '' }),
-          (0, _preact.h)('a-entity', { light: 'color: #ffaaff; intensity: 1.5', position: '5 5 5' }),
           (0, _preact.h)('a-entity', { light: 'color: white; intensity: 0.5', position: '-5 5 15' }),
           (0, _preact.h)('a-entity', { light: 'color: white; type: ambient;' }),
           (0, _preact.h)('a-sky', { src: '#sky', rotation: '0 -90 0' }),
-          (0, _preact.h)('a-entity', { 'fps-counter': true }),
           (0, _preact.h)(
             'a-entity',
-            { 'collider-check': true, 'class': 'one clickable', onClick: this._handleClick.bind(this),
+            { position: '-9.5 2 -9', rotation: '10 25 0' },
+            (0, _preact.h)('a-entity', { position: '0.5 1.8 4', scale: '0.6 1.2 1', 'text-geometry': 'value: DrumLab; font: #exoFont; bevelEnabled: true; bevelSize: 0.1; bevelThickness: 0.1; curveSegments: 1; size: 1.0; height: 0.5;', material: 'color:pink; metalness:0.9; roughness: 0.05; sphericalEnvMap: #chrome;' }),
+            (0, _preact.h)('a-entity', { position: '4.2 1.8 4.6', 'text-geometry': 'value: VR; font: #exoItalicFont; style: italic; size: 0.8; weight: bold; height: 0;',
+              material: 'shader: flat; color: white' }),
+            (0, _preact.h)('a-entity', { position: '4.2 1.8 4.6', 'text-geometry': 'value: VR; font: #exoItalicFont; style: italic; size: 0.8; weight: bold; height: 0; bevelEnabled: true; bevelSize: 0.04; bevelThickness: 0.04; curveSegments: 1',
+              material: 'shader: flat; color: white; transparent: true; opacity: 0.4' })
+          ),
+          '//////////////////////////////////////////',
+          (0, _preact.h)(
+            'a-entity',
+            { 'collider-check': true, 'class': 'one clickable', onMouseDown: this._handleMouseDown.bind(this), onClick: this._handleClick.bind(this),
               geometry: 'primitive: box; depth=0.2 height=0.5 width=0.5',
               position: '0.5 0.5 -4',
               rotation: '0 0 0',
@@ -115370,7 +115444,7 @@ var Main = function (_Component) {
               position: '2 0.5 -4',
               rotation: '0 0 0',
               material: 'color: #404',
-              sound: 'src: url(/sounds/snare-1.wav); poolSize: 10; mousedown' },
+              sound: 'src: url(/sounds/snare-1.wav); poolSize: 10; on: mousedown' },
             (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mousedown', from: 'red', to: '#404', dur: '100' }),
             (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
           ),
@@ -115434,14 +115508,35 @@ var Main = function (_Component) {
       );
     }
   }, {
+    key: '_handleMouseDown',
+    value: function _handleMouseDown(event) {
+      console.log("mouse down fired!!!");
+      var entity = document.querySelector('[sound]');
+      console.log(entity.components.sound, ".... sound");
+      // if (event.type == 'mousedown') {
+      //   var myInterval = setInterval(() => {
+      //     yah();
+      //   }, 500);
+      //   function yah() {
+      //     entity.components.sound.playSound();
+      //   }
+      // }
+      // if (event.type == 'mouseup') {
+      //   console.log("mouseupppppppp");
+      //   clearInterval(myInterval);
+      // }
+    }
+  }, {
     key: '_handleClick',
     value: function _handleClick(event) {
       console.log("clicked");
-      console.log("event.target", event.target);
-      var entity = document.querySelector('.clickable');
-      console.log("sounddd entity val: ", entity.components.sound);
-      console.log(event, " ....wtf is this event evaluate to?");
-      if (event) {
+      // console.log("event.target", event.target);
+      var entity = document.querySelector('[sound]');
+      // entity.components.sound.playSound();
+      // console.log("sounddd entity val: ", entity.components.sound);
+      // console.log(event, " ....wtf is this event evaluate to?");
+      // console.log(event.type, "  === event.type");
+      if (event.type == 'mousedown') {
         console.log("event!!!!");
         // if (entity.components.sound.evtDetail.isPlaying == true) {
         //   console.log("jeyahhh boiiiiiiiiiiiiii");
