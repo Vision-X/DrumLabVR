@@ -259,7 +259,7 @@ class Main extends Component {
 
         <a-entity collider-check class="clickable" onMouseDown={this._handleMouseDown.bind(this)} onClick={this._handleClick.bind(this)}
           geometry="primitive: box; depth=0.2 height=0.06 width=0.06"
-          position="1.773 1.012 1.794"
+          position="1.773 1.012 1.793"
           rotation="0 90 0"
           scale="0.100 0.100 0.100"
           material="color: #104"
@@ -281,7 +281,7 @@ class Main extends Component {
 
         <a-entity collider-check class="clickable" onMouseDown={this._handleMouseDown.bind(this)} onClick={this._handleClick.bind(this)}
           geometry="primitive: box; depth=0.2 height=0.06 width=0.06"
-          position="1.773 1.012 1.793"
+          position="1.773 1.012 1.520"
           rotation="0 90 0"
           scale="0.100 0.100 0.100"
           material="color: #104"
