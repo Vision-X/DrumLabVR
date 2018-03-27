@@ -10578,6 +10578,952 @@ require.register("aframe-fps-counter-component/index.js", function(exports, requ
   })();
 });
 
+require.register("aframe-mouse-cursor-component/dist/aframe-mouse-cursor-component.js", function(exports, require, module) {
+  require = __makeRelativeRequire(require, {}, "aframe-mouse-cursor-component");
+  (function() {
+    /******/ (function(modules) { // webpackBootstrap
+/******/ 	// The module cache
+/******/ 	var installedModules = {};
+
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+
+/******/ 		// Check if module is in cache
+/******/ 		if(installedModules[moduleId])
+/******/ 			return installedModules[moduleId].exports;
+
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = installedModules[moduleId] = {
+/******/ 			exports: {},
+/******/ 			id: moduleId,
+/******/ 			loaded: false
+/******/ 		};
+
+/******/ 		// Execute the module function
+/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
+
+/******/ 		// Flag the module as loaded
+/******/ 		module.loaded = true;
+
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+
+
+/******/ 	// expose the modules object (__webpack_modules__)
+/******/ 	__webpack_require__.m = modules;
+
+/******/ 	// expose the module cache
+/******/ 	__webpack_require__.c = installedModules;
+
+/******/ 	// __webpack_public_path__
+/******/ 	__webpack_require__.p = "";
+
+/******/ 	// Load entry module and return exports
+/******/ 	return __webpack_require__(0);
+/******/ })
+/************************************************************************/
+/******/ ([
+/* 0 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	var _lodash = __webpack_require__(1);
+
+	var _lodash2 = _interopRequireDefault(_lodash);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	if (typeof AFRAME === 'undefined') {
+		throw 'mouse-cursor Component attempted to register before AFRAME was available.';
+	}
+
+	var IS_VR_AVAILABLE = AFRAME.utils.device.isMobile() || window.hasNonPolyfillWebVRSupport;
+
+	/**
+	 * Mouse Cursor Component for A-Frame.
+	 */
+	AFRAME.registerComponent('mouse-cursor', {
+		schema: {},
+
+		/**
+	  * Called once when component is attached. Generally for initial setup.
+	  * @protected
+	  */
+		init: function init() {
+			this._raycaster = new THREE.Raycaster();
+			this._mouse = new THREE.Vector2();
+			this._isMobile = this.el.sceneEl.isMobile;
+			this._isStereo = false;
+			this._active = false;
+			this._isDown = false;
+			this._intersectedEl = null;
+			this._attachEventListeners();
+			this._canvasSize = false;
+			/* bind functions */
+			this.__getCanvasPos = this._getCanvasPos.bind(this);
+			this.__getCanvasPos = this._getCanvasPos.bind(this);
+			this.__onEnterVR = this._onEnterVR.bind(this);
+			this.__onExitVR = this._onExitVR.bind(this);
+			this.__onDown = this._onDown.bind(this);
+			this.__onClick = this._onClick.bind(this);
+			this.__onMouseMove = this._onMouseMove.bind(this);
+			this.__onRelease = this._onRelease.bind(this);
+			this.__onTouchMove = this._onTouchMove.bind(this);
+			this.__onComponentChanged = this._onComponentChanged.bind(this);
+		},
+
+
+		/**
+	  * Called when component is attached and when component data changes.
+	  * Generally modifies the entity based on the data.
+	  * @protected
+	  */
+		update: function update(oldData) {},
+
+
+		/**
+	  * Called when a component is removed (e.g., via removeAttribute).
+	  * Generally undoes all modifications to the entity.
+	  * @protected
+	  */
+		remove: function remove() {
+			this._removeEventListeners();
+			this._raycaster = null;
+		},
+
+
+		/**
+	  * Called on each scene tick.
+	  * @protected
+	  */
+		// tick (t) { },
+
+		/**
+	  * Called when entity pauses.
+	  * Use to stop or remove any dynamic or background behavior such as events.
+	  * @protected
+	  */
+		pause: function pause() {
+			this._active = false;
+		},
+
+
+		/**
+	  * Called when entity resumes.
+	  * Use to continue or add any dynamic or background behavior such as events.
+	  * @protected
+	  */
+		play: function play() {
+			this._active = true;
+		},
+
+
+		/*==============================
+	  =            events            =
+	  ==============================*/
+
+		/**
+	  * @private
+	  */
+		_attachEventListeners: function _attachEventListeners() {
+			var el = this.el;
+			var sceneEl = el.sceneEl;
+			var canvas = sceneEl.canvas;
+			/* if canvas doesn't exist, listen for canvas to load. */
+
+			if (!canvas) {
+				el.sceneEl.addEventListener('render-target-loaded', this._attachEventListeners.bind(this));
+				return;
+			}
+
+			window.addEventListener('resize', this.__getCanvasPos);
+			document.addEventListener('scroll', this.__getCanvasPos);
+			/* update _canvas in case scene is embedded */
+			this._getCanvasPos();
+
+			/* scene */
+			sceneEl.addEventListener('enter-vr', this.__onEnterVR);
+			sceneEl.addEventListener('exit-vr', this.__onExitVR);
+
+			/* Mouse events */
+			canvas.addEventListener('mousedown', this.__onDown);
+			canvas.addEventListener('mousemove', this.__onMouseMove);
+			canvas.addEventListener('mouseup', this.__onRelease);
+			canvas.addEventListener('mouseout', this.__onRelease);
+
+			/* Touch events */
+			canvas.addEventListener('touchstart', this.__onDown);
+			canvas.addEventListener('touchmove', this.__onTouchMove);
+			canvas.addEventListener('touchend', this.__onRelease);
+
+			/* Click event */
+			canvas.addEventListener('click', this.__onClick);
+
+			/* Element component change */
+			el.addEventListener('componentchanged', this.__onComponentChanged);
+		},
+
+
+		/**
+	  * @private
+	  */
+		_removeEventListeners: function _removeEventListeners() {
+			var el = this.el;
+			var sceneEl = el.sceneEl;
+			var canvas = sceneEl.canvas;
+
+			if (!canvas) {
+				return;
+			}
+
+			window.removeEventListener('resize', this.__getCanvasPos);
+			document.removeEventListener('scroll', this.__getCanvasPos);
+
+			/* scene */
+			sceneEl.removeEventListener('enter-vr', this.__onEnterVR);
+			sceneEl.removeEventListener('exit-vr', this.__onExitVR);
+
+			/* Mouse events */
+			canvas.removeEventListener('mousedown', this.__onDown);
+			canvas.removeEventListener('mousemove', this.__onMouseMove);
+			canvas.removeEventListener('mouseup', this.__onRelease);
+			canvas.removeEventListener('mouseout', this.__onRelease);
+
+			/* Touch events */
+			canvas.removeEventListener('touchstart', this.__onDown);
+			canvas.removeEventListener('touchmove', this.__onTouchMove);
+			canvas.removeEventListener('touchend', this.__onRelease);
+
+			/* Click event */
+			canvas.removeEventListener('click', this.__onClick);
+
+			/* Element component change */
+			el.removeEventListener('componentchanged', this.__onComponentChanged);
+		},
+
+
+		/**
+	  * Check if the mouse cursor is active
+	  * @private
+	  */
+		_isActive: function _isActive() {
+			return !!(this._active || this._raycaster);
+		},
+
+
+		/**
+	  * @private
+	  */
+		_onDown: function _onDown(evt) {
+			if (!this._isActive()) {
+				return;
+			}
+
+			this._isDown = true;
+
+			this._updateMouse(evt);
+			this._updateIntersectObject();
+
+			if (!this._isMobile) {
+				this._setInitMousePosition(evt);
+			}
+			if (this._intersectedEl) {
+				this._emit('mousedown');
+			}
+		},
+
+
+		/**
+	  * @private
+	  */
+		_onClick: function _onClick(evt) {
+			if (!this._isActive()) {
+				return;
+			}
+
+			this._updateMouse(evt);
+			this._updateIntersectObject();
+
+			if (this._intersectedEl) {
+				this._emit('click');
+			}
+		},
+
+
+		/**
+	  * @private
+	  */
+		_onRelease: function _onRelease() {
+			if (!this._isActive()) {
+				return;
+			}
+
+			/* check if mouse position has updated */
+			if (this._defMousePosition) {
+				var defX = Math.abs(this._initMousePosition.x - this._defMousePosition.x);
+				var defY = Math.abs(this._initMousePosition.y - this._defMousePosition.y);
+				var def = Math.max(defX, defY);
+				if (def > 0.04) {
+					/* mouse has moved too much to recognize as click. */
+					this._isDown = false;
+				}
+			}
+
+			if (this._isDown && this._intersectedEl) {
+				this._emit('mouseup');
+			}
+			this._isDown = false;
+			this._resetMousePosition();
+		},
+
+
+		/**
+	  * @private
+	  */
+		_onMouseMove: function _onMouseMove(evt) {
+			if (!this._isActive()) {
+				return;
+			}
+
+			this._updateMouse(evt);
+			this._updateIntersectObject();
+
+			if (this._isDown) {
+				this._setMousePosition(evt);
+			}
+		},
+
+
+		/**
+	  * @private
+	  */
+		_onTouchMove: function _onTouchMove(evt) {
+			if (!this._isActive()) {
+				return;
+			}
+
+			this._isDown = false;
+		},
+
+
+		/**
+	  * @private
+	  */
+		_onEnterVR: function _onEnterVR() {
+			if (IS_VR_AVAILABLE) {
+				this._isStereo = true;
+			}
+			this._getCanvasPos();
+		},
+
+
+		/**
+	  * @private
+	  */
+		_onExitVR: function _onExitVR() {
+			this._isStereo = false;
+			this._getCanvasPos();
+		},
+
+
+		/**
+	  * @private
+	  */
+		_onComponentChanged: function _onComponentChanged(evt) {
+			if (evt.detail.name === 'position') {
+				this._updateIntersectObject();
+			}
+		},
+
+
+		/*=============================
+	  =            mouse            =
+	  =============================*/
+
+		/**
+	  * Get mouse position from size of canvas element
+	  * @private
+	  */
+		_getPosition: function _getPosition(evt) {
+			var _canvasSize = this._canvasSize,
+			    w = _canvasSize.width,
+			    h = _canvasSize.height,
+			    offsetW = _canvasSize.left,
+			    offsetH = _canvasSize.top;
+
+
+			var cx = void 0,
+			    cy = void 0;
+			if (this._isMobile) {
+				var touches = evt.touches;
+
+				if (!touches || touches.length !== 1) {
+					return;
+				}
+				var touch = touches[0];
+				cx = touch.clientX;
+				cy = touch.clientY;
+			} else {
+				cx = evt.clientX;
+				cy = evt.clientY;
+			}
+
+			/* account for the offset if scene is embedded */
+			cx = cx - offsetW;
+			cy = cy - offsetH;
+
+			if (this._isStereo) {
+				cx = cx % (w / 2) * 2;
+			}
+
+			var x = cx / w * 2 - 1;
+			var y = -(cy / h) * 2 + 1;
+
+			return { x: x, y: y };
+		},
+
+
+		/**
+	  * Update mouse
+	  * @private
+	  */
+		_updateMouse: function _updateMouse(evt) {
+			var pos = this._getPosition(evt);
+			if (!pos) {
+				return;
+			}
+
+			this._mouse.x = pos.x;
+			this._mouse.y = pos.y;
+		},
+
+
+		/**
+	  * Update mouse position
+	  * @private
+	  */
+		_setMousePosition: function _setMousePosition(evt) {
+			this._defMousePosition = this._getPosition(evt);
+		},
+
+
+		/**
+	  * Update initial mouse position
+	  * @private
+	  */
+		_setInitMousePosition: function _setInitMousePosition(evt) {
+			this._initMousePosition = this._getPosition(evt);
+		},
+		_resetMousePosition: function _resetMousePosition() {
+			this._initMousePosition = this._defMousePosition = null;
+		},
+
+
+		/*======================================
+	  =            scene children            =
+	  ======================================*/
+
+		/**
+	  * @private
+	  */
+		_getCanvasPos: function _getCanvasPos() {
+			this._canvasSize = this.el.sceneEl.canvas.getBoundingClientRect(); // update _canvas in case scene is embedded
+		},
+
+
+		/**
+	  * Get non group object3D
+	  * @private
+	  */
+		_getChildren: function _getChildren(object3D) {
+			var _this = this;
+
+			return object3D.children.map(function (obj) {
+				return obj.type === 'Group' ? _this._getChildren(obj) : obj;
+			});
+		},
+
+
+		/**
+	  * Get all non group object3D
+	  * @private
+	  */
+		_getAllChildren: function _getAllChildren() {
+			var children = this._getChildren(this.el.sceneEl.object3D);
+			return (0, _lodash2.default)(children);
+		},
+
+
+		/*====================================
+	  =            intersection            =
+	  ====================================*/
+
+		/**
+	  * Update intersect element with cursor
+	  * @private
+	  */
+		_updateIntersectObject: function _updateIntersectObject() {
+			var _raycaster = this._raycaster,
+			    el = this.el,
+			    _mouse = this._mouse;
+			var scene = el.sceneEl.object3D;
+
+			var camera = this.el.getObject3D('camera');
+			this._getAllChildren();
+			/* find intersections */
+			// _raycaster.setFromCamera(_mouse, camera) /* this somehow gets error so did the below */
+			_raycaster.ray.origin.setFromMatrixPosition(camera.matrixWorld);
+			_raycaster.ray.direction.set(_mouse.x, _mouse.y, 0.5).unproject(camera).sub(_raycaster.ray.origin).normalize();
+
+			/* get objects intersected between mouse and camera */
+			var children = this._getAllChildren();
+			var intersects = _raycaster.intersectObjects(children);
+
+			if (intersects.length > 0) {
+				/* get the closest three obj */
+				var obj = void 0;
+				intersects.every(function (item) {
+					if (item.object.parent.visible === true) {
+						obj = item.object;
+						return false;
+					} else {
+						return true;
+					}
+				});
+				if (!obj) {
+					this._clearIntersectObject();
+					return;
+				}
+				/* get the entity */
+				var _el = obj.parent.el;
+				/* only updates if the object is not the activated object */
+
+				if (this._intersectedEl === _el) {
+					return;
+				}
+				this._clearIntersectObject();
+				/* apply new object as intersected */
+				this._setIntersectObject(_el);
+			} else {
+				this._clearIntersectObject();
+			}
+		},
+
+
+		/**
+	  * Set intersect element
+	  * @private
+	  * @param {AEntity} el `a-entity` element
+	  */
+		_setIntersectObject: function _setIntersectObject(el) {
+			this._intersectedEl = el;
+			if (this._isMobile) {
+				return;
+			}
+			el.addState('hovered');
+			el.emit('mouseenter');
+			this.el.addState('hovering');
+		},
+
+
+		/**
+	  * Clear intersect element
+	  * @private
+	  */
+		_clearIntersectObject: function _clearIntersectObject() {
+			var el = this._intersectedEl;
+
+			if (el && !this._isMobile) {
+				el.removeState('hovered');
+				el.emit('mouseleave');
+				this.el.removeState('hovering');
+			}
+
+			this._intersectedEl = null;
+		},
+
+
+		/*===============================
+	  =            emitter            =
+	  ===============================*/
+
+		/**
+	  * @private
+	  */
+		_emit: function _emit(evt) {
+			var _intersectedEl = this._intersectedEl;
+
+			this.el.emit(evt, { target: _intersectedEl });
+			if (_intersectedEl) {
+				_intersectedEl.emit(evt);
+			}
+		}
+	});
+
+/***/ }),
+/* 1 */
+/***/ (function(module, exports) {
+
+	/* WEBPACK VAR INJECTION */(function(global) {/**
+	 * lodash (Custom Build) <https://lodash.com/>
+	 * Build: `lodash modularize exports="npm" -o ./`
+	 * Copyright jQuery Foundation and other contributors <https://jquery.org/>
+	 * Released under MIT license <https://lodash.com/license>
+	 * Based on Underscore.js 1.8.3 <http://underscorejs.org/LICENSE>
+	 * Copyright Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
+	 */
+
+	/** Used as references for various `Number` constants. */
+	var INFINITY = 1 / 0,
+	    MAX_SAFE_INTEGER = 9007199254740991;
+
+	/** `Object#toString` result references. */
+	var argsTag = '[object Arguments]',
+	    funcTag = '[object Function]',
+	    genTag = '[object GeneratorFunction]';
+
+	/** Detect free variable `global` from Node.js. */
+	var freeGlobal = typeof global == 'object' && global && global.Object === Object && global;
+
+	/** Detect free variable `self`. */
+	var freeSelf = typeof self == 'object' && self && self.Object === Object && self;
+
+	/** Used as a reference to the global object. */
+	var root = freeGlobal || freeSelf || Function('return this')();
+
+	/**
+	 * Appends the elements of `values` to `array`.
+	 *
+	 * @private
+	 * @param {Array} array The array to modify.
+	 * @param {Array} values The values to append.
+	 * @returns {Array} Returns `array`.
+	 */
+	function arrayPush(array, values) {
+	  var index = -1,
+	      length = values.length,
+	      offset = array.length;
+
+	  while (++index < length) {
+	    array[offset + index] = values[index];
+	  }
+	  return array;
+	}
+
+	/** Used for built-in method references. */
+	var objectProto = Object.prototype;
+
+	/** Used to check objects for own properties. */
+	var hasOwnProperty = objectProto.hasOwnProperty;
+
+	/**
+	 * Used to resolve the
+	 * [`toStringTag`](http://ecma-international.org/ecma-262/7.0/#sec-object.prototype.tostring)
+	 * of values.
+	 */
+	var objectToString = objectProto.toString;
+
+	/** Built-in value references. */
+	var Symbol = root.Symbol,
+	    propertyIsEnumerable = objectProto.propertyIsEnumerable,
+	    spreadableSymbol = Symbol ? Symbol.isConcatSpreadable : undefined;
+
+	/**
+	 * The base implementation of `_.flatten` with support for restricting flattening.
+	 *
+	 * @private
+	 * @param {Array} array The array to flatten.
+	 * @param {number} depth The maximum recursion depth.
+	 * @param {boolean} [predicate=isFlattenable] The function invoked per iteration.
+	 * @param {boolean} [isStrict] Restrict to values that pass `predicate` checks.
+	 * @param {Array} [result=[]] The initial result value.
+	 * @returns {Array} Returns the new flattened array.
+	 */
+	function baseFlatten(array, depth, predicate, isStrict, result) {
+	  var index = -1,
+	      length = array.length;
+
+	  predicate || (predicate = isFlattenable);
+	  result || (result = []);
+
+	  while (++index < length) {
+	    var value = array[index];
+	    if (depth > 0 && predicate(value)) {
+	      if (depth > 1) {
+	        // Recursively flatten arrays (susceptible to call stack limits).
+	        baseFlatten(value, depth - 1, predicate, isStrict, result);
+	      } else {
+	        arrayPush(result, value);
+	      }
+	    } else if (!isStrict) {
+	      result[result.length] = value;
+	    }
+	  }
+	  return result;
+	}
+
+	/**
+	 * Checks if `value` is a flattenable `arguments` object or array.
+	 *
+	 * @private
+	 * @param {*} value The value to check.
+	 * @returns {boolean} Returns `true` if `value` is flattenable, else `false`.
+	 */
+	function isFlattenable(value) {
+	  return isArray(value) || isArguments(value) ||
+	    !!(spreadableSymbol && value && value[spreadableSymbol]);
+	}
+
+	/**
+	 * Recursively flattens `array`.
+	 *
+	 * @static
+	 * @memberOf _
+	 * @since 3.0.0
+	 * @category Array
+	 * @param {Array} array The array to flatten.
+	 * @returns {Array} Returns the new flattened array.
+	 * @example
+	 *
+	 * _.flattenDeep([1, [2, [3, [4]], 5]]);
+	 * // => [1, 2, 3, 4, 5]
+	 */
+	function flattenDeep(array) {
+	  var length = array ? array.length : 0;
+	  return length ? baseFlatten(array, INFINITY) : [];
+	}
+
+	/**
+	 * Checks if `value` is likely an `arguments` object.
+	 *
+	 * @static
+	 * @memberOf _
+	 * @since 0.1.0
+	 * @category Lang
+	 * @param {*} value The value to check.
+	 * @returns {boolean} Returns `true` if `value` is an `arguments` object,
+	 *  else `false`.
+	 * @example
+	 *
+	 * _.isArguments(function() { return arguments; }());
+	 * // => true
+	 *
+	 * _.isArguments([1, 2, 3]);
+	 * // => false
+	 */
+	function isArguments(value) {
+	  // Safari 8.1 makes `arguments.callee` enumerable in strict mode.
+	  return isArrayLikeObject(value) && hasOwnProperty.call(value, 'callee') &&
+	    (!propertyIsEnumerable.call(value, 'callee') || objectToString.call(value) == argsTag);
+	}
+
+	/**
+	 * Checks if `value` is classified as an `Array` object.
+	 *
+	 * @static
+	 * @memberOf _
+	 * @since 0.1.0
+	 * @category Lang
+	 * @param {*} value The value to check.
+	 * @returns {boolean} Returns `true` if `value` is an array, else `false`.
+	 * @example
+	 *
+	 * _.isArray([1, 2, 3]);
+	 * // => true
+	 *
+	 * _.isArray(document.body.children);
+	 * // => false
+	 *
+	 * _.isArray('abc');
+	 * // => false
+	 *
+	 * _.isArray(_.noop);
+	 * // => false
+	 */
+	var isArray = Array.isArray;
+
+	/**
+	 * Checks if `value` is array-like. A value is considered array-like if it's
+	 * not a function and has a `value.length` that's an integer greater than or
+	 * equal to `0` and less than or equal to `Number.MAX_SAFE_INTEGER`.
+	 *
+	 * @static
+	 * @memberOf _
+	 * @since 4.0.0
+	 * @category Lang
+	 * @param {*} value The value to check.
+	 * @returns {boolean} Returns `true` if `value` is array-like, else `false`.
+	 * @example
+	 *
+	 * _.isArrayLike([1, 2, 3]);
+	 * // => true
+	 *
+	 * _.isArrayLike(document.body.children);
+	 * // => true
+	 *
+	 * _.isArrayLike('abc');
+	 * // => true
+	 *
+	 * _.isArrayLike(_.noop);
+	 * // => false
+	 */
+	function isArrayLike(value) {
+	  return value != null && isLength(value.length) && !isFunction(value);
+	}
+
+	/**
+	 * This method is like `_.isArrayLike` except that it also checks if `value`
+	 * is an object.
+	 *
+	 * @static
+	 * @memberOf _
+	 * @since 4.0.0
+	 * @category Lang
+	 * @param {*} value The value to check.
+	 * @returns {boolean} Returns `true` if `value` is an array-like object,
+	 *  else `false`.
+	 * @example
+	 *
+	 * _.isArrayLikeObject([1, 2, 3]);
+	 * // => true
+	 *
+	 * _.isArrayLikeObject(document.body.children);
+	 * // => true
+	 *
+	 * _.isArrayLikeObject('abc');
+	 * // => false
+	 *
+	 * _.isArrayLikeObject(_.noop);
+	 * // => false
+	 */
+	function isArrayLikeObject(value) {
+	  return isObjectLike(value) && isArrayLike(value);
+	}
+
+	/**
+	 * Checks if `value` is classified as a `Function` object.
+	 *
+	 * @static
+	 * @memberOf _
+	 * @since 0.1.0
+	 * @category Lang
+	 * @param {*} value The value to check.
+	 * @returns {boolean} Returns `true` if `value` is a function, else `false`.
+	 * @example
+	 *
+	 * _.isFunction(_);
+	 * // => true
+	 *
+	 * _.isFunction(/abc/);
+	 * // => false
+	 */
+	function isFunction(value) {
+	  // The use of `Object#toString` avoids issues with the `typeof` operator
+	  // in Safari 8-9 which returns 'object' for typed array and other constructors.
+	  var tag = isObject(value) ? objectToString.call(value) : '';
+	  return tag == funcTag || tag == genTag;
+	}
+
+	/**
+	 * Checks if `value` is a valid array-like length.
+	 *
+	 * **Note:** This method is loosely based on
+	 * [`ToLength`](http://ecma-international.org/ecma-262/7.0/#sec-tolength).
+	 *
+	 * @static
+	 * @memberOf _
+	 * @since 4.0.0
+	 * @category Lang
+	 * @param {*} value The value to check.
+	 * @returns {boolean} Returns `true` if `value` is a valid length, else `false`.
+	 * @example
+	 *
+	 * _.isLength(3);
+	 * // => true
+	 *
+	 * _.isLength(Number.MIN_VALUE);
+	 * // => false
+	 *
+	 * _.isLength(Infinity);
+	 * // => false
+	 *
+	 * _.isLength('3');
+	 * // => false
+	 */
+	function isLength(value) {
+	  return typeof value == 'number' &&
+	    value > -1 && value % 1 == 0 && value <= MAX_SAFE_INTEGER;
+	}
+
+	/**
+	 * Checks if `value` is the
+	 * [language type](http://www.ecma-international.org/ecma-262/7.0/#sec-ecmascript-language-types)
+	 * of `Object`. (e.g. arrays, functions, objects, regexes, `new Number(0)`, and `new String('')`)
+	 *
+	 * @static
+	 * @memberOf _
+	 * @since 0.1.0
+	 * @category Lang
+	 * @param {*} value The value to check.
+	 * @returns {boolean} Returns `true` if `value` is an object, else `false`.
+	 * @example
+	 *
+	 * _.isObject({});
+	 * // => true
+	 *
+	 * _.isObject([1, 2, 3]);
+	 * // => true
+	 *
+	 * _.isObject(_.noop);
+	 * // => true
+	 *
+	 * _.isObject(null);
+	 * // => false
+	 */
+	function isObject(value) {
+	  var type = typeof value;
+	  return !!value && (type == 'object' || type == 'function');
+	}
+
+	/**
+	 * Checks if `value` is object-like. A value is object-like if it's not `null`
+	 * and has a `typeof` result of "object".
+	 *
+	 * @static
+	 * @memberOf _
+	 * @since 4.0.0
+	 * @category Lang
+	 * @param {*} value The value to check.
+	 * @returns {boolean} Returns `true` if `value` is object-like, else `false`.
+	 * @example
+	 *
+	 * _.isObjectLike({});
+	 * // => true
+	 *
+	 * _.isObjectLike([1, 2, 3]);
+	 * // => true
+	 *
+	 * _.isObjectLike(_.noop);
+	 * // => false
+	 *
+	 * _.isObjectLike(null);
+	 * // => false
+	 */
+	function isObjectLike(value) {
+	  return !!value && typeof value == 'object';
+	}
+
+	module.exports = flattenDeep;
+
+	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
+
+/***/ })
+/******/ ]);
+  })();
+});
+
 require.register("aframe-physics-system/index.js", function(exports, require, module) {
   require = __makeRelativeRequire(require, {}, "aframe-physics-system");
   (function() {
@@ -115280,6 +116226,8 @@ require('aframe-teleport-controls');
 
 require('aframe-aabb-collider-component');
 
+require('aframe-mouse-cursor-component');
+
 require('aframe-text-geometry-component');
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -115306,9 +116254,7 @@ var Main = function (_Component) {
     var _this = _possibleConstructorReturn(this, (Main.__proto__ || Object.getPrototypeOf(Main)).call(this));
 
     _this.state = {
-      colorIndex: 0,
-      spherePosition: { x: 0.0, y: 4, z: -10.0 }
-
+      colorIndex: 0
     };
     _this._handleClick = _this._handleClick.bind(_this);
 
@@ -115362,37 +116308,31 @@ var Main = function (_Component) {
          /> */
         (0, _preact.h)(
           'a-scene',
-          null,
+          { stats: true },
           (0, _preact.h)(
             'a-assets',
             null,
-            (0, _preact.h)('img', { id: 'pink', src: 'https://img.gs/bbdkhfbzkk/stretch/http://i.imgur.com/1hyyIUi.jpg', crossorigin: 'anonymous' }),
             (0, _preact.h)('img', { src: 'https://img.gs/bbdkhfbzkk/stretch/https://i.imgur.com/25P1geh.png', id: 'grid', crossorigin: 'anonymous' }),
             (0, _preact.h)('img', { src: 'https://img.gs/bbdkhfbzkk/2048x1024,stretch/http://i.imgur.com/WMNH2OF.jpg', id: 'chrome', crossorigin: 'anonymous' }),
             (0, _preact.h)('img', { id: 'sky', src: 'https://img.gs/bbdkhfbzkk/2048x2048,stretch/http://i.imgur.com/WqlqEkq.jpg', crossorigin: 'anonymous' }),
-            (0, _preact.h)('a-asset-item', { id: 'dawningFont', src: 'https://cdn.glitch.com/c719c986-c0c5-48b8-967c-3cd8b8aa17f3%2FdawningOfANewDayRegular.typeface.json?1490305922844' }),
             (0, _preact.h)('a-asset-item', { id: 'exoFont', src: 'https://cdn.glitch.com/c719c986-c0c5-48b8-967c-3cd8b8aa17f3%2Fexo2Black.typeface.json?1490305922150' }),
             (0, _preact.h)('a-asset-item', { id: 'exoItalicFont', src: 'https://cdn.glitch.com/c719c986-c0c5-48b8-967c-3cd8b8aa17f3%2Fexo2BlackItalic.typeface.json?1490305922725' }),
             (0, _preact.h)('a-asset-item', { id: 'speaker-obj', src: '/speaker-model.obj' }),
             (0, _preact.h)('a-asset-item', { id: 'speaker-mtl', src: '/speaker-materials.mtl' }),
-            (0, _preact.h)('a-asset-item', { id: 'desk-obj', src: '/desk-model.obj' }),
-            (0, _preact.h)('a-asset-item', { id: 'desk-mtl', src: '/desk-materials.mtl' }),
-            (0, _preact.h)('a-mixin', { id: 'curved-panel',
-              material: 'side:back;',
-              geometry: 'radius:5; theta-start:165; theta-length:30; open-ended:true;height:2;' }),
-            (0, _preact.h)('a-mixin', { id: 'translucent-black',
-              material: 'color:black; opacity:0.25;' })
+            (0, _preact.h)('a-asset-item', { id: 'studio-obj', src: '/studio-minimal-object.obj' }),
+            (0, _preact.h)('a-asset-item', { id: 'studio-mtl', src: '/studio-minimal-materials.mtl' })
           ),
           (0, _preact.h)(
             'a-entity',
-            { id: 'cameraRig', position: '2.000 0 2.000', rotation: '0 90 0' },
-            (0, _preact.h)('a-entity', { id: 'head', 'wasd-controls': true, camera: true, 'look-controls': true }),
+            { 'wasd-controls': true, id: 'cameraRig', position: '2.339 0 1.614', rotation: '0 90 0' },
+            (0, _preact.h)('a-entity', { id: 'head', rotation: '0 90 0', camera: true, 'look-controls': true }),
             (0, _preact.h)('a-entity', { id: 'my-raycaster', 'teleport-controls': 'startEvents: teleportstart; endEvents: teleportend; type: parabolic;', 'aabb-collider': 'objects: .clickable;', raycaster: 'objects: .clickable;', line: 'color: blue;', 'oculus-touch-controls': 'hand: left;', 'laser-controls': 'hand: left; objects: .clickable;' }),
-            (0, _preact.h)('a-entity', { id: 'right-hand', 'wasd-controls': true, 'oculus-touch-controls': 'hand: right;', 'teleport-controls': 'startEvents: teleportstart; endEvents: teleportend; type: parabolic;', 'fps-counter': true })
+            (0, _preact.h)('a-entity', { id: 'right-hand', 'fps-counter': true, 'oculus-touch-controls': 'hand: right;', 'teleport-controls': 'startEvents: teleportstart; endEvents: teleportend; type: parabolic;' })
           ),
           (0, _preact.h)('a-entity', { id: 'ground',
-            geometry: 'primitive: plane; width: 10000; height: 10000;', rotation: '-90 0 0',
-            material: 'src: #grid; repeat: 10000 10000; transparent: true;metalness:0.6; roughness: 0.4; sphericalEnvMap: #sky;' }),
+            geometry: 'primitive: plane; width: 1000; height: 1000;', rotation: '-90 0 0',
+            material: 'src: #grid; repeat: 1000 1000; transparent: true; metalness:0.6; roughness: 0.4;' }),
+          (0, _preact.h)('a-entity', { light: 'color: #ccccff; intensity: 1; type: ambient;', visible: '' }),
           (0, _preact.h)('a-entity', { light: 'color: white; intensity: 0.5', position: '-5 5 15' }),
           (0, _preact.h)('a-entity', { light: 'color: white; type: ambient;' }),
           (0, _preact.h)('a-sky', { src: '#sky', rotation: '0 -90 0' }),
@@ -115400,23 +116340,59 @@ var Main = function (_Component) {
           (0, _preact.h)(
             'a-entity',
             { position: '-9.5 2 -9', rotation: '10 25 0' },
-            (0, _preact.h)('a-entity', { position: '-4.4 3.4 16.4', rotation: '0 80 0', scale: '0.6 1.2 1', 'text-geometry': 'value: DrumLab; font: #exoFont; bevelEnabled: true; bevelSize: 0.1; bevelThickness: 0.1; curveSegments: 1; size: 1.0; height: 0.5;', material: 'color:pink; metalness:0.9; roughness: 0.05; sphericalEnvMap: #chrome;' }),
+            (0, _preact.h)('a-entity', { position: '-4.4 3.4 16.4', rotation: '0 80 0', scale: '0.6 1.2 1', 'text-geometry': 'value: DrumLab; font: #exoFont; bevelEnabled: true; bevelSize: 0.1; bevelThickness: 0.1; curveSegments: 1; size: 1.0; height: 0.5;', material: 'color:blue; metalness:0.9; roughness: 0.05; sphericalEnvMap: #chrome;' }),
             (0, _preact.h)('a-entity', { position: '-3.4 3.2 12.6', rotation: '0 80 0', 'text-geometry': 'value: VR; font: #exoItalicFont; style: italic; size: 0.8; weight: bold; height: 0;',
               material: 'shader: flat; color: white' }),
             (0, _preact.h)('a-entity', { position: '-3.4 3.2 12.6', rotation: '0 80 0', 'text-geometry': 'value: VR; font: #exoItalicFont; style: italic; size: 0.8; weight: bold; height: 0; bevelEnabled: true; bevelSize: 0.04; bevelThickness: 0.04; curveSegments: 1',
               material: 'shader: flat; color: white; transparent: true; opacity: 0.4' })
           ),
           '/////////////////////////////////',
-          (0, _preact.h)('a-entity', { 'obj-model': 'obj: #desk-obj; mtl: #desk-mtl;', scale: '1.5 1.5 1.5', position: '1.52 1.05 1.67', rotation: '0 90 0' }),
+          (0, _preact.h)('a-entity', { 'obj-model': 'obj: #studio-obj; mtl: #studio-mtl', scale: '1.3 1.3 1.3', position: '1.634 0.743 1.979', rotation: '0 90 0' }),
           (0, _preact.h)(
             'a-entity',
             { 'collider-check': true, 'class': 'clickable', onMouseDown: this._handleMouseDown.bind(this), onClick: this._handleClick.bind(this),
               geometry: 'primitive: box; depth=0.2 height=0.06 width=0.06',
-              position: '1.914 1.012 1.794',
+              position: '1.914 0.912 1.794',
+              rotation: '0 90 0',
+              scale: '0.100 0.100 0.100',
+              material: 'color: #124E78',
+              sound: 'src: url(/sounds/kick-1.wav); poolSize: 6; on: mousedown' },
+            (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mouseover', from: 'lightblue', to: '#124E78', dur: '100' }),
+            (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
+          ),
+          (0, _preact.h)(
+            'a-entity',
+            { 'collider-check': true, 'class': 'clickable', onMouseDown: this._handleMouseDown.bind(this), onClick: this._handleClick.bind(this),
+              geometry: 'primitive: box; depth=0.2 height=0.06 width=0.06',
+              position: '1.914 0.912 1.665',
+              rotation: '0 90 0',
+              scale: '0.100 0.100 0.100',
+              material: 'color: #124E78',
+              sound: 'src: url(/sounds/kick-1.wav); poolSize: 6; on: mousedown' },
+            (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mouseover', from: 'lightblue', to: '#124E78', dur: '100' }),
+            (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
+          ),
+          (0, _preact.h)(
+            'a-entity',
+            { 'collider-check': true, 'class': 'clickable', onMouseDown: this._handleMouseDown.bind(this), onClick: this._handleClick.bind(this),
+              geometry: 'primitive: box; depth=0.2 height=0.06 width=0.06',
+              position: '1.914 0.912 1.520',
+              rotation: '0 90 0',
+              scale: '0.100 0.100 0.100',
+              material: 'color: #124E78',
+              sound: 'src: url(/sounds/kick-1.wav); poolSize: 6; on: mousedown' },
+            (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mouseover', from: 'lightblue', to: '#124E78', dur: '100' }),
+            (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
+          ),
+          (0, _preact.h)(
+            'a-entity',
+            { 'collider-check': true, 'class': 'clickable', onMouseDown: this._handleMouseDown.bind(this), onClick: this._handleClick.bind(this),
+              geometry: 'primitive: box; depth=0.2 height=0.06 width=0.06',
+              position: '1.773 0.912 1.793',
               rotation: '0 90 0',
               scale: '0.100 0.100 0.100',
               material: 'color: #104',
-              sound: 'src: url(/sounds/kick-1.wav); poolSize: 10; on: mousedown' },
+              sound: 'src: url(/sounds/kick-1.wav); poolSize: 6; on: mousedown' },
             (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mouseover', from: 'lightblue', to: '#104', dur: '100' }),
             (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
           ),
@@ -115424,11 +116400,11 @@ var Main = function (_Component) {
             'a-entity',
             { 'collider-check': true, 'class': 'clickable', onMouseDown: this._handleMouseDown.bind(this), onClick: this._handleClick.bind(this),
               geometry: 'primitive: box; depth=0.2 height=0.06 width=0.06',
-              position: '1.914 1.012 1.665',
+              position: '1.773 0.912 1.662',
               rotation: '0 90 0',
               scale: '0.100 0.100 0.100',
               material: 'color: #104',
-              sound: 'src: url(/sounds/kick-1.wav); poolSize: 10; on: mousedown' },
+              sound: 'src: url(/sounds/kick-1.wav); poolSize: 6; on: mousedown' },
             (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mouseover', from: 'lightblue', to: '#104', dur: '100' }),
             (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
           ),
@@ -115436,11 +116412,11 @@ var Main = function (_Component) {
             'a-entity',
             { 'collider-check': true, 'class': 'clickable', onMouseDown: this._handleMouseDown.bind(this), onClick: this._handleClick.bind(this),
               geometry: 'primitive: box; depth=0.2 height=0.06 width=0.06',
-              position: '1.914 1.012 1.520',
+              position: '1.773 0.912 1.520',
               rotation: '0 90 0',
               scale: '0.100 0.100 0.100',
               material: 'color: #104',
-              sound: 'src: url(/sounds/kick-1.wav); poolSize: 10; on: mousedown' },
+              sound: 'src: url(/sounds/kick-1.wav); poolSize: 6; on: mousedown' },
             (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mouseover', from: 'lightblue', to: '#104', dur: '100' }),
             (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
           ),
@@ -115448,11 +116424,11 @@ var Main = function (_Component) {
             'a-entity',
             { 'collider-check': true, 'class': 'clickable', onMouseDown: this._handleMouseDown.bind(this), onClick: this._handleClick.bind(this),
               geometry: 'primitive: box; depth=0.2 height=0.06 width=0.06',
-              position: '1.773 1.012 1.793',
+              position: '1.625 0.912 1.793',
               rotation: '0 90 0',
               scale: '0.100 0.100 0.100',
               material: 'color: #104',
-              sound: 'src: url(/sounds/kick-1.wav); poolSize: 10; on: mousedown' },
+              sound: 'src: url(/sounds/kick-1.wav); poolSize: 6; on: mousedown' },
             (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mouseover', from: 'lightblue', to: '#104', dur: '100' }),
             (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
           ),
@@ -115460,11 +116436,11 @@ var Main = function (_Component) {
             'a-entity',
             { 'collider-check': true, 'class': 'clickable', onMouseDown: this._handleMouseDown.bind(this), onClick: this._handleClick.bind(this),
               geometry: 'primitive: box; depth=0.2 height=0.06 width=0.06',
-              position: '1.773 1.012 1.662',
+              position: '1.625 0.912 1.662',
               rotation: '0 90 0',
               scale: '0.100 0.100 0.100',
               material: 'color: #104',
-              sound: 'src: url(/sounds/kick-1.wav); poolSize: 10; on: mousedown' },
+              sound: 'src: url(/sounds/kick-1.wav); poolSize: 6; on: mousedown' },
             (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mouseover', from: 'lightblue', to: '#104', dur: '100' }),
             (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
           ),
@@ -115472,53 +116448,15 @@ var Main = function (_Component) {
             'a-entity',
             { 'collider-check': true, 'class': 'clickable', onMouseDown: this._handleMouseDown.bind(this), onClick: this._handleClick.bind(this),
               geometry: 'primitive: box; depth=0.2 height=0.06 width=0.06',
-              position: '1.773 1.012 1.520',
+              position: '1.625 0.912 1.520',
               rotation: '0 90 0',
               scale: '0.100 0.100 0.100',
               material: 'color: #104',
-              sound: 'src: url(/sounds/kick-1.wav); poolSize: 10; on: mousedown' },
-            (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mouseover', from: 'lightblue', to: '#104', dur: '100' }),
-            (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
-          ),
-          (0, _preact.h)(
-            'a-entity',
-            { 'collider-check': true, 'class': 'clickable', onMouseDown: this._handleMouseDown.bind(this), onClick: this._handleClick.bind(this),
-              geometry: 'primitive: box; depth=0.2 height=0.06 width=0.06',
-              position: '1.625 1.012 1.793',
-              rotation: '0 90 0',
-              scale: '0.100 0.100 0.100',
-              material: 'color: #104',
-              sound: 'src: url(/sounds/kick-1.wav); poolSize: 10; on: mousedown' },
-            (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mouseover', from: 'lightblue', to: '#104', dur: '100' }),
-            (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
-          ),
-          (0, _preact.h)(
-            'a-entity',
-            { 'collider-check': true, 'class': 'clickable', onMouseDown: this._handleMouseDown.bind(this), onClick: this._handleClick.bind(this),
-              geometry: 'primitive: box; depth=0.2 height=0.06 width=0.06',
-              position: '1.625 1.012 1.662',
-              rotation: '0 90 0',
-              scale: '0.100 0.100 0.100',
-              material: 'color: #104',
-              sound: 'src: url(/sounds/kick-1.wav); poolSize: 10; on: mousedown' },
-            (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mouseover', from: 'lightblue', to: '#104', dur: '100' }),
-            (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
-          ),
-          (0, _preact.h)(
-            'a-entity',
-            { 'collider-check': true, 'class': 'clickable', onMouseDown: this._handleMouseDown.bind(this), onClick: this._handleClick.bind(this),
-              geometry: 'primitive: box; depth=0.2 height=0.06 width=0.06',
-              position: '1.625 1.012 1.520',
-              rotation: '0 90 0',
-              scale: '0.100 0.100 0.100',
-              material: 'color: #104',
-              sound: 'src: url(/sounds/kick-1.wav); poolSize: 10; on: mousedown' },
+              sound: 'src: url(/sounds/kick-1.wav); poolSize: 6; on: mousedown' },
             (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mouseover', from: 'lightblue', to: '#104', dur: '100' }),
             (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
           ),
           '//////////////////////////////////////////',
-          (0, _preact.h)('a-entity', { 'obj-model': 'obj: #speaker-obj; mtl: #speaker-mtl', scale: '2 2 2', position: '-2 1.900 -4', rotation: '-10 160 10' }),
-          (0, _preact.h)('a-entity', { 'obj-model': 'obj: #speaker-obj; mtl: #speaker-mtl', scale: '2 2 2', position: '6 1.900 -4', rotation: '-10 90 10' }),
           '//////////////////////////////////////////',
           (0, _preact.h)(
             'a-entity',
@@ -115526,9 +116464,9 @@ var Main = function (_Component) {
               geometry: 'primitive: box; depth=0.2 height=0.5 width=0.5',
               position: '0.5 0.5 -4',
               rotation: '0 0 0',
-              material: 'color: #104',
-              sound: 'src: url(/sounds/kick-1.wav); poolSize: 10; on: mousedown' },
-            (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mouseover', from: 'lightblue', to: '#104', dur: '100' }),
+              material: 'color: #124E78',
+              sound: 'src: url(/sounds/kick-1.wav); poolSize: 6; on: mousedown' },
+            (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mouseover', from: 'lightblue', to: '#124E78', dur: '100' }),
             (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
           ),
           (0, _preact.h)(
@@ -115537,9 +116475,9 @@ var Main = function (_Component) {
               geometry: 'primitive: box; depth=0.0 height=0.5 width=0.5',
               position: '0.5 2 -4',
               rotation: '0 0 0',
-              material: 'color: #104',
-              sound: 'src: url(/sounds/kick-2.wav); poolSize: 10; on: mousedown' },
-            (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mousedown', from: 'lightblue', to: '#104', dur: '100' }),
+              material: 'color: #124E78',
+              sound: 'src: url(/sounds/kick-2.wav); poolSize: 6; on: mousedown' },
+            (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mousedown', from: 'lightblue', to: '#124E78', dur: '100' }),
             (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
           ),
           (0, _preact.h)(
@@ -115548,9 +116486,9 @@ var Main = function (_Component) {
               geometry: 'primitive: box; depth=0.0 height=0.5 width=0.5',
               position: '0.5 3.5 -4',
               rotation: '0 0 0',
-              material: 'color: #104',
-              sound: 'src: url(/sounds/kick-3.wav); poolSize: 10; on: mousedown' },
-            (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mousedown', from: 'lightblue', to: '#104', dur: '100' }),
+              material: 'color: #124E78',
+              sound: 'src: url(/sounds/kick-3.wav); poolSize: 6; on: mousedown' },
+            (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mousedown', from: 'lightblue', to: '#124E78', dur: '100' }),
             (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
           ),
           '///////////////////////////////////////////////',
@@ -115560,9 +116498,9 @@ var Main = function (_Component) {
               geometry: 'primitive: box; depth=0.0 height=0.5 width=0.5',
               position: '2 0.5 -4',
               rotation: '0 0 0',
-              material: 'color: #404',
-              sound: 'src: url(/sounds/snare-1.wav); poolSize: 10; on: mousedown' },
-            (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mousedown', from: 'red', to: '#404', dur: '100' }),
+              material: 'color: #D74E09',
+              sound: 'src: url(/sounds/snare-1.wav); poolSize: 6; on: mousedown' },
+            (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mousedown', from: 'red', to: '#D74E09', dur: '100' }),
             (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
           ),
           (0, _preact.h)(
@@ -115571,9 +116509,9 @@ var Main = function (_Component) {
               geometry: 'primitive: box; depth=0.0 height=0.5 width=0.5',
               position: '2 2 -4',
               rotation: '0 0 0',
-              material: 'color: #404',
-              sound: 'src: url(/sounds/snare-2.wav); poolSize: 10; on: mousedown' },
-            (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mousedown', from: 'red', to: '#404', dur: '100' }),
+              material: 'color: #D74E09',
+              sound: 'src: url(/sounds/snare-2.wav); poolSize: 6; on: mousedown' },
+            (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mousedown', from: 'red', to: '#D74E09', dur: '100' }),
             (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
           ),
           (0, _preact.h)(
@@ -115582,9 +116520,9 @@ var Main = function (_Component) {
               geometry: 'primitive: box; depth=0.0 height=0.5 width=0.5',
               position: '2 3.5 -4',
               rotation: '0 0 0',
-              material: 'color: #404',
-              sound: 'src: url(/sounds/snare-3.wav); poolSize: 10; on: mousedown' },
-            (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mousedown', from: 'red', to: '#404', dur: '100' }),
+              material: 'color: #D74E09',
+              sound: 'src: url(/sounds/snare-3.wav); poolSize: 6; on: mousedown' },
+            (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mousedown', from: 'red', to: '#D74E09', dur: '100' }),
             (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
           ),
           '///////////////////////////////////////////////',
@@ -115594,9 +116532,9 @@ var Main = function (_Component) {
               geometry: 'primitive: box; depth=0.0 height=0.5 width=0.5',
               position: '3.5 0.5 -4',
               rotation: '0 0 0',
-              material: 'color: #EEE',
-              sound: 'src: url(/sounds/E808_CH-03.wav); poolSize: 10; on: mousedown' },
-            (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mousedown', from: 'purple', to: '#EEE', dur: '100' }),
+              material: 'color: #0C8346',
+              sound: 'src: url(/sounds/E808_CH-03.wav); poolSize: 6; on: mousedown' },
+            (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mousedown', from: 'purple', to: '#0C8346', dur: '100' }),
             (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
           ),
           (0, _preact.h)(
@@ -115605,9 +116543,9 @@ var Main = function (_Component) {
               geometry: 'primitive: box; depth=0.0 height=0.5 width=0.5',
               position: '3.5 2 -4',
               rotation: '0 0 0',
-              material: 'color: #EEE',
-              sound: 'src: url(/sounds/E808_CH-07.wav); poolSize: 10; on: mousedown' },
-            (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mousedown', from: 'purple', to: '#EEE', dur: '100' }),
+              material: 'color: #0C8346',
+              sound: 'src: url(/sounds/E808_CH-07.wav); poolSize: 6; on: mousedown' },
+            (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mousedown', from: 'purple', to: '#0C8346', dur: '100' }),
             (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
           ),
           (0, _preact.h)(
@@ -115616,9 +116554,9 @@ var Main = function (_Component) {
               geometry: 'primitive: box; depth=0.0 height=0.5 width=0.5',
               position: '3.5 3.5 -4',
               rotation: '0 0 0',
-              material: 'color: #EEE',
-              sound: 'src: url(/sounds/E808_OH-07.wav); poolSize: 10; on: mousedown' },
-            (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mousedown', from: 'purple', to: '#EEE', dur: '100' }),
+              material: 'color: #0C8346',
+              sound: 'src: url(/sounds/E808_OH-07.wav); poolSize: 6; on: mousedown' },
+            (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mousedown', from: 'purple', to: '#0C8346', dur: '100' }),
             (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
           )
         )
@@ -115627,15 +116565,14 @@ var Main = function (_Component) {
   }, {
     key: '_handleMouseDown',
     value: function _handleMouseDown(event) {
-      console.log("mouse down fired!!!");
-      var entity = document.querySelector('[sound]');
-      console.log(entity.components.sound, ".... sound");
+      // console.log("mouse down fired!!!");
+      // var entity = document.querySelector('[sound]')
+      // console.log(entity.components.sound, ".... sound");
+      // var myInterval = setInterval(() => {
+      //   entity.components.sound.playSound()
+      // }, 500);
       // if (event.type == 'mousedown') {
-      //   var myInterval = setInterval(() => {
-      //     yah();
-      //   }, 500);
-      //   function yah() {
-      //     entity.components.sound.playSound();
+      //   function this.yah() {
       //   }
       // }
       // if (event.type == 'mouseup') {
@@ -115686,6 +116623,7 @@ exports.default = Main;
 });
 
 require.alias("aframe/dist/aframe-master.js", "aframe");
+require.alias("aframe-mouse-cursor-component/dist/aframe-mouse-cursor-component.js", "aframe-mouse-cursor-component");
 require.alias("aframe-react/dist/index.js", "aframe-react");
 require.alias("animejs/anime.js", "animejs");
 require.alias("buffer/index.js", "buffer");
