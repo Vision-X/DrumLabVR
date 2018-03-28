@@ -493,7 +493,7 @@ class Main extends Component {
     event.preventDefault();
     // var pType = pointerEvent.pointerId;
     // console.log(pType, "...pointer id");
-    console.log(event.detail.cursorEl.id, " ...event");
+    // console.log(event.detail.cursorEl.id, " ...event");
     // console.log(event.which, "...which one?");
     // console.log(event.code, "e.code ... left hand or right hand?");
     // console.log(event.target, "target for the event onMouseDown");
