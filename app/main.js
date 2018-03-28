@@ -7,29 +7,48 @@
 import { h, Component } from 'preact';
 import { Entity, Scene } from 'aframe-react';
 import { Shape } from './components/Shape';
-import 'aframe-controller-cursor-component';
-import 'aframe-extras';
-import 'aframe-dev-components';
-import 'aframe-fps-counter-component';
-import 'aframe-teleport-controls';
-import 'aframe-aabb-collider-component';
-// import 'aframe-text-component';
-import 'aframe-mouse-cursor-component';
-import 'aframe-text-geometry-component';
+
 const COLORS = ['#D92B6A', '#9564F2', '#FFCF59'];
+var interval = false;
 
 class Main extends Component {
-  constructor() {
+  constructor(props, event) {
     super()
     this.state = {
-      colorIndex: 0
+      colorIndex: 0,
+      intervalId: 0,
+      isDown: false,
+      isUp: true
     }
     this._handleClick = this._handleClick.bind(this);
+    this._handleMouseUpLeft = this._handleMouseUpLeft.bind(this);
+    this._handleMouseDownLeft = this._handleMouseDownLeft.bind(this);
 
+    var myInterval = false;
+    // this.interval =
+    //   { leftHand: {0: false},
+    //     rightHand: {0: false}
+    //   };
+
+    var interval = {leftHand: false, rightHand: false};
+    // const eventType = event.type;
+    // var clicky = document.querySelector('.clickable');
+    //   clicky.addEventListener('mouseenter', function(event) {
+    //     console.log(event.type, "...clicky listener in constructor");
+    //   })
   }
 
-  componentDidMount() {
 
+
+  componentDidMount() {
+    // var intervalId = setInterval(function() {
+    //   entity.components.sound.playSound();
+    // }, 500);
+    // const eventType = event.type;
+    // var clicky = document.querySelector('.clickable');
+    //   clicky.addEventListener('mouseenter', function(event) {
+    //     console.log(eventType, "...clicky listener in constructor");
+    //   })
   }
 
   render() {
@@ -74,28 +93,18 @@ class Main extends Component {
         /> */
       <a-scene stats>
         <a-assets>
-{/*          <img id="pink" src="https://img.gs/bbdkhfbzkk/stretch/http://i.imgur.com/1hyyIUi.jpg" crossorigin="anonymous" /> */}
           <img src="https://img.gs/bbdkhfbzkk/stretch/https://i.imgur.com/25P1geh.png" id="grid" crossorigin="anonymous" />
           <img src="https://img.gs/bbdkhfbzkk/2048x1024,stretch/http://i.imgur.com/WMNH2OF.jpg" id="chrome" crossorigin="anonymous" />
           <img id="sky" src="https://img.gs/bbdkhfbzkk/2048x2048,stretch/http://i.imgur.com/WqlqEkq.jpg" crossorigin="anonymous" />
+          <img id="floor" src="https://cdn.aframe.io/a-painter/images/floor.jpg" crossOrigin="anonymous" />
           <a-asset-item id="exoFont" src="https://cdn.glitch.com/c719c986-c0c5-48b8-967c-3cd8b8aa17f3%2Fexo2Black.typeface.json?1490305922150"></a-asset-item>
           <a-asset-item id="exoItalicFont" src="https://cdn.glitch.com/c719c986-c0c5-48b8-967c-3cd8b8aa17f3%2Fexo2BlackItalic.typeface.json?1490305922725"></a-asset-item>
           <a-asset-item id="speaker-obj" src="/speaker-model.obj"></a-asset-item>
           <a-asset-item id="speaker-mtl" src="/speaker-materials.mtl"></a-asset-item>
           <a-asset-item id="studio-obj" src="/studio-minimal-object.obj"></a-asset-item>
           <a-asset-item id="studio-mtl" src="/studio-minimal-materials.mtl"></a-asset-item>
-
-      { /*    <audio id="k3" src="./assets/sounds/kick-1" preload="auto" />
-      <a-asset-item id="k1" src="kick1" response-type="arraybuffer"></a-asset-item>
-          <audio id="k1" src="./assets/sounds/kick-1" preload="auto" />
-          <audio id="k2" src="./assets/sounds/kick-1" preload="auto" />
-          <audio id="s1" src="./assets/sounds/kick-1" preload="auto" />
-          <audio id="s2" src="./assets/sounds/kick-1" preload="auto" />
-          <audio id="s3" src="./assets/sounds/kick-1" preload="auto" />
-          <audio id="hh1" src="./assets/sounds/kick-1" preload="auto" />
-          <audio id="hh2" src="./assets/sounds/kick-1" preload="auto" />
-          <audio id="hh3" src="./assets/sounds/kick-1" preload="auto" /> */}
         </a-assets>
+
 
       {/*
         <a-entity id="teleHand" hand-controls="left"></a-entity>
@@ -114,18 +123,19 @@ class Main extends Component {
 
          */}
 
-      <a-entity wasd-controls id="cameraRig" position="2.339 0 1.614"  rotation="0 90 0">
+      <a-entity wasd-controls id="cameraRig" position="2.339 0 1.614" rotation="0 90 0">
         <a-entity id="head" rotation="0 90 0" camera look-controls></a-entity>
-        <a-entity id="my-raycaster" teleport-controls="startEvents: teleportstart; endEvents: teleportend; type: parabolic;" aabb-collider="objects: .clickable;" raycaster="objects: .clickable;" line="color: blue;" oculus-touch-controls="hand: left;" laser-controls="hand: left; objects: .clickable;"></a-entity>
-        <a-entity id="right-hand" fps-counter oculus-touch-controls="hand: right;" teleport-controls="startEvents: teleportstart; endEvents: teleportend; type: parabolic;"></a-entity>
+        <a-entity id="left-hand" raycaster="objects: .clickable;" line="color: blue;" oculus-touch-controls="hand: left;" laser-controls="hand: left; objects: .clickable;"></a-entity>
+        <a-entity id="right-hand" aabb-collider="objects: .clickable;" raycaster="objects: .clickable;" line="color: blue;" oculus-touch-controls="hand: right;" laser-controls="hand: right; objects: .clickable;"></a-entity>
+      /*  <a-entity fps-counter id="right-hand" oculus-touch-controls="hand: right;" teleport-controls="cameraRig: #cameraRig; teleportOrigin: #head; type: parabolic;"></a-entity> */
       </a-entity>
 
 {/*        <a-entity fps-counter id="right-hand" oculus-touch-controls="hand: right;" teleport-controls="hand: right; cameraRig: #cameraRig; teleportOrigin: #head; type: parabolic;"></a-entity> */}
 
 
        <a-entity id="ground"
-                geometry="primitive: plane; width: 1000; height: 1000;" rotation="-90 0 0"
-                material="src: #grid; repeat: 1000 1000; transparent: true; metalness:0.6; roughness: 0.4;">
+                geometry="primitive: circle; radius: 100" rotation="-90 0 0"
+                material="src: #floor; transparent: false; metalness:0.2; roughness: 0.4;">
        </a-entity>
        <a-entity light="color: #ccccff; intensity: 1; type: ambient;" visible=""></a-entity>
 {/*        <a-entity light="color: #ffaaff; intensity: 1.5" position="5 5 5"></a-entity> */}
@@ -208,114 +218,114 @@ class Main extends Component {
 ///////////////////////////////////
 
         <a-entity position="-9.5 2 -9" rotation="10 25 0">
-          <a-entity position="-4.4 3.4 16.4" rotation="0 80 0" scale="0.6 1.2 1" text-geometry="value: DrumLab; font: #exoFont; bevelEnabled: true; bevelSize: 0.1; bevelThickness: 0.1; curveSegments: 1; size: 1.0; height: 0.5;" material="color:blue; metalness:0.9; roughness: 0.05; sphericalEnvMap: #chrome;"></a-entity>
-          <a-entity position="-3.4 3.2 12.6" rotation="0 80 0" text-geometry="value: VR; font: #exoItalicFont; style: italic; size: 0.8; weight: bold; height: 0;"
+          <a-entity position="7.2 4.9 5.6" rotation="0 -25 5" scale="0.6 1.2 1" text-geometry="value: DrumLab; font: #exoFont; bevelEnabled: true; bevelSize: 0.1; bevelThickness: 0.1; curveSegments: 1; size: 1.0; height: 0.5;" material="color:blue; metalness:0.9; roughness: 0.05; sphericalEnvMap: #chrome;"></a-entity>
+          <a-entity position="10.504 5.3 7.5" rotation="0 -25 5" text-geometry="value: VR; font: #exoItalicFont; style: italic; size: 0.8; weight: bold; height: 0;"
                     material="shader: flat; color: white"></a-entity>
-          <a-entity position="-3.4 3.2 12.6" rotation="0 80 0" text-geometry="value: VR; font: #exoItalicFont; style: italic; size: 0.8; weight: bold; height: 0; bevelEnabled: true; bevelSize: 0.04; bevelThickness: 0.04; curveSegments: 1"
+          <a-entity position="10.4 5.3 7.5" rotation="0 -25 5" text-geometry="value: VR; font: #exoItalicFont; style: italic; size: 0.8; weight: bold; height: 0; bevelEnabled: true; bevelSize: 0.04; bevelThickness: 0.04; curveSegments: 1"
                     material="shader: flat; color: white; transparent: true; opacity: 0.4"></a-entity>
         </a-entity>
 
 /////////////////////////////////
 
-        <a-entity obj-model="obj: #studio-obj; mtl: #studio-mtl" scale="1.3 1.3 1.3" position="1.634 0.743 1.979" rotation="0 90 0"></a-entity>
+{/*        <a-entity obj-model="obj: #studio-obj; mtl: #studio-mtl" scale="1.3 1.3 1.3" position="1.634 0.743 1.979" rotation="0 90 0"></a-entity> */}
 
-        <a-entity collider-check class="clickable" onMouseDown={this._handleMouseDown.bind(this)} onClick={this._handleClick.bind(this)}
+        <a-entity collider-check class="clickable" onMouseDown={this._handleMouseDownLeft} onClick={this._handleClick}
           geometry="primitive: box; depth=0.2 height=0.06 width=0.06"
           position="1.914 0.912 1.794"
           rotation="0 90 0"
           scale="0.100 0.100 0.100"
           material="color: #124E78"
-          sound="src: url(/sounds/kick-1.wav); poolSize: 6; on: mousedown">
+          sound="src: url(/sounds/kick-1.wav); poolSize: 6; on: hover">
           <a-animation attribute="material.color" begin="mouseover" from="lightblue" to="#124E78" dur="100"></a-animation>
-          <a-animation attribute="rotation" begin="mousedown" dur="100" fill="forwards" to="0 90 0"></a-animation>
+          <a-animation attribute="rotation" begin="hover" dur="100" fill="forwards" to="0 90 0"></a-animation>
         </a-entity>
 
-        <a-entity collider-check class="clickable" onMouseDown={this._handleMouseDown.bind(this)} onClick={this._handleClick.bind(this)}
+        <a-entity collider-check class="clickable" onMouseDown={this._handleMouseDownLeft} onClick={this._handleClick}
           geometry="primitive: box; depth=0.2 height=0.06 width=0.06"
           position="1.914 0.912 1.665"
           rotation="0 90 0"
           scale="0.100 0.100 0.100"
           material="color: #124E78"
-          sound="src: url(/sounds/kick-1.wav); poolSize: 6; on: mousedown">
+          sound="src: url(/sounds/kick-1.wav); poolSize: 6; on: hover">
           <a-animation attribute="material.color" begin="mouseover" from="lightblue" to="#124E78" dur="100"></a-animation>
-          <a-animation attribute="rotation" begin="mousedown" dur="100" fill="forwards" to="0 90 0"></a-animation>
+          <a-animation attribute="rotation" begin="hover" dur="100" fill="forwards" to="0 90 0"></a-animation>
         </a-entity>
 
-        <a-entity collider-check class="clickable" onMouseDown={this._handleMouseDown.bind(this)} onClick={this._handleClick.bind(this)}
+        <a-entity collider-check class="clickable" onMouseDown={this._handleMouseDownLeft} onClick={this._handleClick}
           geometry="primitive: box; depth=0.2 height=0.06 width=0.06"
           position="1.914 0.912 1.520"
           rotation="0 90 0"
           scale="0.100 0.100 0.100"
           material="color: #124E78"
-          sound="src: url(/sounds/kick-1.wav); poolSize: 6; on: mousedown">
+          sound="src: url(/sounds/kick-1.wav); poolSize: 6; on: hover">
           <a-animation attribute="material.color" begin="mouseover" from="lightblue" to="#124E78" dur="100"></a-animation>
-          <a-animation attribute="rotation" begin="mousedown" dur="100" fill="forwards" to="0 90 0"></a-animation>
+          <a-animation attribute="rotation" begin="hover" dur="100" fill="forwards" to="0 90 0"></a-animation>
         </a-entity>
 
-        <a-entity collider-check class="clickable" onMouseDown={this._handleMouseDown.bind(this)} onClick={this._handleClick.bind(this)}
+        <a-entity collider-check class="clickable" onMouseDown={this._handleMouseDownLeft} onClick={this._handleClick}
           geometry="primitive: box; depth=0.2 height=0.06 width=0.06"
           position="1.773 0.912 1.793"
           rotation="0 90 0"
           scale="0.100 0.100 0.100"
           material="color: #104"
-          sound="src: url(/sounds/kick-1.wav); poolSize: 6; on: mousedown">
+          sound="src: url(/sounds/kick-1.wav); poolSize: 6; on: hover">
           <a-animation attribute="material.color" begin="mouseover" from="lightblue" to="#104" dur="100"></a-animation>
-          <a-animation attribute="rotation" begin="mousedown" dur="100" fill="forwards" to="0 90 0"></a-animation>
+          <a-animation attribute="rotation" begin="hover" dur="100" fill="forwards" to="0 90 0"></a-animation>
         </a-entity>
 
-        <a-entity collider-check class="clickable" onMouseDown={this._handleMouseDown.bind(this)} onClick={this._handleClick.bind(this)}
+        <a-entity collider-check class="clickable" onMouseDown={this._handleMouseDownLeft} onClick={this._handleClick}
           geometry="primitive: box; depth=0.2 height=0.06 width=0.06"
           position="1.773 0.912 1.662"
           rotation="0 90 0"
           scale="0.100 0.100 0.100"
           material="color: #104"
-          sound="src: url(/sounds/kick-1.wav); poolSize: 6; on: mousedown">
+          sound="src: url(/sounds/kick-1.wav); poolSize: 6; on: hover">
           <a-animation attribute="material.color" begin="mouseover" from="lightblue" to="#104" dur="100"></a-animation>
-          <a-animation attribute="rotation" begin="mousedown" dur="100" fill="forwards" to="0 90 0"></a-animation>
+          <a-animation attribute="rotation" begin="hover" dur="100" fill="forwards" to="0 90 0"></a-animation>
         </a-entity>
 
-        <a-entity collider-check class="clickable" onMouseDown={this._handleMouseDown.bind(this)} onClick={this._handleClick.bind(this)}
+        <a-entity collider-check class="clickable" onMouseDown={this._handleMouseDownLeft} onClick={this._handleClick}
           geometry="primitive: box; depth=0.2 height=0.06 width=0.06"
           position="1.773 0.912 1.520"
           rotation="0 90 0"
           scale="0.100 0.100 0.100"
           material="color: #104"
-          sound="src: url(/sounds/kick-1.wav); poolSize: 6; on: mousedown">
+          sound="src: url(/sounds/kick-1.wav); poolSize: 6; on: hover">
           <a-animation attribute="material.color" begin="mouseover" from="lightblue" to="#104" dur="100"></a-animation>
-          <a-animation attribute="rotation" begin="mousedown" dur="100" fill="forwards" to="0 90 0"></a-animation>
+          <a-animation attribute="rotation" begin="hover" dur="100" fill="forwards" to="0 90 0"></a-animation>
         </a-entity>
 
-        <a-entity collider-check class="clickable" onMouseDown={this._handleMouseDown.bind(this)} onClick={this._handleClick.bind(this)}
+        <a-entity collider-check class="clickable" onMouseDown={this._handleMouseDownLeft} onClick={this._handleClick}
           geometry="primitive: box; depth=0.2 height=0.06 width=0.06"
           position="1.625 0.912 1.793"
           rotation="0 90 0"
           scale="0.100 0.100 0.100"
           material="color: #104"
-          sound="src: url(/sounds/kick-1.wav); poolSize: 6; on: mousedown">
+          sound="src: url(/sounds/kick-1.wav); poolSize: 6; on: hover">
           <a-animation attribute="material.color" begin="mouseover" from="lightblue" to="#104" dur="100"></a-animation>
-          <a-animation attribute="rotation" begin="mousedown" dur="100" fill="forwards" to="0 90 0"></a-animation>
+          <a-animation attribute="rotation" begin="hover" dur="100" fill="forwards" to="0 90 0"></a-animation>
         </a-entity>
 
-        <a-entity collider-check class="clickable" onMouseDown={this._handleMouseDown.bind(this)} onClick={this._handleClick.bind(this)}
+        <a-entity collider-check class="clickable" onMouseDown={this._handleMouseDownLeft} onClick={this._handleClick}
           geometry="primitive: box; depth=0.2 height=0.06 width=0.06"
           position="1.625 0.912 1.662"
           rotation="0 90 0"
           scale="0.100 0.100 0.100"
           material="color: #104"
-          sound="src: url(/sounds/kick-1.wav); poolSize: 6; on: mousedown">
+          sound="src: url(/sounds/kick-1.wav); poolSize: 6; on: hover">
           <a-animation attribute="material.color" begin="mouseover" from="lightblue" to="#104" dur="100"></a-animation>
-          <a-animation attribute="rotation" begin="mousedown" dur="100" fill="forwards" to="0 90 0"></a-animation>
+          <a-animation attribute="rotation" begin="hover" dur="100" fill="forwards" to="0 90 0"></a-animation>
         </a-entity>
 
-        <a-entity collider-check class="clickable" onMouseDown={this._handleMouseDown.bind(this)} onClick={this._handleClick.bind(this)}
+        <a-entity collider-check class="clickable" onMouseDown={this._handleMouseDownLeft} onClick={this._handleClick}
           geometry="primitive: box; depth=0.2 height=0.06 width=0.06"
           position="1.625 0.912 1.520"
           rotation="0 90 0"
           scale="0.100 0.100 0.100"
           material="color: #104"
-          sound="src: url(/sounds/kick-1.wav); poolSize: 6; on: mousedown">
+          sound="src: url(/sounds/kick-1.wav); poolSize: 6; on: hover">
           <a-animation attribute="material.color" begin="mouseover" from="lightblue" to="#104" dur="100"></a-animation>
-          <a-animation attribute="rotation" begin="mousedown" dur="100" fill="forwards" to="0 90 0"></a-animation>
+          <a-animation attribute="rotation" begin="hover" dur="100" fill="forwards" to="0 90 0"></a-animation>
         </a-entity>
 //////////////////////////////////////////
 
@@ -323,93 +333,93 @@ class Main extends Component {
         <a-entity obj-model="obj: #speaker-obj; mtl: #speaker-mtl" scale="2 2 2" position="6 1.900 -4" rotation="-10 90 10"></a-entity> */}
 
 //////////////////////////////////////////
-        <a-entity collider-check class="one clickable" onMouseDown={this._handleMouseDown.bind(this)} onClick={this._handleClick.bind(this)}
+        <a-entity collider-check class="one clickable" onMouseEnter={this.onMouseEnter} onMouseDown={this._handleMouseDownRight} onMouseUp={this._handleMouseUpRight} onClick={this._handleClick}
           geometry="primitive: box; depth=0.2 height=0.5 width=0.5"
           position="0.5 0.5 -4"
           rotation="0 0 0"
           material="color: #124E78"
-          sound="src: url(/sounds/kick-1.wav); poolSize: 6; on: mousedown">
+          sound="src: url(/sounds/kick-1.wav); poolSize: 10; on: mousedown">
           <a-animation attribute="material.color" begin="mouseover" from="lightblue" to="#124E78" dur="100"></a-animation>
           <a-animation attribute="rotation" begin="mousedown" dur="100" fill="forwards" to="0 90 0"></a-animation>
         </a-entity>
 
-        <a-entity class="two clickable"
+        <a-entity class="two clickable" onMouseDown={this._handleMouseDownRight} onMouseUp={this._handleMouseUpRight}
           geometry="primitive: box; depth=0.0 height=0.5 width=0.5"
           position="0.5 2 -4"
           rotation="0 0 0"
           material="color: #124E78"
-          sound="src: url(/sounds/kick-2.wav); poolSize: 6; on: mousedown">
+          sound="src: url(/sounds/kick-2.wav); poolSize: 10; on: mousedown">
           <a-animation attribute="material.color" begin="mousedown" from="lightblue" to="#124E78" dur="100"></a-animation>
           <a-animation attribute="rotation" begin="mousedown" dur="100" fill="forwards" to="0 90 0"></a-animation>
         </a-entity>
 
-        <a-entity class="three clickable" onClick={this._handleClick.bind(this)}
+        <a-entity class="three clickable" onMouseDown={this._handleMouseDownRight} onMouseUp={this._handleMouseUpRight} onClick={this._handleClick}
           geometry="primitive: box; depth=0.0 height=0.5 width=0.5"
           position="0.5 3.5 -4"
           rotation="0 0 0"
           material="color: #124E78"
-          sound="src: url(/sounds/kick-3.wav); poolSize: 6; on: mousedown">
+          sound="src: url(/sounds/kick-3.wav); poolSize: 10; on: mousedown">
           <a-animation attribute="material.color" begin="mousedown" from="lightblue" to="#124E78" dur="100"></a-animation>
           <a-animation attribute="rotation" begin="mousedown" dur="100" fill="forwards" to="0 90 0"></a-animation>
         </a-entity>
 ///////////////////////////////////////////////
-        <a-entity class="four clickable" onClick={this._handleClick.bind(this)}
+        <a-entity class="four clickable" onMouseDown={this._handleMouseDownRight} onMouseUp={this._handleMouseUpRight} onClick={this._handleClick}
           geometry="primitive: box; depth=0.0 height=0.5 width=0.5"
           position="2 0.5 -4"
           rotation="0 0 0"
           material="color: #D74E09"
-          sound="src: url(/sounds/snare-1.wav); poolSize: 6; on: mousedown">
+          sound="src: url(/sounds/snare-1.wav); poolSize: 10; on: mousedown">
           <a-animation attribute="material.color" begin="mousedown" from="red" to="#D74E09" dur="100"></a-animation>
           <a-animation attribute="rotation" begin="mousedown" dur="100" fill="forwards" to="0 90 0"></a-animation>
         </a-entity>
 
-        <a-entity class="five clickable" onClick={this._handleClick.bind(this)}
+        <a-entity class="five clickable" onMouseDown={this._handleMouseDownRight} onMouseUp={this._handleMouseUpRight} onClick={this._handleClick}
           geometry="primitive: box; depth=0.0 height=0.5 width=0.5"
           position="2 2 -4"
           rotation="0 0 0"
           material="color: #D74E09"
-          sound="src: url(/sounds/snare-2.wav); poolSize: 6; on: mousedown">
+          sound="src: url(/sounds/snare-2.wav); poolSize: 10; on: mousedown">
           <a-animation attribute="material.color" begin="mousedown" from="red" to="#D74E09" dur="100"></a-animation>
           <a-animation attribute="rotation" begin="mousedown" dur="100" fill="forwards" to="0 90 0"></a-animation>
         </a-entity>
 
-        <a-entity class="six clickable" onClick={this._handleClick.bind(this)}
+        <a-entity class="six clickable" onMouseDown={this._handleMouseDownRight} onMouseUp={this._handleMouseUpRight} onClick={this._handleClick}
           geometry="primitive: box; depth=0.0 height=0.5 width=0.5"
           position="2 3.5 -4"
           rotation="0 0 0"
           material="color: #D74E09"
-          sound="src: url(/sounds/snare-3.wav); poolSize: 6; on: mousedown">
+          sound="src: url(/sounds/snare-3.wav); poolSize: 10; on: mousedown">
           <a-animation attribute="material.color" begin="mousedown" from="red" to="#D74E09" dur="100"></a-animation>
           <a-animation attribute="rotation" begin="mousedown" dur="100" fill="forwards" to="0 90 0"></a-animation>
         </a-entity>
 ///////////////////////////////////////////////
 
-        <a-entity class="seven clickable" onClick={this._handleClick.bind(this)}
+        <a-entity class="seven clickable" onMouseDown={this._handleMouseDownRight} onMouseUp={this._handleMouseUpRight} onClick={this._handleClick}
           geometry="primitive: box; depth=0.0 height=0.5 width=0.5"
           position="3.5 0.5 -4"
           rotation="0 0 0"
           material="color: #0C8346"
-          sound="src: url(/sounds/E808_CH-03.wav); poolSize: 6; on: mousedown">
+          sound="src: url(/sounds/E808_CH-03.wav); poolSize: 10; on: mousedown">
           <a-animation attribute="material.color" begin="mousedown" from="purple" to="#0C8346" dur="100"></a-animation>
           <a-animation attribute="rotation" begin="mousedown" dur="100" fill="forwards" to="0 90 0"></a-animation>
         </a-entity>
 
-        <a-entity class="eight clickable" onClick={this._handleClick.bind(this)}
+        <a-entity class="eight clickable" onMouseDown={this._handleMouseDownRight} onMouseUp={this._handleMouseUpRight} onClick={this._handleClick}
           geometry="primitive: box; depth=0.0 height=0.5 width=0.5"
           position="3.5 2 -4"
           rotation="0 0 0"
           material="color: #0C8346"
-          sound="src: url(/sounds/E808_CH-07.wav); poolSize: 6; on: mousedown">
+          sound="src: url(/sounds/E808_CH-07.wav); poolSize: 10; on: mousedown">
           <a-animation attribute="material.color" begin="mousedown" from="purple" to="#0C8346" dur="100"></a-animation>
           <a-animation attribute="rotation" begin="mousedown" dur="100" fill="forwards" to="0 90 0"></a-animation>
         </a-entity>
 
-        <a-entity class="nine clickable" onClick={this._handleClick.bind(this)}
+        <a-entity class="nine clickable" onMouseDown={this._handleMouseDownRight} onMouseUp={this._handleMouseUpRight} onClick={this._handleClick}
           geometry="primitive: box; depth=0.0 height=0.5 width=0.5"
           position="3.5 3.5 -4"
           rotation="0 0 0"
           material="color: #0C8346"
-          sound="src: url(/sounds/E808_OH-07.wav); poolSize: 6; on: mousedown">
+          sound="src: url(/sounds/E808_OH-07.wav); poolSize: 10; on: mousedown">
           <a-animation attribute="material.color" begin="mousedown" from="purple" to="#0C8346" dur="100"></a-animation>
           <a-animation attribute="rotation" begin="mousedown" dur="100" fill="forwards" to="0 90 0"></a-animation>
         </a-entity>
@@ -439,7 +449,77 @@ class Main extends Component {
     )
   }
 
-  _handleMouseDown(event) {
+  onMouseEnter(event) {
+    // console.log("mouse entered!!!!!!! lets do this!");
+    // const eventType = event.type;
+    // console.log(event.type, " ...event type onmouseenter");
+  }
+
+  _handleMouseDownRight(event) {
+    event.preventDefault();
+    this.interval = {rightHand: false, leftHand: false};
+    if (event.detail.cursorEl.id === "right-hand" && this.interval['rightHand'] === false) {
+      this.interval['rightHand'] = setInterval(function() {
+        event.target.components.sound.playSound();
+        this.interval = true;
+      }, 250);
+    } else if (event.detail.cursorEl.id === "left-hand" && this.interval['leftHand'] === false) {
+      this.interval['leftHand'] = setInterval(function() {
+        event.target.components.sound.playSound();
+        this.interval = true;
+      }, 250);
+    } else {
+      console.log("wtf? line 471");
+    }
+  }
+
+  _handleMouseUpRight(event) {
+    event.preventDefault();
+    if (event.detail.cursorEl.id === "right-hand") {
+        if (this.interval['rightHand'] !== false) {
+            clearInterval(this.interval['rightHand']);
+            this.interval['rightHand'] = false;
+          }
+    } else if (event.detail.cursorEl.id === "left-hand") {
+        if (this.interval['leftHand'] !== false) {
+            clearInterval(this.interval['leftHand']);
+            this.interval['leftHand'] = false;
+          }
+    }
+  }
+
+
+  _handleMouseDownLeft(event) {
+    event.preventDefault();
+    // var pType = pointerEvent.pointerId;
+    // console.log(pType, "...pointer id");
+    console.log(event.detail.cursorEl.id, " ...event");
+    // console.log(event.which, "...which one?");
+    // console.log(event.code, "e.code ... left hand or right hand?");
+    // console.log(event.target, "target for the event onMouseDown");
+    // console.log(event.pointerId, "pointerId");
+    // console.log(event.pointerType);
+    // console.log(PointerEvent);
+    // console.log(pointerEvent.pointerId, '...pointer event pointerId');
+    // var entity = document.querySelector('[sound]');
+    // console.log(entity, ..."entity [sound]");
+    // console.log(entity.__preactattr.sound, "entity [sound] targeted in onMouseDown");
+    // console.log(event.target.components.sound.attrValue, "...current entity's sound targeted");
+    // console.log(this.entity.components, "...THIS current entity targeted");
+    // console.log(myInterval, "my interval");
+    // this.interval = false;
+      if (event.detail.cursorEl.id === "left-hand" && this.interval['leftHand'] === false) {
+        this.interval['leftHand'] = setInterval(function() {
+          event.target.components.sound.playSound();
+          this.interval = true;
+        }, 250);
+      // } else if (event.detail.cursorEl.id === "right-hand" && this.interval === false) {
+      //   this.interval['rightHand']['1'] = setInterval(function() {
+      //     event.target.components.sound.playSound();
+      //     this.interval['rightHand']['0'] = true;
+      //   }, 250);
+      // }
+
     // console.log("mouse down fired!!!");
     // var entity = document.querySelector('[sound]')
     // console.log(entity.components.sound, ".... sound");
@@ -454,27 +534,48 @@ class Main extends Component {
     //   console.log("mouseupppppppp");
     //   clearInterval(myInterval);
     // }
+    }
+  }
+
+  _handleMouseUpLeft(event) {
+    event.preventDefault();
+    // console.log(event.type, " ...mouse up???");
+    // var entity = document.querySelector('[sound]');
+    if (event.detail.cursorEl.id === "left-hand") {
+      if (this.interval['leftHand'] !== false) {
+          clearInterval(this.interval['leftHand']);
+          this.interval['leftHand'] = false;
+        }
+    // } else if (event.detail.cursorEl.id === "right-hand") {
+    //     if (this.interval['rightHand']['0'] !== false) {
+    //       clearInterval(this.interval['rightHand']['1']);
+    //       this.interval['rightHand']['0'] = false;
+    //   }
+    // }
+    }  else {
+        console.log("what in the fuckkkkkkkkkkkkkkkkkkkkkkkkkkk");
+    }
   }
 
   _handleClick(event) {
-    console.log("clicked");
+    // console.log("clicked");
+    // const eventType = event.type;
+    // console.log(eventType);
     // console.log("event.target", event.target);
     var entity = document.querySelector('[sound]');
     // entity.components.sound.playSound();
     // console.log("sounddd entity val: ", entity.components.sound);
     // console.log(event, " ....wtf is this event evaluate to?");
     // console.log(event.type, "  === event.type");
-    if (event.type == 'mousedown') {
-      console.log("event!!!!");
+
       // if (entity.components.sound.evtDetail.isPlaying == true) {
       //   console.log("jeyahhh boiiiiiiiiiiiiii");
       //   entity.components.sound.evtDetail.isPlaying = false;
       //   entity.components.sound.playSound();
       // }
-    }
-    console.log("triggerdown");
-    var caster = document.querySelector('#my-raycaster')
-    var raycaster = document.querySelector('#my-raycaster').components.raycaster;
+    // console.log("triggerdown");
+    // var caster = document.querySelector('#my-raycaster')
+    // var raycaster = document.querySelector('#my-raycaster').components.raycaster;
     // var cubes = document.querySelectorAll('.clickable');
     // console.log("current cube maybeeee?...", cubes);
     // cubes.components.raycaster.refreshObjects();

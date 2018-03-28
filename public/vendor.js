@@ -96608,8 +96608,6 @@ for (var i = 0, len = code.length; i < len; ++i) {
   revLookup[code.charCodeAt(i)] = i
 }
 
-// Support decoding URL-safe base64 strings, as Node.js does.
-// See: https://en.wikipedia.org/wiki/Base64#URL_applications
 revLookup['-'.charCodeAt(0)] = 62
 revLookup['_'.charCodeAt(0)] = 63
 
@@ -96671,7 +96669,7 @@ function encodeChunk (uint8, start, end) {
   var tmp
   var output = []
   for (var i = start; i < end; i += 3) {
-    tmp = ((uint8[i] << 16) & 0xFF0000) + ((uint8[i + 1] << 8) & 0xFF00) + (uint8[i + 2] & 0xFF)
+    tmp = (uint8[i] << 16) + (uint8[i + 1] << 8) + (uint8[i + 2])
     output.push(tripletToBase64(tmp))
   }
   return output.join('')
@@ -98174,57 +98172,11 @@ function blitBuffer (src, dst, offset, length) {
 });
 require.register("cannon/package.json", function(exports, require, module) {
   module.exports = {
-  "_from": "github:donmccurdy/cannon.js#v0.6.2-dev1",
-  "_id": "cannon@0.6.2",
-  "_inBundle": false,
-  "_integrity": "",
-  "_location": "/cannon",
-  "_phantomChildren": {},
-  "_requested": {
-    "type": "git",
-    "raw": "cannon@github:donmccurdy/cannon.js#v0.6.2-dev1",
-    "name": "cannon",
-    "escapedName": "cannon",
-    "rawSpec": "github:donmccurdy/cannon.js#v0.6.2-dev1",
-    "saveSpec": "github:donmccurdy/cannon.js#v0.6.2-dev1",
-    "fetchSpec": null,
-    "gitCommittish": "v0.6.2-dev1"
-  },
-  "_requiredBy": [
-    "/aframe-physics-system"
-  ],
-  "_resolved": "github:donmccurdy/cannon.js#022e8ba53fa83abf0ad8a0e4fd08623123838a17",
-  "_spec": "cannon@github:donmccurdy/cannon.js#v0.6.2-dev1",
-  "_where": "/Users/michaelmarlow/Desktop/DESKTOP/GALVANIZE/Projects/VR_Apps/eventide/node_modules/aframe-physics-system",
-  "author": {
-    "name": "Stefan Hedman",
-    "email": "schteppe@gmail.com",
-    "url": "http://steffe.se"
-  },
-  "bugs": {
-    "url": "https://github.com/schteppe/cannon.js/issues"
-  },
-  "bundleDependencies": false,
-  "dependencies": {},
-  "deprecated": false,
+  "name": "cannon",
+  "version": "0.6.2",
   "description": "A lightweight 3D physics engine written in JavaScript.",
-  "devDependencies": {
-    "browserify": "*",
-    "grunt": "~0.4.0",
-    "grunt-browserify": "^2.1.4",
-    "grunt-contrib-concat": "~0.1.3",
-    "grunt-contrib-jshint": "~0.1.1",
-    "grunt-contrib-nodeunit": "^0.4.1",
-    "grunt-contrib-uglify": "^0.5.1",
-    "grunt-contrib-yuidoc": "^0.5.2",
-    "jshint": "latest",
-    "nodeunit": "^0.9.0",
-    "uglify-js": "latest"
-  },
-  "engines": {
-    "node": "*"
-  },
   "homepage": "https://github.com/schteppe/cannon.js",
+  "author": "Stefan Hedman <schteppe@gmail.com> (http://steffe.se)",
   "keywords": [
     "cannon.js",
     "cannon",
@@ -98232,18 +98184,36 @@ require.register("cannon/package.json", function(exports, require, module) {
     "engine",
     "3d"
   ],
+  "main": "./src/Cannon.js",
+  "engines": {
+    "node": "*"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/schteppe/cannon.js.git"
+  },
+  "bugs": {
+    "url": "https://github.com/schteppe/cannon.js/issues"
+  },
   "licenses": [
     {
       "type": "MIT"
     }
   ],
-  "main": "./src/Cannon.js",
-  "name": "cannon",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/schteppe/cannon.js.git"
+  "devDependencies": {
+    "jshint": "latest",
+    "uglify-js": "latest",
+    "nodeunit": "^0.9.0",
+    "grunt": "~0.4.0",
+    "grunt-contrib-jshint": "~0.1.1",
+    "grunt-contrib-nodeunit": "^0.4.1",
+    "grunt-contrib-concat": "~0.1.3",
+    "grunt-contrib-uglify": "^0.5.1",
+    "grunt-browserify": "^2.1.4",
+    "grunt-contrib-yuidoc": "^0.5.2",
+    "browserify": "*"
   },
-  "version": "0.6.2"
+  "dependencies": {}
 }
 ;
 });
@@ -112901,7 +112871,7 @@ require.register("ieee754/index.js", function(exports, require, module) {
   (function() {
     exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   var e, m
-  var eLen = (nBytes * 8) - mLen - 1
+  var eLen = nBytes * 8 - mLen - 1
   var eMax = (1 << eLen) - 1
   var eBias = eMax >> 1
   var nBits = -7
@@ -112914,12 +112884,12 @@ require.register("ieee754/index.js", function(exports, require, module) {
   e = s & ((1 << (-nBits)) - 1)
   s >>= (-nBits)
   nBits += eLen
-  for (; nBits > 0; e = (e * 256) + buffer[offset + i], i += d, nBits -= 8) {}
+  for (; nBits > 0; e = e * 256 + buffer[offset + i], i += d, nBits -= 8) {}
 
   m = e & ((1 << (-nBits)) - 1)
   e >>= (-nBits)
   nBits += mLen
-  for (; nBits > 0; m = (m * 256) + buffer[offset + i], i += d, nBits -= 8) {}
+  for (; nBits > 0; m = m * 256 + buffer[offset + i], i += d, nBits -= 8) {}
 
   if (e === 0) {
     e = 1 - eBias
@@ -112934,7 +112904,7 @@ require.register("ieee754/index.js", function(exports, require, module) {
 
 exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
   var e, m, c
-  var eLen = (nBytes * 8) - mLen - 1
+  var eLen = nBytes * 8 - mLen - 1
   var eMax = (1 << eLen) - 1
   var eBias = eMax >> 1
   var rt = (mLen === 23 ? Math.pow(2, -24) - Math.pow(2, -77) : 0)
@@ -112967,7 +112937,7 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
       m = 0
       e = eMax
     } else if (e + eBias >= 1) {
-      m = ((value * c) - 1) * Math.pow(2, mLen)
+      m = (value * c - 1) * Math.pow(2, mLen)
       e = e + eBias
     } else {
       m = value * Math.pow(2, eBias - 1) * Math.pow(2, mLen)
@@ -116178,6 +116148,22 @@ require('./components/aframe-environment');
 
 require('./components/aframe-effects');
 
+require('aframe-controller-cursor-component');
+
+require('aframe-extras');
+
+require('aframe-dev-components');
+
+require('aframe-fps-counter-component');
+
+require('aframe-teleport-controls');
+
+require('aframe-aabb-collider-component');
+
+require('aframe-mouse-cursor-component');
+
+require('aframe-text-geometry-component');
+
 var _preact = require('preact');
 
 var _main = require('./main');
@@ -116186,6 +116172,7 @@ var _main2 = _interopRequireDefault(_main);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+// import 'aframe-text-component';
 /**
  * @fileoverview
  * This file imports all our required packages.
@@ -116214,22 +116201,6 @@ var _aframeReact = require('aframe-react');
 
 var _Shape = require('./components/Shape');
 
-require('aframe-controller-cursor-component');
-
-require('aframe-extras');
-
-require('aframe-dev-components');
-
-require('aframe-fps-counter-component');
-
-require('aframe-teleport-controls');
-
-require('aframe-aabb-collider-component');
-
-require('aframe-mouse-cursor-component');
-
-require('aframe-text-geometry-component');
-
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
@@ -116240,30 +116211,54 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 * It defines the main A-Frame Scene which gets mounted root div.
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 */
 
-// import 'aframe-text-component';
-
-
 var COLORS = ['#D92B6A', '#9564F2', '#FFCF59'];
+var interval = false;
 
 var Main = function (_Component) {
   _inherits(Main, _Component);
 
-  function Main() {
+  function Main(props, event) {
     _classCallCheck(this, Main);
 
     var _this = _possibleConstructorReturn(this, (Main.__proto__ || Object.getPrototypeOf(Main)).call(this));
 
     _this.state = {
-      colorIndex: 0
+      colorIndex: 0,
+      intervalId: 0,
+      isDown: false,
+      isUp: true
     };
     _this._handleClick = _this._handleClick.bind(_this);
+    _this._handleMouseUpLeft = _this._handleMouseUpLeft.bind(_this);
+    _this._handleMouseDownLeft = _this._handleMouseDownLeft.bind(_this);
 
+    var myInterval = false;
+    // this.interval =
+    //   { leftHand: {0: false},
+    //     rightHand: {0: false}
+    //   };
+
+    var interval = { leftHand: false, rightHand: false };
+    // const eventType = event.type;
+    // var clicky = document.querySelector('.clickable');
+    //   clicky.addEventListener('mouseenter', function(event) {
+    //     console.log(event.type, "...clicky listener in constructor");
+    //   })
     return _this;
   }
 
   _createClass(Main, [{
     key: 'componentDidMount',
-    value: function componentDidMount() {}
+    value: function componentDidMount() {
+      // var intervalId = setInterval(function() {
+      //   entity.components.sound.playSound();
+      // }, 500);
+      // const eventType = event.type;
+      // var clicky = document.querySelector('.clickable');
+      //   clicky.addEventListener('mouseenter', function(event) {
+      //     console.log(eventType, "...clicky listener in constructor");
+      //   })
+    }
   }, {
     key: 'render',
     value: function render() {
@@ -116315,6 +116310,7 @@ var Main = function (_Component) {
             (0, _preact.h)('img', { src: 'https://img.gs/bbdkhfbzkk/stretch/https://i.imgur.com/25P1geh.png', id: 'grid', crossorigin: 'anonymous' }),
             (0, _preact.h)('img', { src: 'https://img.gs/bbdkhfbzkk/2048x1024,stretch/http://i.imgur.com/WMNH2OF.jpg', id: 'chrome', crossorigin: 'anonymous' }),
             (0, _preact.h)('img', { id: 'sky', src: 'https://img.gs/bbdkhfbzkk/2048x2048,stretch/http://i.imgur.com/WqlqEkq.jpg', crossorigin: 'anonymous' }),
+            (0, _preact.h)('img', { id: 'floor', src: 'https://cdn.aframe.io/a-painter/images/floor.jpg', crossOrigin: 'anonymous' }),
             (0, _preact.h)('a-asset-item', { id: 'exoFont', src: 'https://cdn.glitch.com/c719c986-c0c5-48b8-967c-3cd8b8aa17f3%2Fexo2Black.typeface.json?1490305922150' }),
             (0, _preact.h)('a-asset-item', { id: 'exoItalicFont', src: 'https://cdn.glitch.com/c719c986-c0c5-48b8-967c-3cd8b8aa17f3%2Fexo2BlackItalic.typeface.json?1490305922725' }),
             (0, _preact.h)('a-asset-item', { id: 'speaker-obj', src: '/speaker-model.obj' }),
@@ -116326,12 +116322,15 @@ var Main = function (_Component) {
             'a-entity',
             { 'wasd-controls': true, id: 'cameraRig', position: '2.339 0 1.614', rotation: '0 90 0' },
             (0, _preact.h)('a-entity', { id: 'head', rotation: '0 90 0', camera: true, 'look-controls': true }),
-            (0, _preact.h)('a-entity', { id: 'my-raycaster', 'teleport-controls': 'startEvents: teleportstart; endEvents: teleportend; type: parabolic;', 'aabb-collider': 'objects: .clickable;', raycaster: 'objects: .clickable;', line: 'color: blue;', 'oculus-touch-controls': 'hand: left;', 'laser-controls': 'hand: left; objects: .clickable;' }),
-            (0, _preact.h)('a-entity', { id: 'right-hand', 'fps-counter': true, 'oculus-touch-controls': 'hand: right;', 'teleport-controls': 'startEvents: teleportstart; endEvents: teleportend; type: parabolic;' })
+            (0, _preact.h)('a-entity', { id: 'left-hand', raycaster: 'objects: .clickable;', line: 'color: blue;', 'oculus-touch-controls': 'hand: left;', 'laser-controls': 'hand: left; objects: .clickable;' }),
+            (0, _preact.h)('a-entity', { id: 'right-hand', 'aabb-collider': 'objects: .clickable;', raycaster: 'objects: .clickable;', line: 'color: blue;', 'oculus-touch-controls': 'hand: right;', 'laser-controls': 'hand: right; objects: .clickable;' }),
+            '/*  ',
+            (0, _preact.h)('a-entity', { 'fps-counter': true, id: 'right-hand', 'oculus-touch-controls': 'hand: right;', 'teleport-controls': 'cameraRig: #cameraRig; teleportOrigin: #head; type: parabolic;' }),
+            ' */'
           ),
           (0, _preact.h)('a-entity', { id: 'ground',
-            geometry: 'primitive: plane; width: 1000; height: 1000;', rotation: '-90 0 0',
-            material: 'src: #grid; repeat: 1000 1000; transparent: true; metalness:0.6; roughness: 0.4;' }),
+            geometry: 'primitive: circle; radius: 100', rotation: '-90 0 0',
+            material: 'src: #floor; transparent: false; metalness:0.2; roughness: 0.4;' }),
           (0, _preact.h)('a-entity', { light: 'color: #ccccff; intensity: 1; type: ambient;', visible: '' }),
           (0, _preact.h)('a-entity', { light: 'color: white; intensity: 0.5', position: '-5 5 15' }),
           (0, _preact.h)('a-entity', { light: 'color: white; type: ambient;' }),
@@ -116340,222 +116339,221 @@ var Main = function (_Component) {
           (0, _preact.h)(
             'a-entity',
             { position: '-9.5 2 -9', rotation: '10 25 0' },
-            (0, _preact.h)('a-entity', { position: '-4.4 3.4 16.4', rotation: '0 80 0', scale: '0.6 1.2 1', 'text-geometry': 'value: DrumLab; font: #exoFont; bevelEnabled: true; bevelSize: 0.1; bevelThickness: 0.1; curveSegments: 1; size: 1.0; height: 0.5;', material: 'color:blue; metalness:0.9; roughness: 0.05; sphericalEnvMap: #chrome;' }),
-            (0, _preact.h)('a-entity', { position: '-3.4 3.2 12.6', rotation: '0 80 0', 'text-geometry': 'value: VR; font: #exoItalicFont; style: italic; size: 0.8; weight: bold; height: 0;',
+            (0, _preact.h)('a-entity', { position: '7.2 4.9 5.6', rotation: '0 -25 5', scale: '0.6 1.2 1', 'text-geometry': 'value: DrumLab; font: #exoFont; bevelEnabled: true; bevelSize: 0.1; bevelThickness: 0.1; curveSegments: 1; size: 1.0; height: 0.5;', material: 'color:blue; metalness:0.9; roughness: 0.05; sphericalEnvMap: #chrome;' }),
+            (0, _preact.h)('a-entity', { position: '10.504 5.3 7.5', rotation: '0 -25 5', 'text-geometry': 'value: VR; font: #exoItalicFont; style: italic; size: 0.8; weight: bold; height: 0;',
               material: 'shader: flat; color: white' }),
-            (0, _preact.h)('a-entity', { position: '-3.4 3.2 12.6', rotation: '0 80 0', 'text-geometry': 'value: VR; font: #exoItalicFont; style: italic; size: 0.8; weight: bold; height: 0; bevelEnabled: true; bevelSize: 0.04; bevelThickness: 0.04; curveSegments: 1',
+            (0, _preact.h)('a-entity', { position: '10.4 5.3 7.5', rotation: '0 -25 5', 'text-geometry': 'value: VR; font: #exoItalicFont; style: italic; size: 0.8; weight: bold; height: 0; bevelEnabled: true; bevelSize: 0.04; bevelThickness: 0.04; curveSegments: 1',
               material: 'shader: flat; color: white; transparent: true; opacity: 0.4' })
           ),
           '/////////////////////////////////',
-          (0, _preact.h)('a-entity', { 'obj-model': 'obj: #studio-obj; mtl: #studio-mtl', scale: '1.3 1.3 1.3', position: '1.634 0.743 1.979', rotation: '0 90 0' }),
           (0, _preact.h)(
             'a-entity',
-            { 'collider-check': true, 'class': 'clickable', onMouseDown: this._handleMouseDown.bind(this), onClick: this._handleClick.bind(this),
+            { 'collider-check': true, 'class': 'clickable', onMouseDown: this._handleMouseDownLeft, onClick: this._handleClick,
               geometry: 'primitive: box; depth=0.2 height=0.06 width=0.06',
               position: '1.914 0.912 1.794',
               rotation: '0 90 0',
               scale: '0.100 0.100 0.100',
               material: 'color: #124E78',
-              sound: 'src: url(/sounds/kick-1.wav); poolSize: 6; on: mousedown' },
+              sound: 'src: url(/sounds/kick-1.wav); poolSize: 6; on: hover' },
             (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mouseover', from: 'lightblue', to: '#124E78', dur: '100' }),
-            (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
+            (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'hover', dur: '100', fill: 'forwards', to: '0 90 0' })
           ),
           (0, _preact.h)(
             'a-entity',
-            { 'collider-check': true, 'class': 'clickable', onMouseDown: this._handleMouseDown.bind(this), onClick: this._handleClick.bind(this),
+            { 'collider-check': true, 'class': 'clickable', onMouseDown: this._handleMouseDownLeft, onClick: this._handleClick,
               geometry: 'primitive: box; depth=0.2 height=0.06 width=0.06',
               position: '1.914 0.912 1.665',
               rotation: '0 90 0',
               scale: '0.100 0.100 0.100',
               material: 'color: #124E78',
-              sound: 'src: url(/sounds/kick-1.wav); poolSize: 6; on: mousedown' },
+              sound: 'src: url(/sounds/kick-1.wav); poolSize: 6; on: hover' },
             (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mouseover', from: 'lightblue', to: '#124E78', dur: '100' }),
-            (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
+            (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'hover', dur: '100', fill: 'forwards', to: '0 90 0' })
           ),
           (0, _preact.h)(
             'a-entity',
-            { 'collider-check': true, 'class': 'clickable', onMouseDown: this._handleMouseDown.bind(this), onClick: this._handleClick.bind(this),
+            { 'collider-check': true, 'class': 'clickable', onMouseDown: this._handleMouseDownLeft, onClick: this._handleClick,
               geometry: 'primitive: box; depth=0.2 height=0.06 width=0.06',
               position: '1.914 0.912 1.520',
               rotation: '0 90 0',
               scale: '0.100 0.100 0.100',
               material: 'color: #124E78',
-              sound: 'src: url(/sounds/kick-1.wav); poolSize: 6; on: mousedown' },
+              sound: 'src: url(/sounds/kick-1.wav); poolSize: 6; on: hover' },
             (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mouseover', from: 'lightblue', to: '#124E78', dur: '100' }),
-            (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
+            (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'hover', dur: '100', fill: 'forwards', to: '0 90 0' })
           ),
           (0, _preact.h)(
             'a-entity',
-            { 'collider-check': true, 'class': 'clickable', onMouseDown: this._handleMouseDown.bind(this), onClick: this._handleClick.bind(this),
+            { 'collider-check': true, 'class': 'clickable', onMouseDown: this._handleMouseDownLeft, onClick: this._handleClick,
               geometry: 'primitive: box; depth=0.2 height=0.06 width=0.06',
               position: '1.773 0.912 1.793',
               rotation: '0 90 0',
               scale: '0.100 0.100 0.100',
               material: 'color: #104',
-              sound: 'src: url(/sounds/kick-1.wav); poolSize: 6; on: mousedown' },
+              sound: 'src: url(/sounds/kick-1.wav); poolSize: 6; on: hover' },
             (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mouseover', from: 'lightblue', to: '#104', dur: '100' }),
-            (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
+            (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'hover', dur: '100', fill: 'forwards', to: '0 90 0' })
           ),
           (0, _preact.h)(
             'a-entity',
-            { 'collider-check': true, 'class': 'clickable', onMouseDown: this._handleMouseDown.bind(this), onClick: this._handleClick.bind(this),
+            { 'collider-check': true, 'class': 'clickable', onMouseDown: this._handleMouseDownLeft, onClick: this._handleClick,
               geometry: 'primitive: box; depth=0.2 height=0.06 width=0.06',
               position: '1.773 0.912 1.662',
               rotation: '0 90 0',
               scale: '0.100 0.100 0.100',
               material: 'color: #104',
-              sound: 'src: url(/sounds/kick-1.wav); poolSize: 6; on: mousedown' },
+              sound: 'src: url(/sounds/kick-1.wav); poolSize: 6; on: hover' },
             (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mouseover', from: 'lightblue', to: '#104', dur: '100' }),
-            (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
+            (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'hover', dur: '100', fill: 'forwards', to: '0 90 0' })
           ),
           (0, _preact.h)(
             'a-entity',
-            { 'collider-check': true, 'class': 'clickable', onMouseDown: this._handleMouseDown.bind(this), onClick: this._handleClick.bind(this),
+            { 'collider-check': true, 'class': 'clickable', onMouseDown: this._handleMouseDownLeft, onClick: this._handleClick,
               geometry: 'primitive: box; depth=0.2 height=0.06 width=0.06',
               position: '1.773 0.912 1.520',
               rotation: '0 90 0',
               scale: '0.100 0.100 0.100',
               material: 'color: #104',
-              sound: 'src: url(/sounds/kick-1.wav); poolSize: 6; on: mousedown' },
+              sound: 'src: url(/sounds/kick-1.wav); poolSize: 6; on: hover' },
             (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mouseover', from: 'lightblue', to: '#104', dur: '100' }),
-            (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
+            (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'hover', dur: '100', fill: 'forwards', to: '0 90 0' })
           ),
           (0, _preact.h)(
             'a-entity',
-            { 'collider-check': true, 'class': 'clickable', onMouseDown: this._handleMouseDown.bind(this), onClick: this._handleClick.bind(this),
+            { 'collider-check': true, 'class': 'clickable', onMouseDown: this._handleMouseDownLeft, onClick: this._handleClick,
               geometry: 'primitive: box; depth=0.2 height=0.06 width=0.06',
               position: '1.625 0.912 1.793',
               rotation: '0 90 0',
               scale: '0.100 0.100 0.100',
               material: 'color: #104',
-              sound: 'src: url(/sounds/kick-1.wav); poolSize: 6; on: mousedown' },
+              sound: 'src: url(/sounds/kick-1.wav); poolSize: 6; on: hover' },
             (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mouseover', from: 'lightblue', to: '#104', dur: '100' }),
-            (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
+            (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'hover', dur: '100', fill: 'forwards', to: '0 90 0' })
           ),
           (0, _preact.h)(
             'a-entity',
-            { 'collider-check': true, 'class': 'clickable', onMouseDown: this._handleMouseDown.bind(this), onClick: this._handleClick.bind(this),
+            { 'collider-check': true, 'class': 'clickable', onMouseDown: this._handleMouseDownLeft, onClick: this._handleClick,
               geometry: 'primitive: box; depth=0.2 height=0.06 width=0.06',
               position: '1.625 0.912 1.662',
               rotation: '0 90 0',
               scale: '0.100 0.100 0.100',
               material: 'color: #104',
-              sound: 'src: url(/sounds/kick-1.wav); poolSize: 6; on: mousedown' },
+              sound: 'src: url(/sounds/kick-1.wav); poolSize: 6; on: hover' },
             (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mouseover', from: 'lightblue', to: '#104', dur: '100' }),
-            (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
+            (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'hover', dur: '100', fill: 'forwards', to: '0 90 0' })
           ),
           (0, _preact.h)(
             'a-entity',
-            { 'collider-check': true, 'class': 'clickable', onMouseDown: this._handleMouseDown.bind(this), onClick: this._handleClick.bind(this),
+            { 'collider-check': true, 'class': 'clickable', onMouseDown: this._handleMouseDownLeft, onClick: this._handleClick,
               geometry: 'primitive: box; depth=0.2 height=0.06 width=0.06',
               position: '1.625 0.912 1.520',
               rotation: '0 90 0',
               scale: '0.100 0.100 0.100',
               material: 'color: #104',
-              sound: 'src: url(/sounds/kick-1.wav); poolSize: 6; on: mousedown' },
+              sound: 'src: url(/sounds/kick-1.wav); poolSize: 6; on: hover' },
             (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mouseover', from: 'lightblue', to: '#104', dur: '100' }),
-            (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
+            (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'hover', dur: '100', fill: 'forwards', to: '0 90 0' })
           ),
           '//////////////////////////////////////////',
           '//////////////////////////////////////////',
           (0, _preact.h)(
             'a-entity',
-            { 'collider-check': true, 'class': 'one clickable', onMouseDown: this._handleMouseDown.bind(this), onClick: this._handleClick.bind(this),
+            { 'collider-check': true, 'class': 'one clickable', onMouseEnter: this.onMouseEnter, onMouseDown: this._handleMouseDownRight, onMouseUp: this._handleMouseUpRight, onClick: this._handleClick,
               geometry: 'primitive: box; depth=0.2 height=0.5 width=0.5',
               position: '0.5 0.5 -4',
               rotation: '0 0 0',
               material: 'color: #124E78',
-              sound: 'src: url(/sounds/kick-1.wav); poolSize: 6; on: mousedown' },
+              sound: 'src: url(/sounds/kick-1.wav); poolSize: 10; on: mousedown' },
             (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mouseover', from: 'lightblue', to: '#124E78', dur: '100' }),
             (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
           ),
           (0, _preact.h)(
             'a-entity',
-            { 'class': 'two clickable',
+            { 'class': 'two clickable', onMouseDown: this._handleMouseDownRight, onMouseUp: this._handleMouseUpRight,
               geometry: 'primitive: box; depth=0.0 height=0.5 width=0.5',
               position: '0.5 2 -4',
               rotation: '0 0 0',
               material: 'color: #124E78',
-              sound: 'src: url(/sounds/kick-2.wav); poolSize: 6; on: mousedown' },
+              sound: 'src: url(/sounds/kick-2.wav); poolSize: 10; on: mousedown' },
             (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mousedown', from: 'lightblue', to: '#124E78', dur: '100' }),
             (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
           ),
           (0, _preact.h)(
             'a-entity',
-            { 'class': 'three clickable', onClick: this._handleClick.bind(this),
+            { 'class': 'three clickable', onMouseDown: this._handleMouseDownRight, onMouseUp: this._handleMouseUpRight, onClick: this._handleClick,
               geometry: 'primitive: box; depth=0.0 height=0.5 width=0.5',
               position: '0.5 3.5 -4',
               rotation: '0 0 0',
               material: 'color: #124E78',
-              sound: 'src: url(/sounds/kick-3.wav); poolSize: 6; on: mousedown' },
+              sound: 'src: url(/sounds/kick-3.wav); poolSize: 10; on: mousedown' },
             (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mousedown', from: 'lightblue', to: '#124E78', dur: '100' }),
             (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
           ),
           '///////////////////////////////////////////////',
           (0, _preact.h)(
             'a-entity',
-            { 'class': 'four clickable', onClick: this._handleClick.bind(this),
+            { 'class': 'four clickable', onMouseDown: this._handleMouseDownRight, onMouseUp: this._handleMouseUpRight, onClick: this._handleClick,
               geometry: 'primitive: box; depth=0.0 height=0.5 width=0.5',
               position: '2 0.5 -4',
               rotation: '0 0 0',
               material: 'color: #D74E09',
-              sound: 'src: url(/sounds/snare-1.wav); poolSize: 6; on: mousedown' },
+              sound: 'src: url(/sounds/snare-1.wav); poolSize: 10; on: mousedown' },
             (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mousedown', from: 'red', to: '#D74E09', dur: '100' }),
             (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
           ),
           (0, _preact.h)(
             'a-entity',
-            { 'class': 'five clickable', onClick: this._handleClick.bind(this),
+            { 'class': 'five clickable', onMouseDown: this._handleMouseDownRight, onMouseUp: this._handleMouseUpRight, onClick: this._handleClick,
               geometry: 'primitive: box; depth=0.0 height=0.5 width=0.5',
               position: '2 2 -4',
               rotation: '0 0 0',
               material: 'color: #D74E09',
-              sound: 'src: url(/sounds/snare-2.wav); poolSize: 6; on: mousedown' },
+              sound: 'src: url(/sounds/snare-2.wav); poolSize: 10; on: mousedown' },
             (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mousedown', from: 'red', to: '#D74E09', dur: '100' }),
             (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
           ),
           (0, _preact.h)(
             'a-entity',
-            { 'class': 'six clickable', onClick: this._handleClick.bind(this),
+            { 'class': 'six clickable', onMouseDown: this._handleMouseDownRight, onMouseUp: this._handleMouseUpRight, onClick: this._handleClick,
               geometry: 'primitive: box; depth=0.0 height=0.5 width=0.5',
               position: '2 3.5 -4',
               rotation: '0 0 0',
               material: 'color: #D74E09',
-              sound: 'src: url(/sounds/snare-3.wav); poolSize: 6; on: mousedown' },
+              sound: 'src: url(/sounds/snare-3.wav); poolSize: 10; on: mousedown' },
             (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mousedown', from: 'red', to: '#D74E09', dur: '100' }),
             (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
           ),
           '///////////////////////////////////////////////',
           (0, _preact.h)(
             'a-entity',
-            { 'class': 'seven clickable', onClick: this._handleClick.bind(this),
+            { 'class': 'seven clickable', onMouseDown: this._handleMouseDownRight, onMouseUp: this._handleMouseUpRight, onClick: this._handleClick,
               geometry: 'primitive: box; depth=0.0 height=0.5 width=0.5',
               position: '3.5 0.5 -4',
               rotation: '0 0 0',
               material: 'color: #0C8346',
-              sound: 'src: url(/sounds/E808_CH-03.wav); poolSize: 6; on: mousedown' },
+              sound: 'src: url(/sounds/E808_CH-03.wav); poolSize: 10; on: mousedown' },
             (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mousedown', from: 'purple', to: '#0C8346', dur: '100' }),
             (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
           ),
           (0, _preact.h)(
             'a-entity',
-            { 'class': 'eight clickable', onClick: this._handleClick.bind(this),
+            { 'class': 'eight clickable', onMouseDown: this._handleMouseDownRight, onMouseUp: this._handleMouseUpRight, onClick: this._handleClick,
               geometry: 'primitive: box; depth=0.0 height=0.5 width=0.5',
               position: '3.5 2 -4',
               rotation: '0 0 0',
               material: 'color: #0C8346',
-              sound: 'src: url(/sounds/E808_CH-07.wav); poolSize: 6; on: mousedown' },
+              sound: 'src: url(/sounds/E808_CH-07.wav); poolSize: 10; on: mousedown' },
             (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mousedown', from: 'purple', to: '#0C8346', dur: '100' }),
             (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
           ),
           (0, _preact.h)(
             'a-entity',
-            { 'class': 'nine clickable', onClick: this._handleClick.bind(this),
+            { 'class': 'nine clickable', onMouseDown: this._handleMouseDownRight, onMouseUp: this._handleMouseUpRight, onClick: this._handleClick,
               geometry: 'primitive: box; depth=0.0 height=0.5 width=0.5',
               position: '3.5 3.5 -4',
               rotation: '0 0 0',
               material: 'color: #0C8346',
-              sound: 'src: url(/sounds/E808_OH-07.wav); poolSize: 6; on: mousedown' },
+              sound: 'src: url(/sounds/E808_OH-07.wav); poolSize: 10; on: mousedown' },
             (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mousedown', from: 'purple', to: '#0C8346', dur: '100' }),
             (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
           )
@@ -116563,44 +116561,138 @@ var Main = function (_Component) {
       );
     }
   }, {
-    key: '_handleMouseDown',
-    value: function _handleMouseDown(event) {
-      // console.log("mouse down fired!!!");
-      // var entity = document.querySelector('[sound]')
-      // console.log(entity.components.sound, ".... sound");
-      // var myInterval = setInterval(() => {
-      //   entity.components.sound.playSound()
-      // }, 500);
-      // if (event.type == 'mousedown') {
-      //   function this.yah() {
-      //   }
-      // }
-      // if (event.type == 'mouseup') {
-      //   console.log("mouseupppppppp");
-      //   clearInterval(myInterval);
-      // }
+    key: 'onMouseEnter',
+    value: function onMouseEnter(event) {
+      // console.log("mouse entered!!!!!!! lets do this!");
+      // const eventType = event.type;
+      // console.log(event.type, " ...event type onmouseenter");
+    }
+  }, {
+    key: '_handleMouseDownRight',
+    value: function _handleMouseDownRight(event) {
+      event.preventDefault();
+      this.interval = { rightHand: false, leftHand: false };
+      if (event.detail.cursorEl.id === "right-hand" && this.interval['rightHand'] === false) {
+        this.interval['rightHand'] = setInterval(function () {
+          event.target.components.sound.playSound();
+          this.interval = true;
+        }, 250);
+      } else if (event.detail.cursorEl.id === "left-hand" && this.interval['leftHand'] === false) {
+        this.interval['leftHand'] = setInterval(function () {
+          event.target.components.sound.playSound();
+          this.interval = true;
+        }, 250);
+      } else {
+        console.log("wtf? line 471");
+      }
+    }
+  }, {
+    key: '_handleMouseUpRight',
+    value: function _handleMouseUpRight(event) {
+      event.preventDefault();
+      if (event.detail.cursorEl.id === "right-hand") {
+        if (this.interval['rightHand'] !== false) {
+          clearInterval(this.interval['rightHand']);
+          this.interval['rightHand'] = false;
+        }
+      } else if (event.detail.cursorEl.id === "left-hand") {
+        if (this.interval['leftHand'] !== false) {
+          clearInterval(this.interval['leftHand']);
+          this.interval['leftHand'] = false;
+        }
+      }
+    }
+  }, {
+    key: '_handleMouseDownLeft',
+    value: function _handleMouseDownLeft(event) {
+      event.preventDefault();
+      // var pType = pointerEvent.pointerId;
+      // console.log(pType, "...pointer id");
+      console.log(event.detail.cursorEl.id, " ...event");
+      // console.log(event.which, "...which one?");
+      // console.log(event.code, "e.code ... left hand or right hand?");
+      // console.log(event.target, "target for the event onMouseDown");
+      // console.log(event.pointerId, "pointerId");
+      // console.log(event.pointerType);
+      // console.log(PointerEvent);
+      // console.log(pointerEvent.pointerId, '...pointer event pointerId');
+      // var entity = document.querySelector('[sound]');
+      // console.log(entity, ..."entity [sound]");
+      // console.log(entity.__preactattr.sound, "entity [sound] targeted in onMouseDown");
+      // console.log(event.target.components.sound.attrValue, "...current entity's sound targeted");
+      // console.log(this.entity.components, "...THIS current entity targeted");
+      // console.log(myInterval, "my interval");
+      // this.interval = false;
+      if (event.detail.cursorEl.id === "left-hand" && this.interval['leftHand'] === false) {
+        this.interval['leftHand'] = setInterval(function () {
+          event.target.components.sound.playSound();
+          this.interval = true;
+        }, 250);
+        // } else if (event.detail.cursorEl.id === "right-hand" && this.interval === false) {
+        //   this.interval['rightHand']['1'] = setInterval(function() {
+        //     event.target.components.sound.playSound();
+        //     this.interval['rightHand']['0'] = true;
+        //   }, 250);
+        // }
+
+        // console.log("mouse down fired!!!");
+        // var entity = document.querySelector('[sound]')
+        // console.log(entity.components.sound, ".... sound");
+        // var myInterval = setInterval(() => {
+        //   entity.components.sound.playSound()
+        // }, 500);
+        // if (event.type == 'mousedown') {
+        //   function this.yah() {
+        //   }
+        // }
+        // if (event.type == 'mouseup') {
+        //   console.log("mouseupppppppp");
+        //   clearInterval(myInterval);
+        // }
+      }
+    }
+  }, {
+    key: '_handleMouseUpLeft',
+    value: function _handleMouseUpLeft(event) {
+      event.preventDefault();
+      // console.log(event.type, " ...mouse up???");
+      // var entity = document.querySelector('[sound]');
+      if (event.detail.cursorEl.id === "left-hand") {
+        if (this.interval['leftHand'] !== false) {
+          clearInterval(this.interval['leftHand']);
+          this.interval['leftHand'] = false;
+        }
+        // } else if (event.detail.cursorEl.id === "right-hand") {
+        //     if (this.interval['rightHand']['0'] !== false) {
+        //       clearInterval(this.interval['rightHand']['1']);
+        //       this.interval['rightHand']['0'] = false;
+        //   }
+        // }
+      } else {
+        console.log("what in the fuckkkkkkkkkkkkkkkkkkkkkkkkkkk");
+      }
     }
   }, {
     key: '_handleClick',
     value: function _handleClick(event) {
-      console.log("clicked");
+      // console.log("clicked");
+      // const eventType = event.type;
+      // console.log(eventType);
       // console.log("event.target", event.target);
       var entity = document.querySelector('[sound]');
       // entity.components.sound.playSound();
       // console.log("sounddd entity val: ", entity.components.sound);
       // console.log(event, " ....wtf is this event evaluate to?");
       // console.log(event.type, "  === event.type");
-      if (event.type == 'mousedown') {
-        console.log("event!!!!");
-        // if (entity.components.sound.evtDetail.isPlaying == true) {
-        //   console.log("jeyahhh boiiiiiiiiiiiiii");
-        //   entity.components.sound.evtDetail.isPlaying = false;
-        //   entity.components.sound.playSound();
-        // }
-      }
-      console.log("triggerdown");
-      var caster = document.querySelector('#my-raycaster');
-      var raycaster = document.querySelector('#my-raycaster').components.raycaster;
+
+      // if (entity.components.sound.evtDetail.isPlaying == true) {
+      //   console.log("jeyahhh boiiiiiiiiiiiiii");
+      //   entity.components.sound.evtDetail.isPlaying = false;
+      //   entity.components.sound.playSound();
+      // }
+      // console.log("triggerdown");
+      // var caster = document.querySelector('#my-raycaster')
+      // var raycaster = document.querySelector('#my-raycaster').components.raycaster;
       // var cubes = document.querySelectorAll('.clickable');
       // console.log("current cube maybeeee?...", cubes);
       // cubes.components.raycaster.refreshObjects();
