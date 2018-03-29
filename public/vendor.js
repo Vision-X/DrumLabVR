@@ -118886,8 +118886,6 @@ require('aframe-animation-component');
 
 require('aframe-event-set-component');
 
-require('./components/aframe-lowpoly');
-
 require('./components/aframe-environment');
 
 require('./components/aframe-effects');
@@ -118923,9 +118921,11 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 // import 'aframe-text-component';
 
+// import './components/aframe-lowpoly'
+
 });
 
-require.register("main.js", function(exports, require, module) {
+;require.register("main.js", function(exports, require, module) {
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -118978,277 +118978,217 @@ var Main = function (_Component) {
     _this._handleClick = _this._handleClick.bind(_this);
     _this._handleMouseUp = _this._handleMouseUp.bind(_this);
     _this._handleMouseDown = _this._handleMouseDown.bind(_this);
-    _this.onMouseEnter = _this.onMouseEnter.bind(_this);
     return _this;
   }
 
   _createClass(Main, [{
-    key: 'componentDidMount',
-    value: function componentDidMount() {}
-  }, {
     key: 'render',
     value: function render() {
-      return (
-        /* <Scene
-         effects="bloom, film, fxaa"
-         fxaa
-         bloom={{
-           radius: 0.99
-         }}
-         film={{
-           sIntensity: 0.15,
-           nIntensity: 0.25
-         }}
-         environment={{
-           preset: 'starry',
-           seed: 1,
-           lightPosition: { x: 200.0, y: 30.0, z: -50.0 },
-           fog: 0.8,
-           ground: 'canyon',
-           groundYScale: 5.0,
-           groundTexture: 'walkernoise',
-           groundColor: '#755b5c',
-           grid: 'none'
-         }}
-        >
-         <Entity
-           primitive="a-light"
-           type="directional"
-           color="#FFF"
-           intensity={1}
-           position={{ x: 2.5, y: 0.0, z: 0.0 }}
-           animation__oscillate={{
-             property: 'position',
-             dur: 2000,
-             dir: 'alternate',
-             easing: 'linear',
-             loop: true,
-             from: { x: 2.5, y: 0.0, z: 0.0 },
-             to: { x: 3.0, y: 0.25, z: 0.0 }
-           }}
-         /> */
-
+      return (0, _preact.h)(
+        'a-scene',
+        null,
         (0, _preact.h)(
-          'a-scene',
-          { stats: true },
-          (0, _preact.h)(
-            'a-assets',
-            null,
-            (0, _preact.h)('img', { src: 'https://img.gs/bbdkhfbzkk/stretch/https://i.imgur.com/25P1geh.png', id: 'grid', crossorigin: 'anonymous' }),
-            (0, _preact.h)('img', { src: 'https://img.gs/bbdkhfbzkk/2048x1024,stretch/http://i.imgur.com/WMNH2OF.jpg', id: 'chrome', crossorigin: 'anonymous' }),
-            (0, _preact.h)('img', { id: 'sky', src: 'https://img.gs/bbdkhfbzkk/2048x2048,stretch/http://i.imgur.com/WqlqEkq.jpg', crossorigin: 'anonymous' }),
-            (0, _preact.h)('img', { id: 'floor', src: 'https://cdn.aframe.io/a-painter/images/floor.jpg', crossOrigin: 'anonymous' }),
-            (0, _preact.h)('a-asset-item', { id: 'exoFont', src: 'https://cdn.glitch.com/c719c986-c0c5-48b8-967c-3cd8b8aa17f3%2Fexo2Black.typeface.json?1490305922150' }),
-            (0, _preact.h)('a-asset-item', { id: 'exoItalicFont', src: 'https://cdn.glitch.com/c719c986-c0c5-48b8-967c-3cd8b8aa17f3%2Fexo2BlackItalic.typeface.json?1490305922725' }),
-            '/*  ',
-            (0, _preact.h)('a-asset-item', { id: 'speaker-obj', src: '/speaker-model.obj' }),
-            (0, _preact.h)('a-asset-item', { id: 'speaker-mtl', src: '/speaker-materials.mtl' }),
-            (0, _preact.h)('a-asset-item', { id: 'studio-obj', src: '/studio-minimal-object.obj' }),
-            (0, _preact.h)('a-asset-item', { id: 'studio-mtl', src: '/studio-minimal-materials.mtl' }),
-            ' */'
-          ),
-          (0, _preact.h)(
-            'a-entity',
-            { 'wasd-controls': true, id: 'cameraRig', position: '2.339 0 1.614', rotation: '0 90 0' },
-            (0, _preact.h)('a-entity', { id: 'head', rotation: '0 90 0', camera: true, 'look-controls': true }),
-            (0, _preact.h)('a-entity', { id: 'left-hand', raycaster: 'objects: .clickable;', line: 'color: blue;', 'oculus-touch-controls': 'hand: left;', 'laser-controls': 'hand: left; objects: .clickable;' }),
-            (0, _preact.h)('a-entity', { id: 'right-hand', 'aabb-collider': 'objects: .clickable;', raycaster: 'objects: .clickable;', line: 'color: blue;', 'oculus-touch-controls': 'hand: right;', 'laser-controls': 'hand: right; objects: .clickable;' })
-          ),
-          (0, _preact.h)('a-entity', { id: 'ground',
-            geometry: 'primitive: circle; radius: 100', rotation: '-90 0 0',
-            material: 'src: #floor; transparent: false; metalness:0.2; roughness: 0.4;' }),
-          (0, _preact.h)('a-entity', { light: 'color: #ccccff; intensity: 1; type: ambient;', visible: '' }),
-          (0, _preact.h)('a-entity', { light: 'color: white; intensity: 0.5', position: '-5 5 15' }),
-          (0, _preact.h)('a-entity', { light: 'color: white; type: ambient;' }),
-          (0, _preact.h)('a-sky', { src: '#sky', rotation: '0 -90 0' }),
-          '///////////////////////////////////',
-          (0, _preact.h)(
-            'a-entity',
-            { position: '-9.5 2 -9', rotation: '10 25 0' },
-            (0, _preact.h)('a-entity', { position: '6.7 5.06 6.5', rotation: '10 -25 5', scale: '0.6 1.2 1', 'text-geometry': 'value: DrumLab; font: #exoFont; bevelEnabled: true; bevelSize: 0.1; bevelThickness: 0.1; curveSegments: 1; size: 1.0; height: 0.5;', material: 'color:blue; metalness:0.9; roughness: 0.05; sphericalEnvMap: #chrome;' }),
-            (0, _preact.h)('a-entity', { position: '9.95 5.5 8.66', rotation: '10 -25 5', 'text-geometry': 'value: VR; font: #exoItalicFont; style: italic; size: 0.8; weight: bold; height: 0;',
-              material: 'shader: flat; color: white' }),
-            (0, _preact.h)('a-entity', { position: '9.95 5.5 8.66', rotation: '10 -25 5', 'text-geometry': 'value: VR; font: #exoItalicFont; style: italic; size: 0.8; weight: bold; height: 0; bevelEnabled: true; bevelSize: 0.04; bevelThickness: 0.04; curveSegments: 1',
-              material: 'shader: flat; color: white; transparent: true; opacity: 0.4' })
-          ),
-          '/////////////////////////////////',
-          '//////////////////////////////////////////',
-          '//////////////////////////////////////////',
-          (0, _preact.h)(
-            'a-entity',
-            { 'collider-check': true, 'class': 'one clickable', onMouseEnter: this.onMouseEnter, onMouseDown: this._handleMouseDown, onMouseUp: this._handleMouseUp, onClick: this._handleClick,
-              geometry: 'primitive: box; depth=0.2 height=0.5 width=0.5',
-              position: '0.5 0.5 -4',
-              rotation: '0 0 0',
-              material: 'color: #124E78',
-              sound: this.state.sounds.kick1 },
-            (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mousedown', from: 'lightblue', to: '#124E78', dur: '100' }),
-            (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
-          ),
-          (0, _preact.h)(
-            'a-entity',
-            { 'class': 'two clickable', onMouseEnter: this.onMouseEnter, onMouseDown: this._handleMouseDown, onMouseUp: this._handleMouseUp,
-              geometry: 'primitive: box; depth=0.0 height=0.5 width=0.5',
-              position: '0.5 2 -4',
-              rotation: '0 0 0',
-              material: 'color: #124E78',
-              sound: this.state.sounds.kick2 },
-            (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mousedown', from: 'lightblue', to: '#124E78', dur: '100' }),
-            (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
-          ),
-          (0, _preact.h)(
-            'a-entity',
-            { 'class': 'three clickable', onMouseEnter: this.onMouseEnter, onMouseDown: this._handleMouseDown, onMouseUp: this._handleMouseUp, onClick: this._handleClick,
-              geometry: 'primitive: box; depth=0.0 height=0.5 width=0.5',
-              position: '0.5 3.5 -4',
-              rotation: '0 0 0',
-              material: 'color: #124E78',
-              sound: this.state.sounds.kick3 },
-            (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mousedown', from: 'lightblue', to: '#124E78', dur: '100' }),
-            (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
-          ),
-          '///////////////////////////////////////////////',
-          (0, _preact.h)(
-            'a-entity',
-            { 'class': 'four clickable', onMouseEnter: this.onMouseEnter, onMouseDown: this._handleMouseDown, onMouseUp: this._handleMouseUp, onClick: this._handleClick,
-              geometry: 'primitive: box; depth=0.0 height=0.5 width=0.5',
-              position: '2 0.5 -4',
-              rotation: '0 0 0',
-              material: 'color: #D74E09',
-              sound: this.state.sounds.snare1 },
-            (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mousedown', from: 'red', to: '#D74E09', dur: '100' }),
-            (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
-          ),
-          (0, _preact.h)(
-            'a-entity',
-            { 'class': 'five clickable', onMouseEnter: this.onMouseEnter, onMouseDown: this._handleMouseDown, onMouseUp: this._handleMouseUp, onClick: this._handleClick,
-              geometry: 'primitive: box; depth=0.0 height=0.5 width=0.5',
-              position: '2 2 -4',
-              rotation: '0 0 0',
-              material: 'color: #D74E09',
-              sound: this.state.sounds.snare2 },
-            (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mousedown', from: 'red', to: '#D74E09', dur: '100' }),
-            (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
-          ),
-          (0, _preact.h)(
-            'a-entity',
-            { 'class': 'six clickable', onMouseEnter: this.onMouseEnter, onMouseDown: this._handleMouseDown, onMouseUp: this._handleMouseUp, onClick: this._handleClick,
-              geometry: 'primitive: box; depth=0.0 height=0.5 width=0.5',
-              position: '2 3.5 -4',
-              rotation: '0 0 0',
-              material: 'color: #D74E09',
-              sound: this.state.sounds.snare3 },
-            (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mousedown', from: 'red', to: '#D74E09', dur: '100' }),
-            (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
-          ),
-          '///////////////////////////////////////////////',
-          (0, _preact.h)(
-            'a-entity',
-            { 'class': 'seven clickable', onMouseEnter: this.onMouseEnter, onMouseDown: this._handleMouseDown, onMouseUp: this._handleMouseUp, onClick: this._handleClick,
-              geometry: 'primitive: box; depth=0.0 height=0.5 width=0.5',
-              position: '3.5 0.5 -4',
-              rotation: '0 0 0',
-              material: 'color: #0C8346',
-              sound: this.state.sounds.hihat1 },
-            (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mousedown', from: 'purple', to: '#0C8346', dur: '100' }),
-            (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
-          ),
-          (0, _preact.h)(
-            'a-entity',
-            { 'class': 'eight clickable', onMouseEnter: this.onMouseEnter, onMouseDown: this._handleMouseDown, onMouseUp: this._handleMouseUp, onClick: this._handleClick,
-              geometry: 'primitive: box; depth=0.0 height=0.5 width=0.5',
-              position: '3.5 2 -4',
-              rotation: '0 0 0',
-              material: 'color: #0C8346',
-              sound: this.state.sounds.hihat2 },
-            (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mousedown', from: 'purple', to: '#0C8346', dur: '100' }),
-            (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
-          ),
-          (0, _preact.h)(
-            'a-entity',
-            { 'class': 'nine clickable', onMouseEnter: this.onMouseEnter, onMouseDown: this._handleMouseDown, onMouseUp: this._handleMouseUp, onClick: this._handleClick,
-              geometry: 'primitive: box; depth=0.0 height=0.5 width=0.5',
-              position: '3.5 3.5 -4',
-              rotation: '0 0 0',
-              material: 'color: #0C8346',
-              sound: this.state.sounds.hihat3 },
-            (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mousedown', from: 'purple', to: '#0C8346', dur: '100' }),
-            (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
-          ),
-          '/////////////////////////////////',
+          'a-assets',
+          null,
+          (0, _preact.h)('img', { src: 'https://img.gs/bbdkhfbzkk/stretch/https://i.imgur.com/25P1geh.png', id: 'grid', crossorigin: 'anonymous' }),
+          (0, _preact.h)('img', { src: 'https://img.gs/bbdkhfbzkk/2048x1024,stretch/http://i.imgur.com/WMNH2OF.jpg', id: 'chrome', crossorigin: 'anonymous' }),
+          (0, _preact.h)('img', { id: 'sky', src: 'https://img.gs/bbdkhfbzkk/2048x2048,stretch/http://i.imgur.com/WqlqEkq.jpg', crossorigin: 'anonymous' }),
+          (0, _preact.h)('img', { id: 'floor', src: 'https://cdn.aframe.io/a-painter/images/floor.jpg', crossOrigin: 'anonymous' }),
+          (0, _preact.h)('a-asset-item', { id: 'exoFont', src: 'https://cdn.glitch.com/c719c986-c0c5-48b8-967c-3cd8b8aa17f3%2Fexo2Black.typeface.json?1490305922150' }),
+          (0, _preact.h)('a-asset-item', { id: 'exoItalicFont', src: 'https://cdn.glitch.com/c719c986-c0c5-48b8-967c-3cd8b8aa17f3%2Fexo2BlackItalic.typeface.json?1490305922725' }),
+          '/*  ',
+          (0, _preact.h)('a-asset-item', { id: 'speaker-obj', src: '/speaker-model.obj' }),
+          (0, _preact.h)('a-asset-item', { id: 'speaker-mtl', src: '/speaker-materials.mtl' }),
+          '*/'
+        ),
+        (0, _preact.h)(
+          'a-entity',
+          { 'wasd-controls': true, id: 'cameraRig', position: '2.5 0 1.3', rotation: '0 -75 0' },
+          (0, _preact.h)('a-entity', { id: 'head', rotation: '0 90 0', camera: true, 'look-controls': true }),
+          (0, _preact.h)('a-entity', { id: 'left-hand', raycaster: 'objects: .clickable;', line: 'color: blue;', 'oculus-touch-controls': 'hand: left;', 'laser-controls': 'hand: left; objects: .clickable;' }),
+          (0, _preact.h)('a-entity', { id: 'right-hand', raycaster: 'objects: .clickable;', line: 'color: blue;', 'oculus-touch-controls': 'hand: right;', 'laser-controls': 'hand: right; objects: .clickable;' })
+        ),
+        (0, _preact.h)('a-entity', { id: 'ground',
+          geometry: 'primitive: circle; radius: 100', rotation: '-90 0 0',
+          material: 'src: #floor; transparent: false; metalness:0.2; roughness: 0.4;' }),
+        (0, _preact.h)('a-entity', { light: 'color: #ccccff; intensity: 1; type: ambient;', visible: '' }),
+        (0, _preact.h)('a-entity', { light: 'color: #ffaaff; intensity: 1.5', position: '5 5 5' }),
+        (0, _preact.h)('a-entity', { light: 'color: white; intensity: 0.5', position: '-5 5 15' }),
+        (0, _preact.h)('a-entity', { light: 'color: white; type: ambient;' }),
+        (0, _preact.h)('a-sky', { src: '#sky', rotation: '0 -90 0' }),
+        '///////////////////////////////////',
+        (0, _preact.h)(
+          'a-entity',
+          { position: '-9.5 2 -9', rotation: '10 25 0' },
+          (0, _preact.h)('a-entity', { position: '6.7 5.06 6.5', rotation: '10 -25 5', scale: '0.6 1.2 1', 'text-geometry': 'value: DrumLab; font: #exoFont; bevelEnabled: true; bevelSize: 0.1; bevelThickness: 0.1; curveSegments: 1; size: 1.0; height: 0.5;', material: 'color:blue; metalness:0.9; roughness: 0.05; sphericalEnvMap: #chrome;' }),
+          (0, _preact.h)('a-entity', { position: '9.95 5.5 8.66', rotation: '10 -25 5', 'text-geometry': 'value: VR; font: #exoItalicFont; style: italic; size: 0.8; weight: bold; height: 0;',
+            material: 'shader: flat; color: white' }),
+          (0, _preact.h)('a-entity', { position: '9.95 5.5 8.66', rotation: '10 -25 5', 'text-geometry': 'value: VR; font: #exoItalicFont; style: italic; size: 0.8; weight: bold; height: 0; bevelEnabled: true; bevelSize: 0.04; bevelThickness: 0.04; curveSegments: 1',
+            material: 'shader: flat; color: white; transparent: true; opacity: 0.4' })
+        ),
+        '//////////////////////////////////////////',
+        '//////////////////////////////////////////',
+        (0, _preact.h)(
+          'a-entity',
+          { 'collider-check': true, 'class': 'one clickable', onMouseDown: this._handleMouseDown, onMouseUp: this._handleMouseUp, onClick: this._handleClick,
+            geometry: 'primitive: box; depth=0.2 height=0.5 width=0.5',
+            position: '0.5 0.5 -4',
+            rotation: '0 0 0',
+            material: 'color: #124E78',
+            sound: this.state.sounds.kick1 },
+          (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mousedown', from: 'lightblue', to: '#124E78', dur: '100' }),
+          (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
+        ),
+        (0, _preact.h)(
+          'a-entity',
+          { 'class': 'two clickable', onMouseDown: this._handleMouseDown, onMouseUp: this._handleMouseUp,
+            geometry: 'primitive: box; depth=0.0 height=0.5 width=0.5',
+            position: '0.5 2 -4',
+            rotation: '0 0 0',
+            material: 'color: #124E78',
+            sound: this.state.sounds.kick2 },
+          (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mousedown', from: 'lightblue', to: '#124E78', dur: '100' }),
+          (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
+        ),
+        (0, _preact.h)(
+          'a-entity',
+          { 'class': 'three clickable', onMouseDown: this._handleMouseDown, onMouseUp: this._handleMouseUp, onClick: this._handleClick,
+            geometry: 'primitive: box; depth=0.0 height=0.5 width=0.5',
+            position: '0.5 3.5 -4',
+            rotation: '0 0 0',
+            material: 'color: #124E78',
+            sound: this.state.sounds.kick3 },
+          (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mousedown', from: 'lightblue', to: '#124E78', dur: '100' }),
+          (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
+        ),
+        '///////////////////////////////////////////////',
+        (0, _preact.h)(
+          'a-entity',
+          { 'class': 'four clickable', onMouseDown: this._handleMouseDown, onMouseUp: this._handleMouseUp, onClick: this._handleClick,
+            geometry: 'primitive: box; depth=0.0 height=0.5 width=0.5',
+            position: '2 0.5 -4',
+            rotation: '0 0 0',
+            material: 'color: #D74E09',
+            sound: this.state.sounds.snare1 },
+          (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mousedown', from: 'red', to: '#D74E09', dur: '100' }),
+          (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
+        ),
+        (0, _preact.h)(
+          'a-entity',
+          { 'class': 'five clickable', onMouseDown: this._handleMouseDown, onMouseUp: this._handleMouseUp, onClick: this._handleClick,
+            geometry: 'primitive: box; depth=0.0 height=0.5 width=0.5',
+            position: '2 2 -4',
+            rotation: '0 0 0',
+            material: 'color: #D74E09',
+            sound: this.state.sounds.snare2 },
+          (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mousedown', from: 'red', to: '#D74E09', dur: '100' }),
+          (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
+        ),
+        (0, _preact.h)(
+          'a-entity',
+          { 'class': 'six clickable', onMouseDown: this._handleMouseDown, onMouseUp: this._handleMouseUp, onClick: this._handleClick,
+            geometry: 'primitive: box; depth=0.0 height=0.5 width=0.5',
+            position: '2 3.5 -4',
+            rotation: '0 0 0',
+            material: 'color: #D74E09',
+            sound: this.state.sounds.snare3 },
+          (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mousedown', from: 'red', to: '#D74E09', dur: '100' }),
+          (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
+        ),
+        '///////////////////////////////////////////////',
+        (0, _preact.h)(
+          'a-entity',
+          { 'class': 'seven clickable', onMouseDown: this._handleMouseDown, onMouseUp: this._handleMouseUp, onClick: this._handleClick,
+            geometry: 'primitive: box; depth=0.0 height=0.5 width=0.5',
+            position: '3.5 0.5 -4',
+            rotation: '0 0 0',
+            material: 'color: #0C8346',
+            sound: this.state.sounds.hihat1 },
+          (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mousedown', from: 'purple', to: '#0C8346', dur: '100' }),
+          (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
+        ),
+        (0, _preact.h)(
+          'a-entity',
+          { 'class': 'eight clickable', onMouseDown: this._handleMouseDown, onMouseUp: this._handleMouseUp, onClick: this._handleClick,
+            geometry: 'primitive: box; depth=0.0 height=0.5 width=0.5',
+            position: '3.5 2 -4',
+            rotation: '0 0 0',
+            material: 'color: #0C8346',
+            sound: this.state.sounds.hihat2 },
+          (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mousedown', from: 'purple', to: '#0C8346', dur: '100' }),
+          (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
+        ),
+        (0, _preact.h)(
+          'a-entity',
+          { 'class': 'nine clickable', onMouseDown: this._handleMouseDown, onMouseUp: this._handleMouseUp, onClick: this._handleClick,
+            geometry: 'primitive: box; depth=0.0 height=0.5 width=0.5',
+            position: '3.5 3.5 -4',
+            rotation: '0 0 0',
+            material: 'color: #0C8346',
+            sound: this.state.sounds.hihat3 },
+          (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mousedown', from: 'purple', to: '#0C8346', dur: '100' }),
+          (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
+        ),
+        '/////////////////////////////////',
+        (0, _preact.h)(
+          'a-gui-flex-container',
+          { 'class': 'increaser', 'flex-direction': 'column', 'justify-content': 'center',
+            'align-items': 'normal', opacity: '0.7', width: '4.5', height: '4.5',
+            position: '7.5 2 -4', 'panel-color': 'lightblue', rotation: '0 -20 0' },
+          (0, _preact.h)('a-gui-label', { value: 'Select drums: ', width: '4', height: '0.75' }),
           (0, _preact.h)(
             'a-gui-flex-container',
-            { 'class': 'increaser', 'flex-direction': 'column', 'justify-content': 'center',
-              'align-items': 'normal', opacity: '0.7', width: '4.5', height: '4.5',
-              position: '7.5 2 -4', 'panel-color': 'blue', rotation: '0 -20 0' },
-            (0, _preact.h)('a-gui-label', { value: 'Select drums: ', width: '4', height: '0.75' }),
-            (0, _preact.h)(
-              'a-gui-flex-container',
-              { 'class': 'soundset', 'flex-direction': 'row', 'justify-content': 'center', 'align-items': 'center', height: '1', width: '0' },
-              (0, _preact.h)('a-gui-button', { id: 'set1', 'class': 'clickable', width: '1.3', height: '0.75',
-                onclick: this._handleClick,
-                value: '808',
-                'hover-color': 'yellow',
-                'font-family': 'Arial',
-                margin: '0 0 0.05 0',
-                'border-color': 'black' }),
-              (0, _preact.h)('a-gui-button', { id: 'set2', 'class': 'clickable', width: '1.3', height: '0.75',
-                onclick: this._handleClick,
-                value: 'Modern',
-                'hover-color': 'yellow',
-                'font-family': 'Arial',
-                margin: '0 0 0.05 0',
-                'border-color': 'black' }),
-              (0, _preact.h)('a-gui-button', { id: 'set3', 'class': 'clickable', width: '1.3', height: '0.75',
-                onclick: this._handleClick,
-                value: 'Classic',
-                'hover-color': 'yellow',
-                'font-family': 'Arial',
-                margin: '0 0 0.05 0',
-                'border-color': 'black' })
-            ),
-            (0, _preact.h)('a-gui-label', { value: 'Set repeat: ', width: '4', height: '0.75' }),
-            (0, _preact.h)(
-              'a-gui-flex-container',
-              { 'class': 'increaser', 'flex-direction': 'row', 'justify-content': 'center', 'align-items': 'center', height: '1', width: '0' },
-              (0, _preact.h)('a-gui-button', { id: 'quarter', 'class': 'clickable', width: '1.3', height: '0.75',
-                onclick: this._handleClick,
-                value: '1/4th',
-                'hover-color': 'purple',
-                'font-family': 'Arial',
-                margin: '0 0 0.05 0',
-                'border-color': 'black' }),
-              (0, _preact.h)('a-gui-button', { id: 'eighth', 'class': 'clickable', width: '1.3', height: '0.75',
-                onclick: this._handleClick,
-                value: '1/8th',
-                'hover-color': 'purple',
-                'font-family': 'Arial',
-                margin: '0 0 0.05 0',
-                'border-color': 'black' }),
-              (0, _preact.h)('a-gui-button', { id: 'sixteenth', 'class': 'clickable', width: '1.3', height: '0.75',
-                onclick: this._handleClick,
-                value: '1/16th',
-                'hover-color': 'purple',
-                'font-family': 'Arial',
-                margin: '0 0 0.05 0',
-                'border-color': 'black' })
-            )
+            { 'class': 'soundset', 'flex-direction': 'row', 'justify-content': 'center', 'align-items': 'center', height: '1', width: '0' },
+            (0, _preact.h)('a-gui-button', { id: 'set1', 'class': 'clickable', width: '1.3', height: '0.75',
+              onclick: this._handleClick,
+              value: '808',
+              'hover-color': 'yellow',
+              'font-family': 'Arial',
+              margin: '0 0 0.05 0',
+              'border-color': 'black' }),
+            (0, _preact.h)('a-gui-button', { id: 'set2', 'class': 'clickable', width: '1.3', height: '0.75',
+              onclick: this._handleClick,
+              value: 'Modern',
+              'hover-color': 'yellow',
+              'font-family': 'Arial',
+              margin: '0 0 0.05 0',
+              'border-color': 'black' }),
+            (0, _preact.h)('a-gui-button', { id: 'set3', 'class': 'clickable', width: '1.3', height: '0.75',
+              onclick: this._handleClick,
+              value: 'Classic',
+              'hover-color': 'yellow',
+              'font-family': 'Arial',
+              margin: '0 0 0.05 0',
+              'border-color': 'black' })
+          ),
+          (0, _preact.h)('a-gui-label', { value: 'Set repeat: ', width: '4', height: '0.75' }),
+          (0, _preact.h)(
+            'a-gui-flex-container',
+            { 'class': 'increaser', 'flex-direction': 'row', 'justify-content': 'center', 'align-items': 'center', height: '1', width: '0' },
+            (0, _preact.h)('a-gui-button', { id: 'quarter', 'class': 'clickable', width: '1.3', height: '0.75',
+              onclick: this._handleClick,
+              value: '1/4',
+              'hover-color': 'purple',
+              'font-family': 'Arial',
+              margin: '0 0 0.05 0',
+              'border-color': 'black' }),
+            (0, _preact.h)('a-gui-button', { id: 'eighth', 'class': 'clickable', width: '1.3', height: '0.75',
+              onclick: this._handleClick,
+              value: '1/8',
+              'hover-color': 'purple',
+              'font-family': 'Arial',
+              margin: '0 0 0.05 0',
+              'border-color': 'black' }),
+            (0, _preact.h)('a-gui-button', { id: 'sixteenth', 'class': 'clickable', width: '1.3', height: '0.75',
+              onclick: this._handleClick,
+              value: '1/16',
+              'hover-color': 'purple',
+              'font-family': 'Arial',
+              margin: '0 0 0.05 0',
+              'border-color': 'black' })
           )
         )
       );
-    }
-  }, {
-    key: 'inValue',
-    value: function inValue() {
-      return this.state.inTime;
-    }
-  }, {
-    key: 'onMouseEnter',
-    value: function onMouseEnter(event) {}
-  }, {
-    key: 'componentWillMount',
-    value: function componentWillMount() {
-      console.log(this.state.inTime, "will mount this.state.inTime");
     }
   }, {
     key: '_handleMouseDown',
@@ -119314,30 +119254,30 @@ var Main = function (_Component) {
       }
       if (event.target.parentEl.id === "set2") {
         this.setState({ sounds: {
-            kick1: "src: url(/sounds/kick-1.wav); poolSize: 10; on: mousedown",
-            kick2: "src: url(/sounds/kick-2.wav); poolSize: 10; on: mousedown",
-            kick3: "src: url(/sounds/kick-3.wav); poolSize: 10; on: mousedown",
-            snare1: "src: url(/sounds/snare-1.wav); poolSize: 10; on: mousedown",
-            snare2: "src: url(/sounds/snare-2.wav); poolSize: 10; on: mousedown",
-            snare3: "src: url(/sounds/snare-3.wav); poolSize: 10; on: mousedown",
-            hihat1: "src: url(/sounds/E808_CH-03.wav); poolSize: 10; on: mousedown",
-            hihat2: "src: url(/sounds/E808_CH-07.wav); poolSize: 10; on: mousedown",
-            hihat3: "src: url(/sounds/E808_OH-07.wav); poolSize: 10; on: mousedown"
+            kick1: "src: url(/sounds/m-kick1.wav); poolSize: 10; on: mousedown",
+            kick2: "src: url(/sounds/m-kick2.wav); poolSize: 10; on: mousedown",
+            kick3: "src: url(/sounds/m-kick3.wav); poolSize: 10; on: mousedown",
+            snare1: "src: url(/sounds/m-snare1.wav); poolSize: 10; on: mousedown",
+            snare2: "src: url(/sounds/m-snare2.wav); poolSize: 10; on: mousedown",
+            snare3: "src: url(/sounds/m-snare3.wav); poolSize: 10; on: mousedown",
+            hihat1: "src: url(/sounds/m-hh1.wav); poolSize: 10; on: mousedown",
+            hihat2: "src: url(/sounds/m-hh2.wav); poolSize: 10; on: mousedown",
+            hihat3: "src: url(/sounds/m-hh3.wav); poolSize: 10; on: mousedown"
           }
 
         });
       }
       if (event.target.parentEl.id === "set3") {
         this.setState({ sounds: {
-            kick1: "src: url(/sounds/kick-1.wav); poolSize: 10; on: mousedown",
-            kick2: "src: url(/sounds/kick-2.wav); poolSize: 10; on: mousedown",
-            kick3: "src: url(/sounds/kick-3.wav); poolSize: 10; on: mousedown",
-            snare1: "src: url(/sounds/snare-1.wav); poolSize: 10; on: mousedown",
-            snare2: "src: url(/sounds/snare-2.wav); poolSize: 10; on: mousedown",
-            snare3: "src: url(/sounds/snare-3.wav); poolSize: 10; on: mousedown",
-            hihat1: "src: url(/sounds/E808_CH-03.wav); poolSize: 10; on: mousedown",
-            hihat2: "src: url(/sounds/E808_CH-07.wav); poolSize: 10; on: mousedown",
-            hihat3: "src: url(/sounds/E808_OH-07.wav); poolSize: 10; on: mousedown"
+            kick1: "src: url(/sounds/c-kick1.wav); poolSize: 10; on: mousedown",
+            kick2: "src: url(/sounds/c-kick2.wav); poolSize: 10; on: mousedown",
+            kick3: "src: url(/sounds/c-kick3.wav); poolSize: 10; on: mousedown",
+            snare1: "src: url(/sounds/c-snare1.wav); poolSize: 10; on: mousedown",
+            snare2: "src: url(/sounds/c-snare2.wav); poolSize: 10; on: mousedown",
+            snare3: "src: url(/sounds/c-snare3.wav); poolSize: 10; on: mousedown",
+            hihat1: "src: url(/sounds/c-hh1.wav); poolSize: 10; on: mousedown",
+            hihat2: "src: url(/sounds/c-hh2.wav); poolSize: 10; on: mousedown",
+            hihat3: "src: url(/sounds/c-hh3.wav); poolSize: 10; on: mousedown"
           }
 
         });
