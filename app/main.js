@@ -530,30 +530,30 @@ class Main extends Component {
   }
     if (event.target.parentEl.id === "set2") {
       this.setState({sounds: {
-                              kick1: "src: url(/sounds/kick-1.wav); poolSize: 10; on: mousedown",
-                              kick2: "src: url(/sounds/kick-2.wav); poolSize: 10; on: mousedown",
-                              kick3: "src: url(/sounds/kick-3.wav); poolSize: 10; on: mousedown",
-                              snare1: "src: url(/sounds/snare-1.wav); poolSize: 10; on: mousedown",
-                              snare2: "src: url(/sounds/snare-2.wav); poolSize: 10; on: mousedown",
-                              snare3: "src: url(/sounds/snare-3.wav); poolSize: 10; on: mousedown",
-                              hihat1: "src: url(/sounds/E808_CH-03.wav); poolSize: 10; on: mousedown",
-                              hihat2: "src: url(/sounds/E808_CH-07.wav); poolSize: 10; on: mousedown",
-                              hihat3: "src: url(/sounds/E808_OH-07.wav); poolSize: 10; on: mousedown"
+                              kick1: "src: url(/sounds/m-kick1.wav); poolSize: 10; on: mousedown",
+                              kick2: "src: url(/sounds/m-kick2.wav); poolSize: 10; on: mousedown",
+                              kick3: "src: url(/sounds/m-kick3.wav); poolSize: 10; on: mousedown",
+                              snare1: "src: url(/sounds/m-snare1.wav); poolSize: 10; on: mousedown",
+                              snare2: "src: url(/sounds/m-snare2.wav); poolSize: 10; on: mousedown",
+                              snare3: "src: url(/sounds/m-snare3.wav); poolSize: 10; on: mousedown",
+                              hihat1: "src: url(/sounds/m-hh1.wav); poolSize: 10; on: mousedown",
+                              hihat2: "src: url(/sounds/m-hh2.wav); poolSize: 10; on: mousedown",
+                              hihat3: "src: url(/sounds/m-hh3.wav); poolSize: 10; on: mousedown"
                             }
 
     })
   }
     if (event.target.parentEl.id === "set3") {
       this.setState({sounds: {
-                              kick1: "src: url(/sounds/kick-1.wav); poolSize: 10; on: mousedown",
-                              kick2: "src: url(/sounds/kick-2.wav); poolSize: 10; on: mousedown",
-                              kick3: "src: url(/sounds/kick-3.wav); poolSize: 10; on: mousedown",
-                              snare1: "src: url(/sounds/snare-1.wav); poolSize: 10; on: mousedown",
-                              snare2: "src: url(/sounds/snare-2.wav); poolSize: 10; on: mousedown",
-                              snare3: "src: url(/sounds/snare-3.wav); poolSize: 10; on: mousedown",
-                              hihat1: "src: url(/sounds/E808_CH-03.wav); poolSize: 10; on: mousedown",
-                              hihat2: "src: url(/sounds/E808_CH-07.wav); poolSize: 10; on: mousedown",
-                              hihat3: "src: url(/sounds/E808_OH-07.wav); poolSize: 10; on: mousedown"
+                              kick1: "src: url(/sounds/c-kick1.wav); poolSize: 10; on: mousedown",
+                              kick2: "src: url(/sounds/c-kick2.wav); poolSize: 10; on: mousedown",
+                              kick3: "src: url(/sounds/c-kick3.wav); poolSize: 10; on: mousedown",
+                              snare1: "src: url(/sounds/c-snare1.wav); poolSize: 10; on: mousedown",
+                              snare2: "src: url(/sounds/c-snare2.wav); poolSize: 10; on: mousedown",
+                              snare3: "src: url(/sounds/c-snare3.wav); poolSize: 10; on: mousedown",
+                              hihat1: "src: url(/sounds/c-hh1.wav); poolSize: 10; on: mousedown",
+                              hihat2: "src: url(/sounds/c-hh2.wav); poolSize: 10; on: mousedown",
+                              hihat3: "src: url(/sounds/c-hh3.wav); poolSize: 10; on: mousedown"
                             }
 
     })
