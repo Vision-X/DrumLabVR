@@ -1,7 +1,7 @@
 import 'aframe'
 import 'aframe-animation-component'
 import 'aframe-event-set-component'
-import './components/aframe-lowpoly'
+// import './components/aframe-lowpoly'
 import './components/aframe-environment'
 import './components/aframe-effects'
 import 'aframe-controller-cursor-component';
