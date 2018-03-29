@@ -118922,16 +118922,10 @@ document.addEventListener('DOMContentLoaded', function () {
   (0, _preact.render)((0, _preact.h)(_main2.default, null), document.querySelector('#app'));
 });
 // import 'aframe-text-component';
-/**
- * @fileoverview
- * This file imports all our required packages.
- * It also includes 3rd party A-Frame components.
- * Finally, it mounts the app to the root node.
- */
 
 });
 
-;require.register("main.js", function(exports, require, module) {
+require.register("main.js", function(exports, require, module) {
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -118950,13 +118944,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; } /**
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * @fileoverview
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * This is our main A-Frame application.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * It defines the main A-Frame Scene which gets mounted root div.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                */
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var COLORS = ['#D92B6A', '#9564F2', '#FFCF59'];
 var interval = false;
 
 var Main = function (_Component) {
@@ -118990,35 +118979,12 @@ var Main = function (_Component) {
     _this._handleMouseUp = _this._handleMouseUp.bind(_this);
     _this._handleMouseDown = _this._handleMouseDown.bind(_this);
     _this.onMouseEnter = _this.onMouseEnter.bind(_this);
-
-    // this.interval =
-    //   { leftHand: {0: false},
-    //     rightHand: {0: false}
-    //   };
-    var currentIntervalR;
-    var currentIntervalL;
-
-    var interval = { leftHand: false, rightHand: false };
-    // const eventType = event.type;
-    // var clicky = document.querySelector('.clickable');
-    //   clicky.addEventListener('mouseenter', function(event) {
-    //     console.log(event.type, "...clicky listener in constructor");
-    //   })
     return _this;
   }
 
   _createClass(Main, [{
     key: 'componentDidMount',
-    value: function componentDidMount() {
-      // var intervalId = setInterval(function() {
-      //   entity.components.sound.playSound();
-      // }, 500);
-      // const eventType = event.type;
-      // var clicky = document.querySelector('.clickable');
-      //   clicky.addEventListener('mouseenter', function(event) {
-      //     console.log(eventType, "...clicky listener in constructor");
-      //   })
-    }
+    value: function componentDidMount() {}
   }, {
     key: 'render',
     value: function render() {
@@ -119061,6 +119027,7 @@ var Main = function (_Component) {
              to: { x: 3.0, y: 0.25, z: 0.0 }
            }}
          /> */
+
         (0, _preact.h)(
           'a-scene',
           { stats: true },
@@ -119073,20 +119040,19 @@ var Main = function (_Component) {
             (0, _preact.h)('img', { id: 'floor', src: 'https://cdn.aframe.io/a-painter/images/floor.jpg', crossOrigin: 'anonymous' }),
             (0, _preact.h)('a-asset-item', { id: 'exoFont', src: 'https://cdn.glitch.com/c719c986-c0c5-48b8-967c-3cd8b8aa17f3%2Fexo2Black.typeface.json?1490305922150' }),
             (0, _preact.h)('a-asset-item', { id: 'exoItalicFont', src: 'https://cdn.glitch.com/c719c986-c0c5-48b8-967c-3cd8b8aa17f3%2Fexo2BlackItalic.typeface.json?1490305922725' }),
+            '/*  ',
             (0, _preact.h)('a-asset-item', { id: 'speaker-obj', src: '/speaker-model.obj' }),
             (0, _preact.h)('a-asset-item', { id: 'speaker-mtl', src: '/speaker-materials.mtl' }),
             (0, _preact.h)('a-asset-item', { id: 'studio-obj', src: '/studio-minimal-object.obj' }),
-            (0, _preact.h)('a-asset-item', { id: 'studio-mtl', src: '/studio-minimal-materials.mtl' })
+            (0, _preact.h)('a-asset-item', { id: 'studio-mtl', src: '/studio-minimal-materials.mtl' }),
+            ' */'
           ),
           (0, _preact.h)(
             'a-entity',
             { 'wasd-controls': true, id: 'cameraRig', position: '2.339 0 1.614', rotation: '0 90 0' },
             (0, _preact.h)('a-entity', { id: 'head', rotation: '0 90 0', camera: true, 'look-controls': true }),
             (0, _preact.h)('a-entity', { id: 'left-hand', raycaster: 'objects: .clickable;', line: 'color: blue;', 'oculus-touch-controls': 'hand: left;', 'laser-controls': 'hand: left; objects: .clickable;' }),
-            (0, _preact.h)('a-entity', { id: 'right-hand', 'aabb-collider': 'objects: .clickable;', raycaster: 'objects: .clickable;', line: 'color: blue;', 'oculus-touch-controls': 'hand: right;', 'laser-controls': 'hand: right; objects: .clickable;' }),
-            '/*  ',
-            (0, _preact.h)('a-entity', { 'fps-counter': true, id: 'right-hand', 'oculus-touch-controls': 'hand: right;', 'teleport-controls': 'cameraRig: #cameraRig; teleportOrigin: #head; type: parabolic;' }),
-            ' */'
+            (0, _preact.h)('a-entity', { id: 'right-hand', 'aabb-collider': 'objects: .clickable;', raycaster: 'objects: .clickable;', line: 'color: blue;', 'oculus-touch-controls': 'hand: right;', 'laser-controls': 'hand: right; objects: .clickable;' })
           ),
           (0, _preact.h)('a-entity', { id: 'ground',
             geometry: 'primitive: circle; radius: 100', rotation: '-90 0 0',
@@ -119099,10 +119065,10 @@ var Main = function (_Component) {
           (0, _preact.h)(
             'a-entity',
             { position: '-9.5 2 -9', rotation: '10 25 0' },
-            (0, _preact.h)('a-entity', { position: '7.2 4.9 5.6', rotation: '0 -25 5', scale: '0.6 1.2 1', 'text-geometry': 'value: DrumLab; font: #exoFont; bevelEnabled: true; bevelSize: 0.1; bevelThickness: 0.1; curveSegments: 1; size: 1.0; height: 0.5;', material: 'color:blue; metalness:0.9; roughness: 0.05; sphericalEnvMap: #chrome;' }),
-            (0, _preact.h)('a-entity', { position: '10.504 5.3 7.5', rotation: '0 -25 5', 'text-geometry': 'value: VR; font: #exoItalicFont; style: italic; size: 0.8; weight: bold; height: 0;',
+            (0, _preact.h)('a-entity', { position: '6.7 5.06 6.5', rotation: '10 -25 5', scale: '0.6 1.2 1', 'text-geometry': 'value: DrumLab; font: #exoFont; bevelEnabled: true; bevelSize: 0.1; bevelThickness: 0.1; curveSegments: 1; size: 1.0; height: 0.5;', material: 'color:blue; metalness:0.9; roughness: 0.05; sphericalEnvMap: #chrome;' }),
+            (0, _preact.h)('a-entity', { position: '9.95 5.5 8.66', rotation: '10 -25 5', 'text-geometry': 'value: VR; font: #exoItalicFont; style: italic; size: 0.8; weight: bold; height: 0;',
               material: 'shader: flat; color: white' }),
-            (0, _preact.h)('a-entity', { position: '10.4 5.3 7.5', rotation: '0 -25 5', 'text-geometry': 'value: VR; font: #exoItalicFont; style: italic; size: 0.8; weight: bold; height: 0; bevelEnabled: true; bevelSize: 0.04; bevelThickness: 0.04; curveSegments: 1',
+            (0, _preact.h)('a-entity', { position: '9.95 5.5 8.66', rotation: '10 -25 5', 'text-geometry': 'value: VR; font: #exoItalicFont; style: italic; size: 0.8; weight: bold; height: 0; bevelEnabled: true; bevelSize: 0.04; bevelThickness: 0.04; curveSegments: 1',
               material: 'shader: flat; color: white; transparent: true; opacity: 0.4' })
           ),
           '/////////////////////////////////',

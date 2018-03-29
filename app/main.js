@@ -1,14 +1,7 @@
-/**
- * @fileoverview
- * This is our main A-Frame application.
- * It defines the main A-Frame Scene which gets mounted root div.
- */
-
 import { h, Component } from 'preact';
 import { Entity, Scene } from 'aframe-react';
 import { Shape } from './components/Shape';
 
-const COLORS = ['#D92B6A', '#9564F2', '#FFCF59'];
 var interval = false;
 
 class Main extends Component {
@@ -37,33 +30,12 @@ class Main extends Component {
     this._handleMouseUp = this._handleMouseUp.bind(this);
     this._handleMouseDown = this._handleMouseDown.bind(this);
     this.onMouseEnter = this.onMouseEnter.bind(this);
-
-    // this.interval =
-    //   { leftHand: {0: false},
-    //     rightHand: {0: false}
-    //   };
-    var currentIntervalR;
-    var currentIntervalL;
-
-    var interval = {leftHand: false, rightHand: false};
-    // const eventType = event.type;
-    // var clicky = document.querySelector('.clickable');
-    //   clicky.addEventListener('mouseenter', function(event) {
-    //     console.log(event.type, "...clicky listener in constructor");
-    //   })
   }
 
 
 
   componentDidMount() {
-    // var intervalId = setInterval(function() {
-    //   entity.components.sound.playSound();
-    // }, 500);
-    // const eventType = event.type;
-    // var clicky = document.querySelector('.clickable');
-    //   clicky.addEventListener('mouseenter', function(event) {
-    //     console.log(eventType, "...clicky listener in constructor");
-    //   })
+
   }
 
   render() {
@@ -106,6 +78,7 @@ class Main extends Component {
             to: { x: 3.0, y: 0.25, z: 0.0 }
           }}
         /> */
+
       <a-scene stats>
         <a-assets>
           <img src="https://img.gs/bbdkhfbzkk/stretch/https://i.imgur.com/25P1geh.png" id="grid" crossorigin="anonymous" />
@@ -114,38 +87,18 @@ class Main extends Component {
           <img id="floor" src="https://cdn.aframe.io/a-painter/images/floor.jpg" crossOrigin="anonymous" />
           <a-asset-item id="exoFont" src="https://cdn.glitch.com/c719c986-c0c5-48b8-967c-3cd8b8aa17f3%2Fexo2Black.typeface.json?1490305922150"></a-asset-item>
           <a-asset-item id="exoItalicFont" src="https://cdn.glitch.com/c719c986-c0c5-48b8-967c-3cd8b8aa17f3%2Fexo2BlackItalic.typeface.json?1490305922725"></a-asset-item>
-          <a-asset-item id="speaker-obj" src="/speaker-model.obj"></a-asset-item>
+        /*  <a-asset-item id="speaker-obj" src="/speaker-model.obj"></a-asset-item>
           <a-asset-item id="speaker-mtl" src="/speaker-materials.mtl"></a-asset-item>
           <a-asset-item id="studio-obj" src="/studio-minimal-object.obj"></a-asset-item>
-          <a-asset-item id="studio-mtl" src="/studio-minimal-materials.mtl"></a-asset-item>
+          <a-asset-item id="studio-mtl" src="/studio-minimal-materials.mtl"></a-asset-item> */
         </a-assets>
 
-
-      {/*
-        <a-entity id="teleHand" hand-controls="left"></a-entity>
-        <a-entity id="blockHand" hand-controls="right"></a-entity>
-        <a-entity id="left-hand" teleport-controls="cameraRig: #cameraRig; teleportOrigin: #head;"></a-entity>
-        <a-entity id="right-hand" teleport-controls="cameraRig: #cameraRig; teleportOrigin: #head;"></a-entity>
-         <a-entity id="cameraRig">
-         <a-entity id="head" camera positon ="0 1.6 0" look-controls wasd-controls="#cameraRig;"></a-entity>
-         <a-entity teleport-controls="cameraRig: #cameraRig; teleportOrigin: #head;" oculus-touch-controls="hand: right"></a-entity>
-         </a-entity>
-         <a-entity id="left-hand" raycaster="objects: .clickable" oculus-touch-controls="hand: left" controller-cursor line="color: red; opacity: 0.5"></a-entity>
-         <a-entity teleport-controls="startEvents: teleportstart; endEvents: teleportend; type: line"></a-entity>
-
-         drumlab  position = -4.4 3.4 16.4 rotation 0 80 0
-         VR position = -3.4 3.2 12.6 rotation 0 80 0
-
-         */}
 
       <a-entity wasd-controls id="cameraRig" position="2.339 0 1.614" rotation="0 90 0">
         <a-entity id="head" rotation="0 90 0" camera look-controls></a-entity>
         <a-entity id="left-hand" raycaster="objects: .clickable;" line="color: blue;" oculus-touch-controls="hand: left;" laser-controls="hand: left; objects: .clickable;"></a-entity>
         <a-entity id="right-hand" aabb-collider="objects: .clickable;" raycaster="objects: .clickable;" line="color: blue;" oculus-touch-controls="hand: right;" laser-controls="hand: right; objects: .clickable;"></a-entity>
-      /*  <a-entity fps-counter id="right-hand" oculus-touch-controls="hand: right;" teleport-controls="cameraRig: #cameraRig; teleportOrigin: #head; type: parabolic;"></a-entity> */
       </a-entity>
-
-{/*        <a-entity fps-counter id="right-hand" oculus-touch-controls="hand: right;" teleport-controls="hand: right; cameraRig: #cameraRig; teleportOrigin: #head; type: parabolic;"></a-entity> */}
 
 
        <a-entity id="ground"
@@ -233,10 +186,10 @@ class Main extends Component {
 ///////////////////////////////////
 
         <a-entity position="-9.5 2 -9" rotation="10 25 0">
-          <a-entity position="7.2 4.9 5.6" rotation="0 -25 5" scale="0.6 1.2 1" text-geometry="value: DrumLab; font: #exoFont; bevelEnabled: true; bevelSize: 0.1; bevelThickness: 0.1; curveSegments: 1; size: 1.0; height: 0.5;" material="color:blue; metalness:0.9; roughness: 0.05; sphericalEnvMap: #chrome;"></a-entity>
-          <a-entity position="10.504 5.3 7.5" rotation="0 -25 5" text-geometry="value: VR; font: #exoItalicFont; style: italic; size: 0.8; weight: bold; height: 0;"
+          <a-entity position="6.7 5.06 6.5" rotation="10 -25 5" scale="0.6 1.2 1" text-geometry="value: DrumLab; font: #exoFont; bevelEnabled: true; bevelSize: 0.1; bevelThickness: 0.1; curveSegments: 1; size: 1.0; height: 0.5;" material="color:blue; metalness:0.9; roughness: 0.05; sphericalEnvMap: #chrome;"></a-entity>
+          <a-entity position="9.95 5.5 8.66" rotation="10 -25 5" text-geometry="value: VR; font: #exoItalicFont; style: italic; size: 0.8; weight: bold; height: 0;"
                     material="shader: flat; color: white"></a-entity>
-          <a-entity position="10.4 5.3 7.5" rotation="0 -25 5" text-geometry="value: VR; font: #exoItalicFont; style: italic; size: 0.8; weight: bold; height: 0; bevelEnabled: true; bevelSize: 0.04; bevelThickness: 0.04; curveSegments: 1"
+          <a-entity position="9.95 5.5 8.66" rotation="10 -25 5" text-geometry="value: VR; font: #exoItalicFont; style: italic; size: 0.8; weight: bold; height: 0; bevelEnabled: true; bevelSize: 0.04; bevelThickness: 0.04; curveSegments: 1"
                     material="shader: flat; color: white; transparent: true; opacity: 0.4"></a-entity>
         </a-entity>
 
