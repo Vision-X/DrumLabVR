@@ -116217,26 +116217,31 @@ var interval = false;
 var Main = function (_Component) {
   _inherits(Main, _Component);
 
-  function Main(props, event) {
+  function Main(props) {
     _classCallCheck(this, Main);
 
-    var _this = _possibleConstructorReturn(this, (Main.__proto__ || Object.getPrototypeOf(Main)).call(this));
+    var _this = _possibleConstructorReturn(this, (Main.__proto__ || Object.getPrototypeOf(Main)).call(this, props));
 
     _this.state = {
       colorIndex: 0,
       intervalId: 0,
       isDown: false,
-      isUp: true
+      isUp: true,
+      inTime: 250,
+      intervalLeft: 0,
+      intervalRight: 0
     };
     _this._handleClick = _this._handleClick.bind(_this);
-    _this._handleMouseUpLeft = _this._handleMouseUpLeft.bind(_this);
-    _this._handleMouseDownLeft = _this._handleMouseDownLeft.bind(_this);
+    _this._handleMouseUp = _this._handleMouseUp.bind(_this);
+    _this._handleMouseDown = _this._handleMouseDown.bind(_this);
+    _this.onMouseEnter = _this.onMouseEnter.bind(_this);
 
-    var myInterval = false;
     // this.interval =
     //   { leftHand: {0: false},
     //     rightHand: {0: false}
     //   };
+    var currentIntervalR;
+    var currentIntervalL;
 
     var interval = { leftHand: false, rightHand: false };
     // const eventType = event.type;
@@ -116458,7 +116463,7 @@ var Main = function (_Component) {
           '//////////////////////////////////////////',
           (0, _preact.h)(
             'a-entity',
-            { 'collider-check': true, 'class': 'one clickable', onMouseEnter: this.onMouseEnter, onMouseDown: this._handleMouseDownRight, onMouseUp: this._handleMouseUpRight, onClick: this._handleClick,
+            { 'collider-check': true, 'class': 'one clickable', onMouseEnter: this.onMouseEnter, onMouseDown: this._handleMouseDown, onMouseUp: this._handleMouseUp, onClick: this._handleClick,
               geometry: 'primitive: box; depth=0.2 height=0.5 width=0.5',
               position: '0.5 0.5 -4',
               rotation: '0 0 0',
@@ -116469,7 +116474,7 @@ var Main = function (_Component) {
           ),
           (0, _preact.h)(
             'a-entity',
-            { 'class': 'two clickable', onMouseDown: this._handleMouseDownRight, onMouseUp: this._handleMouseUpRight,
+            { 'class': 'two clickable', onMouseEnter: this.onMouseEnter, onMouseDown: this._handleMouseDown, onMouseUp: this._handleMouseUp,
               geometry: 'primitive: box; depth=0.0 height=0.5 width=0.5',
               position: '0.5 2 -4',
               rotation: '0 0 0',
@@ -116480,7 +116485,7 @@ var Main = function (_Component) {
           ),
           (0, _preact.h)(
             'a-entity',
-            { 'class': 'three clickable', onMouseDown: this._handleMouseDownRight, onMouseUp: this._handleMouseUpRight, onClick: this._handleClick,
+            { 'class': 'three clickable', onMouseEnter: this.onMouseEnter, onMouseDown: this._handleMouseDown, onMouseUp: this._handleMouseUp, onClick: this._handleClick,
               geometry: 'primitive: box; depth=0.0 height=0.5 width=0.5',
               position: '0.5 3.5 -4',
               rotation: '0 0 0',
@@ -116492,7 +116497,7 @@ var Main = function (_Component) {
           '///////////////////////////////////////////////',
           (0, _preact.h)(
             'a-entity',
-            { 'class': 'four clickable', onMouseDown: this._handleMouseDownRight, onMouseUp: this._handleMouseUpRight, onClick: this._handleClick,
+            { 'class': 'four clickable', onMouseEnter: this.onMouseEnter, onMouseDown: this._handleMouseDown, onMouseUp: this._handleMouseUp, onClick: this._handleClick,
               geometry: 'primitive: box; depth=0.0 height=0.5 width=0.5',
               position: '2 0.5 -4',
               rotation: '0 0 0',
@@ -116503,7 +116508,7 @@ var Main = function (_Component) {
           ),
           (0, _preact.h)(
             'a-entity',
-            { 'class': 'five clickable', onMouseDown: this._handleMouseDownRight, onMouseUp: this._handleMouseUpRight, onClick: this._handleClick,
+            { 'class': 'five clickable', onMouseEnter: this.onMouseEnter, onMouseDown: this._handleMouseDown, onMouseUp: this._handleMouseUp, onClick: this._handleClick,
               geometry: 'primitive: box; depth=0.0 height=0.5 width=0.5',
               position: '2 2 -4',
               rotation: '0 0 0',
@@ -116514,7 +116519,7 @@ var Main = function (_Component) {
           ),
           (0, _preact.h)(
             'a-entity',
-            { 'class': 'six clickable', onMouseDown: this._handleMouseDownRight, onMouseUp: this._handleMouseUpRight, onClick: this._handleClick,
+            { 'class': 'six clickable', onMouseEnter: this.onMouseEnter, onMouseDown: this._handleMouseDown, onMouseUp: this._handleMouseUp, onClick: this._handleClick,
               geometry: 'primitive: box; depth=0.0 height=0.5 width=0.5',
               position: '2 3.5 -4',
               rotation: '0 0 0',
@@ -116526,7 +116531,7 @@ var Main = function (_Component) {
           '///////////////////////////////////////////////',
           (0, _preact.h)(
             'a-entity',
-            { 'class': 'seven clickable', onMouseDown: this._handleMouseDownRight, onMouseUp: this._handleMouseUpRight, onClick: this._handleClick,
+            { 'class': 'seven clickable', onMouseEnter: this.onMouseEnter, onMouseDown: this._handleMouseDown, onMouseUp: this._handleMouseUp, onClick: this._handleClick,
               geometry: 'primitive: box; depth=0.0 height=0.5 width=0.5',
               position: '3.5 0.5 -4',
               rotation: '0 0 0',
@@ -116537,7 +116542,7 @@ var Main = function (_Component) {
           ),
           (0, _preact.h)(
             'a-entity',
-            { 'class': 'eight clickable', onMouseDown: this._handleMouseDownRight, onMouseUp: this._handleMouseUpRight, onClick: this._handleClick,
+            { 'class': 'eight clickable', onMouseEnter: this.onMouseEnter, onMouseDown: this._handleMouseDown, onMouseUp: this._handleMouseUp, onClick: this._handleClick,
               geometry: 'primitive: box; depth=0.0 height=0.5 width=0.5',
               position: '3.5 2 -4',
               rotation: '0 0 0',
@@ -116548,7 +116553,7 @@ var Main = function (_Component) {
           ),
           (0, _preact.h)(
             'a-entity',
-            { 'class': 'nine clickable', onMouseDown: this._handleMouseDownRight, onMouseUp: this._handleMouseUpRight, onClick: this._handleClick,
+            { 'class': 'nine clickable', onMouseEnter: this.onMouseEnter, onMouseDown: this._handleMouseDown, onMouseUp: this._handleMouseUp, onClick: this._handleClick,
               geometry: 'primitive: box; depth=0.0 height=0.5 width=0.5',
               position: '3.5 3.5 -4',
               rotation: '0 0 0',
@@ -116561,44 +116566,74 @@ var Main = function (_Component) {
       );
     }
   }, {
+    key: 'inValue',
+    value: function inValue() {
+      return this.state.inTime;
+    }
+  }, {
     key: 'onMouseEnter',
     value: function onMouseEnter(event) {
       // console.log("mouse entered!!!!!!! lets do this!");
       // const eventType = event.type;
       // console.log(event.type, " ...event type onmouseenter");
+      // if (event.detail.target.classList.contains('clickable')) {
+      //   if ((leftTarget && rightTarget) && leftTarget == rightTarget) {
+      //     console.log("touching each other");
+      //   } else {
+      //     if (event.detail.cursorEl.id === "left-hand") {
+      //       var leftTarget = event.detail.target.classList;
+      //       console.log(leftTarget, "onMouseEnter lT (463)");
+      //     }
+      //     if (event.detail.cursorEl.id === "right-hand" && event.detail.target.classList !== leftTarget) {
+      //       var rightTarget = event.detail.target.classList;
+      //       console.log(rightTarget, "onMouseEnter rT (464)");
+      //     }
+      //   }
+      // }
+      // if (event.detail.target.classList.contains('clickable') && leftTarget === rightTarget) {
+      //   console.log("BOTH THESE FUCKERS ARE TOUCHING");
+      // }
+      // if (rightTarget === leftTarget) {
+      //     var nope = false;
+      //     console.log("...both touching same spot!!!!!!!!!! ");
+      //   }
     }
   }, {
-    key: '_handleMouseDownRight',
-    value: function _handleMouseDownRight(event) {
+    key: 'componentWillMount',
+    value: function componentWillMount() {
+      console.log(this.state.inTime, "will mount this.state.inTime");
+    }
+  }, {
+    key: '_handleMouseDown',
+    value: function _handleMouseDown(event) {
       event.preventDefault();
-      this.interval = { rightHand: false, leftHand: false };
-      if (event.detail.cursorEl.id === "right-hand" && this.interval['rightHand'] === false) {
-        this.interval['rightHand'] = setInterval(function () {
+      if (event.detail.cursorEl.id === "right-hand" && this.state.intervalRight === 0) {
+        var rI = setInterval(function () {
           event.target.components.sound.playSound();
-          this.interval = true;
-        }, 250);
-      } else if (event.detail.cursorEl.id === "left-hand" && this.interval['leftHand'] === false) {
-        this.interval['leftHand'] = setInterval(function () {
+        }, this.state.inTime);
+        this.setState({ intervalRight: rI });
+      }
+      if (event.detail.cursorEl.id === "left-hand" && this.state.intervalLeft === 0) {
+        var lI = setInterval(function () {
           event.target.components.sound.playSound();
-          this.interval = true;
-        }, 250);
-      } else {
-        console.log("wtf? line 471");
+        }, this.state.inTime);
+        this.setState({ intervalLeft: lI });
       }
     }
   }, {
-    key: '_handleMouseUpRight',
-    value: function _handleMouseUpRight(event) {
+    key: '_handleMouseUp',
+    value: function _handleMouseUp(event) {
       event.preventDefault();
       if (event.detail.cursorEl.id === "right-hand") {
-        if (this.interval['rightHand'] !== false) {
-          clearInterval(this.interval['rightHand']);
-          this.interval['rightHand'] = false;
+        if (this.state.intervalRight > 0) {
+          clearInterval(this.state.intervalRight);
+          this.setState({ intervalRight: 0 });
         }
-      } else if (event.detail.cursorEl.id === "left-hand") {
-        if (this.interval['leftHand'] !== false) {
-          clearInterval(this.interval['leftHand']);
-          this.interval['leftHand'] = false;
+      }
+      if (event.detail.cursorEl.id === "left-hand") {
+        if (this.state.intervalLeft > 0) {
+          clearInterval(this.state.intervalLeft);
+          this.setState({ intervalLeft: 0 });
         }
       }
     }
@@ -116675,11 +116710,16 @@ var Main = function (_Component) {
   }, {
     key: '_handleClick',
     value: function _handleClick(event) {
+      event.preventDefault();
+      if (event.target.classList.contains('increaser')) {
+        console.log("hey");
+      }
+      // console.log(this.state.inTime, "__inTime state from Click event");
       // console.log("clicked");
       // const eventType = event.type;
       // console.log(eventType);
       // console.log("event.target", event.target);
-      var entity = document.querySelector('[sound]');
+      // var entity = document.querySelector('[sound]');
       // entity.components.sound.playSound();
       // console.log("sounddd entity val: ", entity.components.sound);
       // console.log(event, " ....wtf is this event evaluate to?");

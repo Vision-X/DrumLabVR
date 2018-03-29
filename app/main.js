@@ -12,23 +12,28 @@ const COLORS = ['#D92B6A', '#9564F2', '#FFCF59'];
 var interval = false;
 
 class Main extends Component {
-  constructor(props, event) {
-    super()
+  constructor(props) {
+    super(props)
     this.state = {
       colorIndex: 0,
       intervalId: 0,
       isDown: false,
-      isUp: true
-    }
+      isUp: true,
+      inTime: 250,
+      intervalLeft: 0,
+      intervalRight: 0
+    };
     this._handleClick = this._handleClick.bind(this);
-    this._handleMouseUpLeft = this._handleMouseUpLeft.bind(this);
-    this._handleMouseDownLeft = this._handleMouseDownLeft.bind(this);
+    this._handleMouseUp = this._handleMouseUp.bind(this);
+    this._handleMouseDown = this._handleMouseDown.bind(this);
+    this.onMouseEnter = this.onMouseEnter.bind(this);
 
-    var myInterval = false;
     // this.interval =
     //   { leftHand: {0: false},
     //     rightHand: {0: false}
     //   };
+    var currentIntervalR;
+    var currentIntervalL;
 
     var interval = {leftHand: false, rightHand: false};
     // const eventType = event.type;
@@ -333,7 +338,7 @@ class Main extends Component {
         <a-entity obj-model="obj: #speaker-obj; mtl: #speaker-mtl" scale="2 2 2" position="6 1.900 -4" rotation="-10 90 10"></a-entity> */}
 
 //////////////////////////////////////////
-        <a-entity collider-check class="one clickable" onMouseEnter={this.onMouseEnter} onMouseDown={this._handleMouseDownRight} onMouseUp={this._handleMouseUpRight} onClick={this._handleClick}
+        <a-entity collider-check class="one clickable" onMouseEnter={this.onMouseEnter} onMouseDown={this._handleMouseDown} onMouseUp={this._handleMouseUp} onClick={this._handleClick}
           geometry="primitive: box; depth=0.2 height=0.5 width=0.5"
           position="0.5 0.5 -4"
           rotation="0 0 0"
@@ -343,7 +348,7 @@ class Main extends Component {
           <a-animation attribute="rotation" begin="mousedown" dur="100" fill="forwards" to="0 90 0"></a-animation>
         </a-entity>
 
-        <a-entity class="two clickable" onMouseDown={this._handleMouseDownRight} onMouseUp={this._handleMouseUpRight}
+        <a-entity class="two clickable" onMouseEnter={this.onMouseEnter} onMouseDown={this._handleMouseDown} onMouseUp={this._handleMouseUp}
           geometry="primitive: box; depth=0.0 height=0.5 width=0.5"
           position="0.5 2 -4"
           rotation="0 0 0"
@@ -353,7 +358,7 @@ class Main extends Component {
           <a-animation attribute="rotation" begin="mousedown" dur="100" fill="forwards" to="0 90 0"></a-animation>
         </a-entity>
 
-        <a-entity class="three clickable" onMouseDown={this._handleMouseDownRight} onMouseUp={this._handleMouseUpRight} onClick={this._handleClick}
+        <a-entity class="three clickable" onMouseEnter={this.onMouseEnter} onMouseDown={this._handleMouseDown} onMouseUp={this._handleMouseUp} onClick={this._handleClick}
           geometry="primitive: box; depth=0.0 height=0.5 width=0.5"
           position="0.5 3.5 -4"
           rotation="0 0 0"
@@ -363,7 +368,7 @@ class Main extends Component {
           <a-animation attribute="rotation" begin="mousedown" dur="100" fill="forwards" to="0 90 0"></a-animation>
         </a-entity>
 ///////////////////////////////////////////////
-        <a-entity class="four clickable" onMouseDown={this._handleMouseDownRight} onMouseUp={this._handleMouseUpRight} onClick={this._handleClick}
+        <a-entity class="four clickable" onMouseEnter={this.onMouseEnter} onMouseDown={this._handleMouseDown} onMouseUp={this._handleMouseUp} onClick={this._handleClick}
           geometry="primitive: box; depth=0.0 height=0.5 width=0.5"
           position="2 0.5 -4"
           rotation="0 0 0"
@@ -373,7 +378,7 @@ class Main extends Component {
           <a-animation attribute="rotation" begin="mousedown" dur="100" fill="forwards" to="0 90 0"></a-animation>
         </a-entity>
 
-        <a-entity class="five clickable" onMouseDown={this._handleMouseDownRight} onMouseUp={this._handleMouseUpRight} onClick={this._handleClick}
+        <a-entity class="five clickable" onMouseEnter={this.onMouseEnter} onMouseDown={this._handleMouseDown} onMouseUp={this._handleMouseUp} onClick={this._handleClick}
           geometry="primitive: box; depth=0.0 height=0.5 width=0.5"
           position="2 2 -4"
           rotation="0 0 0"
@@ -383,7 +388,7 @@ class Main extends Component {
           <a-animation attribute="rotation" begin="mousedown" dur="100" fill="forwards" to="0 90 0"></a-animation>
         </a-entity>
 
-        <a-entity class="six clickable" onMouseDown={this._handleMouseDownRight} onMouseUp={this._handleMouseUpRight} onClick={this._handleClick}
+        <a-entity class="six clickable" onMouseEnter={this.onMouseEnter} onMouseDown={this._handleMouseDown} onMouseUp={this._handleMouseUp} onClick={this._handleClick}
           geometry="primitive: box; depth=0.0 height=0.5 width=0.5"
           position="2 3.5 -4"
           rotation="0 0 0"
@@ -394,7 +399,7 @@ class Main extends Component {
         </a-entity>
 ///////////////////////////////////////////////
 
-        <a-entity class="seven clickable" onMouseDown={this._handleMouseDownRight} onMouseUp={this._handleMouseUpRight} onClick={this._handleClick}
+        <a-entity class="seven clickable" onMouseEnter={this.onMouseEnter} onMouseDown={this._handleMouseDown} onMouseUp={this._handleMouseUp} onClick={this._handleClick}
           geometry="primitive: box; depth=0.0 height=0.5 width=0.5"
           position="3.5 0.5 -4"
           rotation="0 0 0"
@@ -404,7 +409,7 @@ class Main extends Component {
           <a-animation attribute="rotation" begin="mousedown" dur="100" fill="forwards" to="0 90 0"></a-animation>
         </a-entity>
 
-        <a-entity class="eight clickable" onMouseDown={this._handleMouseDownRight} onMouseUp={this._handleMouseUpRight} onClick={this._handleClick}
+        <a-entity class="eight clickable" onMouseEnter={this.onMouseEnter} onMouseDown={this._handleMouseDown} onMouseUp={this._handleMouseUp} onClick={this._handleClick}
           geometry="primitive: box; depth=0.0 height=0.5 width=0.5"
           position="3.5 2 -4"
           rotation="0 0 0"
@@ -414,7 +419,7 @@ class Main extends Component {
           <a-animation attribute="rotation" begin="mousedown" dur="100" fill="forwards" to="0 90 0"></a-animation>
         </a-entity>
 
-        <a-entity class="nine clickable" onMouseDown={this._handleMouseDownRight} onMouseUp={this._handleMouseUpRight} onClick={this._handleClick}
+        <a-entity class="nine clickable" onMouseEnter={this.onMouseEnter} onMouseDown={this._handleMouseDown} onMouseUp={this._handleMouseUp} onClick={this._handleClick}
           geometry="primitive: box; depth=0.0 height=0.5 width=0.5"
           position="3.5 3.5 -4"
           rotation="0 0 0"
@@ -449,41 +454,69 @@ class Main extends Component {
     )
   }
 
+  inValue() {
+    return this.state.inTime;
+  }
+
   onMouseEnter(event) {
     // console.log("mouse entered!!!!!!! lets do this!");
     // const eventType = event.type;
     // console.log(event.type, " ...event type onmouseenter");
+    // if (event.detail.target.classList.contains('clickable')) {
+    //   if ((leftTarget && rightTarget) && leftTarget == rightTarget) {
+    //     console.log("touching each other");
+    //   } else {
+    //     if (event.detail.cursorEl.id === "left-hand") {
+    //       var leftTarget = event.detail.target.classList;
+    //       console.log(leftTarget, "onMouseEnter lT (463)");
+    //     }
+    //     if (event.detail.cursorEl.id === "right-hand" && event.detail.target.classList !== leftTarget) {
+    //       var rightTarget = event.detail.target.classList;
+    //       console.log(rightTarget, "onMouseEnter rT (464)");
+    //     }
+    //   }
+    // }
+    // if (event.detail.target.classList.contains('clickable') && leftTarget === rightTarget) {
+    //   console.log("BOTH THESE FUCKERS ARE TOUCHING");
+    // }
+    // if (rightTarget === leftTarget) {
+    //     var nope = false;
+    //     console.log("...both touching same spot!!!!!!!!!! ");
+    //   }
   }
 
-  _handleMouseDownRight(event) {
+  componentWillMount() {
+    console.log(this.state.inTime, "will mount this.state.inTime");
+  }
+
+  _handleMouseDown(event) {
     event.preventDefault();
-    this.interval = {rightHand: false, leftHand: false};
-    if (event.detail.cursorEl.id === "right-hand" && this.interval['rightHand'] === false) {
-      this.interval['rightHand'] = setInterval(function() {
-        event.target.components.sound.playSound();
-        this.interval = true;
-      }, 250);
-    } else if (event.detail.cursorEl.id === "left-hand" && this.interval['leftHand'] === false) {
-      this.interval['leftHand'] = setInterval(function() {
-        event.target.components.sound.playSound();
-        this.interval = true;
-      }, 250);
-    } else {
-      console.log("wtf? line 471");
+    if (event.detail.cursorEl.id === "right-hand" && this.state.intervalRight === 0) {
+          let rI = setInterval(function() {
+              event.target.components.sound.playSound();
+            }, this.state.inTime);
+            this.setState({intervalRight: rI});
+    }
+   if (event.detail.cursorEl.id === "left-hand" && this.state.intervalLeft === 0)  {
+          let lI = setInterval(function() {
+              event.target.components.sound.playSound();
+            }, this.state.inTime);
+            this.setState({intervalLeft: lI});
     }
   }
 
-  _handleMouseUpRight(event) {
+  _handleMouseUp(event) {
     event.preventDefault();
     if (event.detail.cursorEl.id === "right-hand") {
-        if (this.interval['rightHand'] !== false) {
-            clearInterval(this.interval['rightHand']);
-            this.interval['rightHand'] = false;
+        if (this.state.intervalRight > 0) {
+            clearInterval(this.state.intervalRight);
+            this.setState({intervalRight: 0})
           }
-    } else if (event.detail.cursorEl.id === "left-hand") {
-        if (this.interval['leftHand'] !== false) {
-            clearInterval(this.interval['leftHand']);
-            this.interval['leftHand'] = false;
+    }
+    if (event.detail.cursorEl.id === "left-hand") {
+        if (this.state.intervalLeft > 0) {
+            clearInterval(this.state.intervalLeft);
+            this.setState({intervalLeft: 0});
           }
     }
   }
@@ -558,11 +591,16 @@ class Main extends Component {
   }
 
   _handleClick(event) {
+    event.preventDefault();
+    if (event.target.classList.contains('increaser')) {
+      console.log("hey");
+    }
+    // console.log(this.state.inTime, "__inTime state from Click event");
     // console.log("clicked");
     // const eventType = event.type;
     // console.log(eventType);
     // console.log("event.target", event.target);
-    var entity = document.querySelector('[sound]');
+    // var entity = document.querySelector('[sound]');
     // entity.components.sound.playSound();
     // console.log("sounddd entity val: ", entity.components.sound);
     // console.log(event, " ....wtf is this event evaluate to?");
