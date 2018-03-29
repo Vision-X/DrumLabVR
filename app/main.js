@@ -354,7 +354,7 @@ class Main extends Component {
           rotation="0 0 0"
           material="color: #124E78"
           sound={this.state.sounds.kick1}>
-          <a-animation attribute="material.color" begin="mouseover" from="lightblue" to="#124E78" dur="100"></a-animation>
+          <a-animation attribute="material.color" begin="mousedown" from="lightblue" to="#124E78" dur="100"></a-animation>
           <a-animation attribute="rotation" begin="mousedown" dur="100" fill="forwards" to="0 90 0"></a-animation>
         </a-entity>
 
@@ -443,9 +443,9 @@ class Main extends Component {
 
         <a-gui-flex-container class="increaser" flex-direction="column" justify-content="center"
             align-items="normal" opacity="0.7" width="4.5" height="4.5"
-            position="6.5 2 -4" panel-color="blue">
+            position="7.5 2 -4" panel-color="blue" rotation="0 -20 0">
             <a-gui-label value="Select drums: " width="4" height="0.75"></a-gui-label>
-            <a-gui-flex-container class="soundset" flex-direction="row" justify-content="center" align-items= "center">
+            <a-gui-flex-container class="soundset" flex-direction="row" justify-content="center" align-items= "center" height="1" width="0">
               <a-gui-button id="set1" class="clickable" width="1.3" height="0.75"
                 onclick={this._handleClick}
                 value="808"
@@ -472,7 +472,7 @@ class Main extends Component {
               </a-gui-button>
             </a-gui-flex-container>
             <a-gui-label value="Set repeat: " width="4" height="0.75"></a-gui-label>
-            <a-gui-flex-container class="increaser" flex-direction="row" justify-content="center" align-items= "center">
+            <a-gui-flex-container class="increaser" flex-direction="row" justify-content="center" align-items= "center" height="1" width="0">
               <a-gui-button id="quarter" class="clickable" width="1.3" height="0.75"
     				      onclick={this._handleClick}
     				      value="1/4th"
