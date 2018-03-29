@@ -10578,6 +10578,3696 @@ require.register("aframe-fps-counter-component/index.js", function(exports, requ
   })();
 });
 
+require.register("aframe-gui/src/components/button.js", function(exports, require, module) {
+  require = __makeRelativeRequire(require, {}, "aframe-gui");
+  (function() {
+    AFRAME.registerComponent('gui-button', {
+    schema: {
+        on: {default: 'click'},
+        toggle: {type: 'boolean', default: false},
+        text: {type: 'string', default: 'text'},
+        fontFamily: {type: 'string', default: 'Helvetica'},
+        fontColor: {type: 'string', default: key_offwhite},
+        borderColor: {type: 'string', default: key_offwhite},
+        backgroundColor: {type: 'string', default: key_grey},
+        hoverColor: {type: 'string', default: key_grey_dark},
+        activeColor: {type: 'string', default: key_orange},
+    },
+    init: function() {
+
+        var data = this.data;
+        var el = this.el;
+        var guiItem = el.getAttribute("gui-item");
+        console.log("in button, guiItem: "+JSON.stringify(guiItem));
+        var guiInteractable = el.getAttribute("gui-interactable");
+        console.log("in button, guiInteractable: "+JSON.stringify(guiInteractable));
+        var multiplier = 350;
+        var canvasWidth = guiItem.width*multiplier;
+        var canvasHeight = guiItem.height*multiplier;
+        var toggleState = this.toggleState = data.toggle;
+
+        var canvasContainer = document.createElement('div');
+        canvasContainer.setAttribute('class', 'visuallyhidden');
+        document.body.appendChild(canvasContainer);
+        console.log("in gui-button init, data: "+JSON.stringify(data));
+        var canvas = document.createElement("canvas");
+        this.canvas = canvas;
+        canvas.setAttribute('width', canvasWidth);
+        canvas.setAttribute('height', canvasHeight);
+        canvas.id = getUniqueId('canvas');
+        canvasContainer.appendChild(canvas);
+
+        var ctx = this.ctx = canvas.getContext('2d');
+
+        el.setAttribute('geometry', `primitive: plane; height: ${guiItem.height}; width: ${guiItem.width};`);
+        el.setAttribute('material', `shader: flat; transparent: true; opacity: 0.5; side:double; color:${data.backgroundColor};`);
+
+        drawText(ctx, canvas, data.text, '100px ' + data.fontFamily, data.fontColor, 1);
+
+        var buttonContainer = document.createElement("a-entity");
+        buttonContainer.setAttribute('geometry', `primitive: box; width: ${guiItem.width}; height: ${guiItem.height}; depth: 0.02;`);
+        buttonContainer.setAttribute('material', `shader: flat; opacity: 1; side:double; color: ${data.borderColor}`);
+        buttonContainer.setAttribute('rotation', '0 0 0');
+        buttonContainer.setAttribute('position', '0 0 0.01');
+        el.appendChild(buttonContainer);
+
+        var buttonEntity = document.createElement("a-entity");
+        buttonEntity.setAttribute('geometry', `primitive: box; width: ${(guiItem.width-0.025)}; height: ${(guiItem.height-0.025)}; depth: 0.04;`);
+        buttonEntity.setAttribute('material', `shader: flat; opacity: 1; side:double; color: ${data.backgroundColor}`);
+        buttonEntity.setAttribute('rotation', '0 0 0');
+        buttonEntity.setAttribute('position', '0 0 0.02');
+        el.appendChild(buttonEntity);
+        this.buttonEntity = buttonEntity;
+
+        var buttonAnimation = document.createElement("a-animation");
+        buttonAnimation.setAttribute('attribute', 'material.color');
+        buttonAnimation.setAttribute('begin', 'fadeOut');
+        buttonAnimation.setAttribute('from', data.activeColor);
+        buttonAnimation.setAttribute('to', data.backgroundColor);
+        buttonAnimation.setAttribute('dur', '400');
+        buttonEntity.appendChild(buttonAnimation);
+
+        var textEntity = document.createElement("a-entity");
+        textEntity.setAttribute('geometry', `primitive: plane; width: ${guiItem.width/1.05}; height: ${guiItem.height/1.05};`);
+        textEntity.setAttribute('material', `shader: flat; src: #${canvas.id}; transparent: true; opacity: 1; side:front;`);
+        textEntity.setAttribute('position', '0 0 0.041');
+        el.appendChild(textEntity);
+
+
+        ////WAI ARIA Support
+        el.setAttribute('role', 'button');
+
+        el.addEventListener('mouseenter', function () {
+            buttonEntity.setAttribute('material', 'color', data.hoverColor);
+        });
+
+        el.addEventListener('mouseleave', function () {
+            if (!(data.toggle)) {
+                buttonEntity.setAttribute('material', 'color', data.backgroundColor);
+            }
+        });
+
+        el.addEventListener(data.on, function (evt) {            
+            if (!(data.toggle)) { // if not toggling flashing active state
+                buttonEntity.emit('fadeOut');
+            }else{
+                buttonEntity.setAttribute('material', 'color', data.activeColor);
+            }
+//            this.toggleState = !(this.toggleState);
+
+//            console.log('I was clicked at: ', evt.detail.intersection.point);
+            var clickActionFunctionName = guiInteractable.clickAction;
+            console.log("in button, clickActionFunctionName: "+clickActionFunctionName);
+            // find object
+            var clickActionFunction = window[clickActionFunctionName];
+            //console.log("clickActionFunction: "+clickActionFunction);
+            // is object a function?
+            if (typeof clickActionFunction === "function") clickActionFunction();
+        });
+
+
+    },
+    play: function () {
+
+    },
+    update: function (oldData) {
+        console.log("In button update, toggle: "+this.toggleState);
+    },
+    setActiveState: function (activeState) {
+        console.log("in setActiveState function");
+        this.data.toggle = this.toggleState = activeState;
+        if (!activeState) {
+            this.buttonEntity.setAttribute('material', 'color', this.data.backgroundColor);
+        } else {
+
+        }
+    },
+    setText: function (newText) {
+        drawText(this.ctx, this.canvas, newText, '100px ' + this.data.fontFamily, this.data.fontColor, 1);
+    },
+});
+
+
+AFRAME.registerPrimitive( 'a-gui-button', {
+    defaultComponents: {
+        'gui-interactable': { },
+        'gui-item': { type: 'button' },
+        'gui-button': { }
+    },
+    mappings: {
+        'onclick': 'gui-interactable.clickAction',
+        'onhover': 'gui-intexractable.hoverAction',
+        'key-code': 'gui-interactable.keyCode',
+        'width': 'gui-item.width',
+        'height': 'gui-item.height',
+        'margin': 'gui-item.margin',
+        'on': 'gui-button.on',
+        'value': 'gui-button.text',
+        'font-color': 'gui-button.fontColor',
+        'font-family': 'gui-button.fontFamily',
+        'border-color': 'gui-button.borderColor',
+        'background-color': 'gui-button.backgroundColor',
+        'hover-color': 'gui-button.hoverColor',
+        'active-color': 'gui-button.activeColor',
+        'toggle': 'gui-button.toggle'
+    }
+});
+  })();
+});
+
+require.register("aframe-gui/src/components/circle-loader.js", function(exports, require, module) {
+  require = __makeRelativeRequire(require, {}, "aframe-gui");
+  (function() {
+    AFRAME.registerComponent('gui-circle-loader', {
+    schema: {
+        count: {type: 'number', default: '100'},
+        fontFamily: {type: 'string', default: 'Helvetica'},
+        fontColor: {type: 'string', default: key_grey},
+        backgroundColor: {type: 'string', default: key_offwhite},
+        activeColor: {type: 'string', default: key_orange},
+    },
+    init: function() {
+
+        var data = this.data;
+        var el = this.el;
+        var guiItem = el.getAttribute("gui-item");
+        var multiplier = 350;
+        var canvasWidth = guiItem.height*multiplier; //square
+        var canvasHeight = guiItem.height*multiplier;
+
+        var canvasContainer = document.createElement('div');
+        canvasContainer.setAttribute('class', 'visuallyhidden');
+        document.body.appendChild(canvasContainer);
+
+        var canvas = document.createElement("canvas");
+        this.canvas = canvas;
+        canvas.className = "visuallyhidden";
+        canvas.setAttribute('width', canvasWidth);
+        canvas.setAttribute('height', canvasHeight);
+        canvas.className = 'visuallyhidden';
+        canvas.id = getUniqueId('canvas');
+        canvasContainer.appendChild(canvas);
+
+        var ctx = this.ctx = canvas.getContext('2d');
+
+        el.setAttribute('geometry', `primitive: plane; height: ${guiItem.height}; width: ${guiItem.height};`);
+        el.setAttribute('material', `shader: flat; transparent: true; opacity: 1; side:back; color:${data.backgroundColor};`);
+
+        drawText(ctx, canvas, data.count+'%', '110px ' + data.fontFamily, data.fontColor, 1);
+
+        var loaderContainer = document.createElement("a-entity");
+        loaderContainer.setAttribute('geometry', `primitive: cylinder; radius: ${guiItem.height/2}; height: 0.02;`);
+        loaderContainer.setAttribute('material', `shader: flat; opacity: 1; side:double; color: ${data.backgroundColor}`);
+        loaderContainer.setAttribute('rotation', '90 0 0');
+        loaderContainer.setAttribute('position', '0 0 0.01');
+        el.appendChild(loaderContainer);
+
+        var loaderRing = document.createElement("a-ring");
+        loaderRing.setAttribute('material', `shader: flat; opacity: 1; side:double; color: ${data.activeColor}`);
+        loaderRing.setAttribute('radius-inner', `${guiItem.height/3}`);
+        loaderRing.setAttribute('radius-outer', `${guiItem.height/2}`);
+        loaderRing.setAttribute('theta-start', '90');
+        loaderRing.setAttribute('theta-length', '10'); // this has to count 0 to 360 when loading
+        loaderRing.setAttribute('rotation', '0 0 0');
+        loaderRing.setAttribute('position', '0 0 0.04');
+        loaderRing.id = "loader_ring";
+        el.appendChild(loaderRing);
+
+        var countLoaded = document.createElement("a-entity");
+        countLoaded.setAttribute('geometry', `primitive: plane; width: ${guiItem.height/1.75}; height: ${guiItem.height/1.75};`);
+        countLoaded.setAttribute('material', `shader: flat; src: #${canvas.id}; transparent: true; opacity: 1; side:front;`);
+        countLoaded.setAttribute('position', '0 0 0.022');
+        countLoaded.id = "loader_ring_count";
+        el.appendChild(countLoaded);
+
+
+    },
+    play: function () {
+
+    },
+    update: function (oldData) {
+    },
+});
+
+AFRAME.registerPrimitive( 'a-gui-circle-loader', {
+    defaultComponents: {
+        'gui-item': { type: 'circle-loader' },
+        'gui-circle-loader': { }
+    },
+    mappings: {
+        'width': 'gui-item.width',
+        'height': 'gui-item.height',
+        'margin': 'gui-item.margin',
+        'count': 'gui-circle-loader.count',
+        'font-family': 'gui-circle-loader.fontFamily',
+        'font-color': 'gui-circle-loader.fontColor',
+        'background-color': 'gui-circle-loader.backgroundColor',
+        'active-color': 'gui-circle-loader.activeColor'
+    }
+});
+  })();
+});
+
+require.register("aframe-gui/src/components/circle-timer.js", function(exports, require, module) {
+  require = __makeRelativeRequire(require, {}, "aframe-gui");
+  (function() {
+    AFRAME.registerComponent('gui-circle-timer', {
+    schema: {
+        countDown: {type: 'number', default: '10'},
+        fontFamily: {type: 'string', default: 'Helvetica'},
+        fontColor: {type: 'string', default: key_grey},
+        borderColor: {type: 'string', default: key_grey},
+        backgroundColor: {type: 'string', default: key_offwhite},
+        activeColor: {type: 'string', default: key_orange},
+    },
+    init: function() {
+
+        var data = this.data;
+        var el = this.el;
+        var guiItem = el.getAttribute("gui-item");
+        var multiplier = 350;
+        var canvasWidth = guiItem.height*multiplier; //square
+        var canvasHeight = guiItem.height*multiplier;
+
+        var canvasContainer = document.createElement('div');
+        canvasContainer.setAttribute('class', 'visuallyhidden');
+        document.body.appendChild(canvasContainer);
+
+        var canvas = document.createElement("canvas");
+        this.canvas = canvas;
+        canvas.className = "visuallyhidden";
+        canvas.setAttribute('width', canvasWidth);
+        canvas.setAttribute('height', canvasHeight);
+        canvas.className = 'visuallyhidden';
+        canvas.id = getUniqueId('canvas');
+        canvasContainer.appendChild(canvas);
+
+        var ctx = this.ctx = canvas.getContext('2d');
+
+        el.setAttribute('geometry', `primitive: plane; height: ${guiItem.height}; width: ${guiItem.height};`);
+        el.setAttribute('material', `shader: flat; transparent: true; opacity: 1; side:back; color:${data.backgroundColor};`);
+
+        drawText(ctx, canvas, data.countDown, '200px ' + data.fontFamily, data.fontColor, 1);
+
+        var timerContainer = document.createElement("a-entity");
+        timerContainer.setAttribute('geometry', `primitive: cylinder; radius: ${guiItem.height/2}; height: 0.02;`);
+        timerContainer.setAttribute('material', `shader: flat; opacity: 1; side:double; color: ${data.backgroundColor}`);
+        timerContainer.setAttribute('rotation', '90 0 0');
+        timerContainer.setAttribute('position', '0 0 0.01');
+        el.appendChild(timerContainer);
+
+        var timerIndicator1 = document.createElement("a-ring");
+        timerIndicator1.setAttribute('material', `shader: flat; opacity: 1; side:double; color: ${data.borderColor}`);
+        timerIndicator1.setAttribute('radius-inner', `${guiItem.height/3}`);
+        timerIndicator1.setAttribute('radius-outer', `${guiItem.height/2}`);
+        timerIndicator1.setAttribute('theta-start', '-1');
+        timerIndicator1.setAttribute('theta-length', '3');
+        timerIndicator1.setAttribute('position', '0 0 0.04');
+        el.appendChild(timerIndicator1);
+        var timerIndicator2 = document.createElement("a-ring");
+        timerIndicator2.setAttribute('material', `shader: flat; opacity: 1; side:double; color: ${data.borderColor}`);
+        timerIndicator2.setAttribute('radius-inner', `${guiItem.height/3}`);
+        timerIndicator2.setAttribute('radius-outer', `${guiItem.height/2}`);
+        timerIndicator2.setAttribute('theta-start', '89');
+        timerIndicator2.setAttribute('theta-length', '3');
+        timerIndicator2.setAttribute('position', '0 0 0.04');
+        el.appendChild(timerIndicator2);
+        var timerIndicator3 = document.createElement("a-ring");
+        timerIndicator3.setAttribute('material', `shader: flat; opacity: 1; side:double; color: ${data.borderColor}`);
+        timerIndicator3.setAttribute('radius-inner', `${guiItem.height/3}`);
+        timerIndicator3.setAttribute('radius-outer', `${guiItem.height/2}`);
+        timerIndicator3.setAttribute('theta-start', '179');
+        timerIndicator3.setAttribute('theta-length', '3');
+        timerIndicator3.setAttribute('position', '0 0 0.04');
+        el.appendChild(timerIndicator3);
+        var timerIndicator4 = document.createElement("a-ring");
+        timerIndicator4.setAttribute('material', `shader: flat; opacity: 1; side:double; color: ${data.borderColor}`);
+        timerIndicator4.setAttribute('radius-inner', `${guiItem.height/3}`);
+        timerIndicator4.setAttribute('radius-outer', `${guiItem.height/2}`);
+        timerIndicator4.setAttribute('theta-start', '269');
+        timerIndicator4.setAttribute('theta-length', '3');
+        timerIndicator4.setAttribute('position', '0 0 0.04');
+        el.appendChild(timerIndicator4);
+
+
+
+
+        var timerRing = document.createElement("a-ring");
+        timerRing.setAttribute('material', `shader: flat; opacity: 0.75; side:double; color: ${data.activeColor}`);
+        timerRing.setAttribute('radius-inner', `${guiItem.height/3}`);
+        timerRing.setAttribute('radius-outer', `${guiItem.height/2}`);
+        timerRing.setAttribute('theta-start', '0');
+        timerRing.setAttribute('theta-length', '10'); // this has to increase 0 to 360 when running the countdown
+        timerRing.setAttribute('rotation', '0 0 0');
+        timerRing.setAttribute('position', '0 0 0.03');
+        timerRing.id = "loader_ring";
+        el.appendChild(timerRing);
+
+        var countDownLabel = document.createElement("a-entity");
+        countDownLabel.setAttribute('geometry', `primitive: plane; width: ${guiItem.height/1.75}; height: ${guiItem.height/1.75};`);
+        countDownLabel.setAttribute('material', `shader: flat; src: #${canvas.id}; transparent: true; opacity: 1; side:front;`);
+        countDownLabel.setAttribute('position', '0 0 0.022');
+        countDownLabel.id = "loader_ring_count";
+        el.appendChild(countDownLabel);
+
+
+    },
+    play: function () {
+
+    },
+    update: function (oldData) {
+    },
+});
+
+AFRAME.registerPrimitive( 'a-gui-circle-timer', {
+    defaultComponents: {
+        'gui-item': { type: 'circle-timer' },
+        'gui-circle-timer': { }
+    },
+    mappings: {
+        'width': 'gui-item.width',
+        'height': 'gui-item.height',
+        'margin': 'gui-item.margin',
+        'count-down': 'gui-circle-timer.countDown',
+        'font-family': 'gui-circle-timer.fontFamily',
+        'font-color': 'gui-circle-timer.fontColor',
+        'border-color': 'gui-circle-timer.borderColor',
+        'background-color': 'gui-circle-timer.backgroundColor',
+        'active-color': 'gui-circle-timer.activeColor'
+    }
+});
+  })();
+});
+
+require.register("aframe-gui/src/components/cursor.js", function(exports, require, module) {
+  require = __makeRelativeRequire(require, {}, "aframe-gui");
+  (function() {
+    AFRAME.registerComponent('gui-cursor', {
+    schema: {
+        color: {type: 'string', default: key_white},
+        hoverColor: {type: 'string', default: key_white},
+        activeColor: {type: 'string', default: key_orange},
+        distance: {type: 'number', default: -1},
+        design: {type: 'string', default: 'dot'},
+    },
+    init: function () {
+        var cursor = this.cursor = this.el.getAttribute('cursor');
+        var fuse = this.fuse = cursor.fuse; // true if cursor fuse is enabled.
+        var fuseTimeout = cursor.fuseTimeout; // animation lenght should be based on this value
+
+        var el = this.el;
+        var data = this.data;
+        var defaultHoverAnimationDuration = 200;
+        var fuseAnimationDuration = fuseTimeout - defaultHoverAnimationDuration;
+
+        console.log("fuse: "+fuse+", fuseTimeout: "+fuseTimeout);
+
+        if(data.design == 'dot'){    
+
+            el.setAttribute('geometry', 'primitive: ring; radiusInner:0.000001; radiusOuter:0.025');
+            el.setAttribute('material', `color: ${data.color}; shader: flat; opacity:1;`);
+            el.setAttribute('position', `0 0 ${data.distance}`);
+
+            var hoverAniInner = document.createElement("a-animation");
+            hoverAniInner.setAttribute('begin', 'hovergui');
+            hoverAniInner.setAttribute('easing', 'linear');
+            hoverAniInner.setAttribute('attribute', 'geometry.radiusInner');
+            hoverAniInner.setAttribute('fill', 'forwards');
+            hoverAniInner.setAttribute('from', '0.000001');
+            hoverAniInner.setAttribute('to', '0.0225');
+            hoverAniInner.setAttribute('dur', `${defaultHoverAnimationDuration}`);
+            el.appendChild(hoverAniInner);
+
+            var hoverAniOuter = document.createElement("a-animation");
+            hoverAniOuter.setAttribute('begin', 'hovergui');
+            hoverAniOuter.setAttribute('easing', 'linear');
+            hoverAniOuter.setAttribute('attribute', 'geometry.radiusOuter');
+            hoverAniOuter.setAttribute('fill', 'forwards');
+            hoverAniOuter.setAttribute('from', '0.025');
+            hoverAniOuter.setAttribute('to', '0.0275');
+            hoverAniOuter.setAttribute('dur', `${defaultHoverAnimationDuration}`);
+            el.appendChild(hoverAniOuter);
+
+            var hoverAniColor = document.createElement("a-animation");
+            hoverAniColor.setAttribute('begin', 'hovergui');
+            hoverAniColor.setAttribute('easing', 'linear');
+            hoverAniColor.setAttribute('attribute', 'material.color');
+            hoverAniColor.setAttribute('fill', 'forwards');
+            hoverAniColor.setAttribute('from', `${data.color}`);
+            hoverAniColor.setAttribute('to',  `${data.hoverColor}`);
+            hoverAniColor.setAttribute('dur', `${defaultHoverAnimationDuration}`);
+            el.appendChild(hoverAniColor);
+
+            var leaveAniInner = document.createElement("a-animation");
+            leaveAniInner.setAttribute('begin', 'leavegui');
+            leaveAniInner.setAttribute('easing', 'linear');
+            leaveAniInner.setAttribute('attribute', 'geometry.radiusInner');
+            leaveAniInner.setAttribute('fill', 'forwards');
+            leaveAniInner.setAttribute('from', '0.0225');
+            leaveAniInner.setAttribute('to', '0.000001');
+            leaveAniInner.setAttribute('dur', `${defaultHoverAnimationDuration}`);
+            el.appendChild(leaveAniInner);
+
+            var leaveAniOuter = document.createElement("a-animation");
+            leaveAniOuter.setAttribute('begin', 'leavegui');
+            leaveAniOuter.setAttribute('easing', 'linear');
+            leaveAniOuter.setAttribute('attribute', 'geometry.radiusOuter');
+            leaveAniOuter.setAttribute('fill', 'forwards');
+            leaveAniOuter.setAttribute('from', '0.0275');
+            leaveAniOuter.setAttribute('to', '0.025');
+            leaveAniOuter.setAttribute('dur', `${defaultHoverAnimationDuration}`);
+            el.appendChild(leaveAniOuter);
+
+            var leaveAniColor = document.createElement("a-animation");
+            leaveAniColor.setAttribute('begin', 'leavegui');
+            leaveAniColor.setAttribute('easing', 'linear');
+            leaveAniColor.setAttribute('attribute', 'material.color');
+            leaveAniColor.setAttribute('fill', 'forwards');
+            leaveAniColor.setAttribute('from', `${data.hoverColor}`);
+            leaveAniColor.setAttribute('to', `${data.color}`);
+            leaveAniColor.setAttribute('dur', `${defaultHoverAnimationDuration}`);
+            el.appendChild(leaveAniColor);
+
+            var clickAnimation = document.createElement("a-animation");
+            clickAnimation.setAttribute('begin', 'click');
+            clickAnimation.setAttribute('easing', 'ease-in');
+            clickAnimation.setAttribute('attribute', 'scale');
+            clickAnimation.setAttribute('fill', 'forwards');
+            clickAnimation.setAttribute('from', '1 1 1');
+            clickAnimation.setAttribute('to', '1.25 1.25 1.25');
+            clickAnimation.setAttribute('dur', '200');
+            el.appendChild(clickAnimation);
+
+            var cursorShadow = document.createElement("a-entity");
+            cursorShadow.setAttribute('geometry', 'primitive: ring; radiusInner:0.0275; radiusOuter:0.03; thetaLength:360');
+            cursorShadow.setAttribute('material', 'color: #000000; shader: flat; opacity:0.25;');
+            cursorShadow.setAttribute('position', '0 0 0');
+            el.appendChild(cursorShadow);
+            this.cursorShadow = cursorShadow;
+
+            var shadowHoverAniInner = document.createElement("a-animation");
+            shadowHoverAniInner.setAttribute('begin', 'hovergui');
+            shadowHoverAniInner.setAttribute('easing', 'linear');
+            shadowHoverAniInner.setAttribute('attribute', 'geometry.radiusInner');
+            shadowHoverAniInner.setAttribute('fill', 'forwards');
+            shadowHoverAniInner.setAttribute('from', '0.0275');
+            shadowHoverAniInner.setAttribute('to', '0.03');
+            shadowHoverAniInner.setAttribute('dur', `${defaultHoverAnimationDuration}`);
+            cursorShadow.appendChild(shadowHoverAniInner);
+
+            var shadowHoverAniOuter = document.createElement("a-animation");
+            shadowHoverAniOuter.setAttribute('begin', 'hovergui');
+            shadowHoverAniOuter.setAttribute('easing', 'linear');
+            shadowHoverAniOuter.setAttribute('attribute', 'geometry.radiusOuter');
+            shadowHoverAniOuter.setAttribute('fill', 'forwards');
+            shadowHoverAniOuter.setAttribute('from', '0.03');
+            shadowHoverAniOuter.setAttribute('to', '0.0325');
+            shadowHoverAniOuter.setAttribute('dur', `${defaultHoverAnimationDuration}`);
+            cursorShadow.appendChild(shadowHoverAniOuter);
+
+            var shadowLeaveAniInner = document.createElement("a-animation");
+            shadowLeaveAniInner.setAttribute('begin', 'leavegui');
+            shadowLeaveAniInner.setAttribute('easing', 'linear');
+            shadowLeaveAniInner.setAttribute('attribute', 'geometry.radiusInner');
+            shadowLeaveAniInner.setAttribute('fill', 'forwards');
+            shadowLeaveAniInner.setAttribute('from', '0.03');
+            shadowLeaveAniInner.setAttribute('to', '0.0275');
+            shadowLeaveAniInner.setAttribute('dur', `${defaultHoverAnimationDuration}`);
+            cursorShadow.appendChild(shadowLeaveAniInner);
+
+            var shadowLeaveAniOuter = document.createElement("a-animation");
+            shadowLeaveAniOuter.setAttribute('begin', 'leavegui');
+            shadowLeaveAniOuter.setAttribute('easing', 'linear');
+            shadowLeaveAniOuter.setAttribute('attribute', 'geometry.radiusOuter');
+            shadowLeaveAniOuter.setAttribute('fill', 'forwards');
+            shadowLeaveAniOuter.setAttribute('from', '0.0325');
+            shadowLeaveAniOuter.setAttribute('to', '0.03');
+            shadowLeaveAniOuter.setAttribute('dur', `${defaultHoverAnimationDuration}`);
+            cursorShadow.appendChild(shadowLeaveAniOuter);
+
+            if(fuse){
+                var fuseLoader = document.createElement("a-entity");
+                fuseLoader.setAttribute('geometry', 'primitive: ring; radiusInner:0.03; radiusOuter:0.0375; thetaLength:0');
+                fuseLoader.setAttribute('material', `color: ${data.activeColor}; shader: flat; opacity:1;`);
+                fuseLoader.setAttribute('position', `0 0 0`);
+                el.appendChild(fuseLoader);
+                this.fuseLoader = fuseLoader;
+
+                var fuseLoaderFillAni = document.createElement("a-animation");
+                fuseLoaderFillAni.setAttribute('begin', 'start-fusing');
+                fuseLoaderFillAni.setAttribute('easing', 'linear');
+                fuseLoaderFillAni.setAttribute('attribute', 'geometry.thetaLength');
+                fuseLoaderFillAni.setAttribute('fill', 'forwards');
+                fuseLoaderFillAni.setAttribute('from', '0');
+                fuseLoaderFillAni.setAttribute('to', '360');
+                fuseLoaderFillAni.setAttribute('delay', `${defaultHoverAnimationDuration}`);
+                fuseLoaderFillAni.setAttribute('dur', `${fuseAnimationDuration}`);
+                fuseLoader.appendChild(fuseLoaderFillAni);
+            }
+
+
+            //end dot design
+
+        }else if(data.design == 'ring'){    
+            el.setAttribute('geometry', 'primitive: ring; radiusInner:0.0225; radiusOuter:0.0275');
+            el.setAttribute('material', `color: ${data.color}; shader: flat; opacity:1;`);
+            el.setAttribute('position', `0 0 ${data.distance}`);
+
+            var hoverAniInner = document.createElement("a-animation");
+            hoverAniInner.setAttribute('begin', 'hovergui');
+            hoverAniInner.setAttribute('easing', 'linear');
+            hoverAniInner.setAttribute('attribute', 'geometry.radiusInner');
+            hoverAniInner.setAttribute('fill', 'forwards');
+            hoverAniInner.setAttribute('from', '0.0225');
+            hoverAniInner.setAttribute('to', '0.025');
+            hoverAniInner.setAttribute('dur', `${defaultHoverAnimationDuration}`);
+            el.appendChild(hoverAniInner);
+
+            var hoverAniOuter = document.createElement("a-animation");
+            hoverAniOuter.setAttribute('begin', 'hovergui');
+            hoverAniOuter.setAttribute('easing', 'linear');
+            hoverAniOuter.setAttribute('attribute', 'geometry.radiusOuter');
+            hoverAniOuter.setAttribute('fill', 'forwards');
+            hoverAniOuter.setAttribute('from', '0.025');
+            hoverAniOuter.setAttribute('to', '0.0325');
+            hoverAniOuter.setAttribute('dur', `${defaultHoverAnimationDuration}`);
+            el.appendChild(hoverAniOuter);
+
+            var hoverAniColor = document.createElement("a-animation");
+            hoverAniColor.setAttribute('begin', 'hovergui');
+            hoverAniColor.setAttribute('easing', 'linear');
+            hoverAniColor.setAttribute('attribute', 'material.color');
+            hoverAniColor.setAttribute('fill', 'forwards');
+            hoverAniColor.setAttribute('from', `${data.color}`);
+            hoverAniColor.setAttribute('to',  `${data.hoverColor}`);
+            hoverAniColor.setAttribute('dur', `${defaultHoverAnimationDuration}`);
+            el.appendChild(hoverAniColor);
+
+            var leaveAniInner = document.createElement("a-animation");
+            leaveAniInner.setAttribute('begin', 'leavegui');
+            leaveAniInner.setAttribute('easing', 'linear');
+            leaveAniInner.setAttribute('attribute', 'geometry.radiusInner');
+            leaveAniInner.setAttribute('fill', 'forwards');
+            leaveAniInner.setAttribute('from', '0.025');
+            leaveAniInner.setAttribute('to', '0.0225');
+            leaveAniInner.setAttribute('dur', `${defaultHoverAnimationDuration}`);
+            el.appendChild(leaveAniInner);
+
+            var leaveAniOuter = document.createElement("a-animation");
+            leaveAniOuter.setAttribute('begin', 'leavegui');
+            leaveAniOuter.setAttribute('easing', 'linear');
+            leaveAniOuter.setAttribute('attribute', 'geometry.radiusOuter');
+            leaveAniOuter.setAttribute('fill', 'forwards');
+            leaveAniOuter.setAttribute('from', '0.0325');
+            leaveAniOuter.setAttribute('to', '0.0275');
+            leaveAniOuter.setAttribute('dur', `${defaultHoverAnimationDuration}`);
+            el.appendChild(leaveAniOuter);
+
+            var leaveAniColor = document.createElement("a-animation");
+            leaveAniColor.setAttribute('begin', 'leavegui');
+            leaveAniColor.setAttribute('easing', 'linear');
+            leaveAniColor.setAttribute('attribute', 'material.color');
+            leaveAniColor.setAttribute('fill', 'forwards');
+            leaveAniColor.setAttribute('from', `${data.hoverColor}`);
+            leaveAniColor.setAttribute('to', `${data.color}`);
+            leaveAniColor.setAttribute('dur', `${defaultHoverAnimationDuration}`);
+            el.appendChild(leaveAniColor);
+
+            var clickAnimation = document.createElement("a-animation");
+            clickAnimation.setAttribute('begin', 'click');
+            clickAnimation.setAttribute('easing', 'ease-in');
+            clickAnimation.setAttribute('attribute', 'scale');
+            clickAnimation.setAttribute('fill', 'forwards');
+            clickAnimation.setAttribute('from', '1 1 1');
+            clickAnimation.setAttribute('to', '1.25 1.25 1.25');
+            clickAnimation.setAttribute('dur', '200');
+            el.appendChild(clickAnimation);
+
+            var cursorShadow = document.createElement("a-entity");
+            cursorShadow.setAttribute('geometry', 'primitive: ring; radiusInner:0.03; radiusOuter:0.0325; thetaLength:360');
+            cursorShadow.setAttribute('material', 'color: #000000; shader: flat; opacity:0.25;');
+            cursorShadow.setAttribute('position', '0 0 0');
+            el.appendChild(cursorShadow);
+            this.cursorShadow = cursorShadow;
+
+            var shadowHoverAniInner = document.createElement("a-animation");
+            shadowHoverAniInner.setAttribute('begin', 'hovergui');
+            shadowHoverAniInner.setAttribute('easing', 'linear');
+            shadowHoverAniInner.setAttribute('attribute', 'geometry.radiusInner');
+            shadowHoverAniInner.setAttribute('fill', 'forwards');
+            shadowHoverAniInner.setAttribute('from', '0.03');
+            shadowHoverAniInner.setAttribute('to', '0.0325');
+            shadowHoverAniInner.setAttribute('dur', `${defaultHoverAnimationDuration}`);
+            cursorShadow.appendChild(shadowHoverAniInner);
+
+            var shadowHoverAniOuter = document.createElement("a-animation");
+            shadowHoverAniOuter.setAttribute('begin', 'hovergui');
+            shadowHoverAniOuter.setAttribute('easing', 'linear');
+            shadowHoverAniOuter.setAttribute('attribute', 'geometry.radiusOuter');
+            shadowHoverAniOuter.setAttribute('fill', 'forwards');
+            shadowHoverAniOuter.setAttribute('from', '0.0325');
+            shadowHoverAniOuter.setAttribute('to', '0.0375');
+            shadowHoverAniOuter.setAttribute('dur', `${defaultHoverAnimationDuration}`);
+            cursorShadow.appendChild(shadowHoverAniOuter);
+
+            var shadowLeaveAniInner = document.createElement("a-animation");
+            shadowLeaveAniInner.setAttribute('begin', 'leavegui');
+            shadowLeaveAniInner.setAttribute('easing', 'linear');
+            shadowLeaveAniInner.setAttribute('attribute', 'geometry.radiusInner');
+            shadowLeaveAniInner.setAttribute('fill', 'forwards');
+            shadowLeaveAniInner.setAttribute('from', '0.0325');
+            shadowLeaveAniInner.setAttribute('to', '0.03');
+            shadowLeaveAniInner.setAttribute('dur', `${defaultHoverAnimationDuration}`);
+            cursorShadow.appendChild(shadowLeaveAniInner);
+
+            var shadowLeaveAniOuter = document.createElement("a-animation");
+            shadowLeaveAniOuter.setAttribute('begin', 'leavegui');
+            shadowLeaveAniOuter.setAttribute('easing', 'linear');
+            shadowLeaveAniOuter.setAttribute('attribute', 'geometry.radiusOuter');
+            shadowLeaveAniOuter.setAttribute('fill', 'forwards');
+            shadowLeaveAniOuter.setAttribute('from', '0.0375');
+            shadowLeaveAniOuter.setAttribute('to', '0.0325');
+            shadowLeaveAniOuter.setAttribute('dur', `${defaultHoverAnimationDuration}`);
+            cursorShadow.appendChild(shadowLeaveAniOuter);
+
+            if(fuse){
+                var fuseLoader = document.createElement("a-entity");
+                fuseLoader.setAttribute('geometry', 'primitive: ring; radiusInner:0.035; radiusOuter:0.0425; thetaLength:0');
+                fuseLoader.setAttribute('material', `color: ${data.activeColor}; shader: flat; opacity:1;`);
+                fuseLoader.setAttribute('position', `0 0 0`);
+                el.appendChild(fuseLoader);
+                this.fuseLoader = fuseLoader;
+
+                var fuseLoaderFillAni = document.createElement("a-animation");
+                fuseLoaderFillAni.setAttribute('begin', 'start-fusing');
+                fuseLoaderFillAni.setAttribute('easing', 'linear');
+                fuseLoaderFillAni.setAttribute('attribute', 'geometry.thetaLength');
+                fuseLoaderFillAni.setAttribute('fill', 'forwards');
+                fuseLoaderFillAni.setAttribute('from', '0');
+                fuseLoaderFillAni.setAttribute('to', '360');
+                fuseLoaderFillAni.setAttribute('delay', `${defaultHoverAnimationDuration}`);
+                fuseLoaderFillAni.setAttribute('dur', `${fuseAnimationDuration}`);
+                fuseLoader.appendChild(fuseLoaderFillAni);
+            }
+
+
+            //end ring design
+
+        }else if(data.design == 'reticle'){    
+            el.setAttribute('geometry', 'primitive: ring; radiusInner:0.000001; radiusOuter:0.0125; thetaLength:180;');
+            el.setAttribute('material', `color: ${data.color}; shader: flat; opacity:1;`);
+            el.setAttribute('position', `0 0 ${data.distance}`);
+
+            var hoverAniOpacity = document.createElement("a-animation");
+            hoverAniOpacity.setAttribute('begin', 'hovergui');
+            hoverAniOpacity.setAttribute('easing', 'linear');
+            hoverAniOpacity.setAttribute('attribute', 'material.opacity');
+            hoverAniOpacity.setAttribute('fill', 'forwards');
+            hoverAniOpacity.setAttribute('from', '1');
+            hoverAniOpacity.setAttribute('to', '0');
+            hoverAniOpacity.setAttribute('dur', `${defaultHoverAnimationDuration}`);
+            el.appendChild(hoverAniOpacity);
+
+            var leaveAniOpacity = document.createElement("a-animation");
+            leaveAniOpacity.setAttribute('begin', 'leavegui');
+            leaveAniOpacity.setAttribute('easing', 'linear');
+            leaveAniOpacity.setAttribute('attribute', 'material.opacity');
+            leaveAniOpacity.setAttribute('fill', 'forwards');
+            leaveAniOpacity.setAttribute('from', '0');
+            leaveAniOpacity.setAttribute('to', '1');
+            leaveAniOpacity.setAttribute('dur', `${defaultHoverAnimationDuration}`);
+            el.appendChild(leaveAniOpacity);
+
+
+            var cursorCenter = document.createElement("a-entity");
+            cursorCenter.setAttribute('geometry', 'primitive: ring; radiusInner:0.000001; radiusOuter:0.0125; thetaLength:180; thetaStart:180;');
+            cursorCenter.setAttribute('material', 'color: #000000; shader: flat; opacity:0.25;');
+            cursorCenter.setAttribute('position', '0 0 0');
+            el.appendChild(cursorCenter);
+            this.cursorCenter = cursorCenter;
+
+            var centerHoverAniOpacity = document.createElement("a-animation");
+            centerHoverAniOpacity.setAttribute('begin', 'hovergui');
+            centerHoverAniOpacity.setAttribute('easing', 'linear');
+            centerHoverAniOpacity.setAttribute('attribute', 'material.opacity');
+            centerHoverAniOpacity.setAttribute('fill', 'forwards');
+            centerHoverAniOpacity.setAttribute('from', '0.25');
+            centerHoverAniOpacity.setAttribute('to', '0');
+            centerHoverAniOpacity.setAttribute('dur', `${defaultHoverAnimationDuration}`);
+            cursorCenter.appendChild(centerHoverAniOpacity);
+
+            var centerLeaveAniOpacity = document.createElement("a-animation");
+            centerLeaveAniOpacity.setAttribute('begin', 'leavegui');
+            centerLeaveAniOpacity.setAttribute('easing', 'linear');
+            centerLeaveAniOpacity.setAttribute('attribute', 'material.opacity');
+            centerLeaveAniOpacity.setAttribute('fill', 'forwards');
+            centerLeaveAniOpacity.setAttribute('from', '0');
+            centerLeaveAniOpacity.setAttribute('to', '0.25');
+            centerLeaveAniOpacity.setAttribute('dur', `${defaultHoverAnimationDuration}`);
+            cursorCenter.appendChild(centerLeaveAniOpacity);
+
+
+            var cursorShadow = document.createElement("a-entity");
+            cursorShadow.setAttribute('geometry', 'primitive: ring; radiusInner:0.0125; radiusOuter:0.0145');
+            cursorShadow.setAttribute('material', 'color: #000000; shader: flat; opacity:0.25;');
+            cursorShadow.setAttribute('position', '0 0 0');
+            el.appendChild(cursorShadow);
+            this.cursorShadow = cursorShadow;
+
+            var cursorHoverAniColor = document.createElement("a-animation");
+            cursorHoverAniColor.setAttribute('begin', 'hovergui');
+            cursorHoverAniColor.setAttribute('easing', 'linear');
+            cursorHoverAniColor.setAttribute('attribute', 'material.color');
+            cursorHoverAniColor.setAttribute('fill', 'forwards');
+            cursorHoverAniColor.setAttribute('from', '#000000');
+            cursorHoverAniColor.setAttribute('to', `${data.color}`);
+            cursorHoverAniColor.setAttribute('dur', `${defaultHoverAnimationDuration}`);
+            cursorShadow.appendChild(cursorHoverAniColor);
+
+            var cursorHoverAniOpacity = document.createElement("a-animation");
+            cursorHoverAniOpacity.setAttribute('begin', 'hovergui');
+            cursorHoverAniOpacity.setAttribute('easing', 'linear');
+            cursorHoverAniOpacity.setAttribute('attribute', 'material.opacity');
+            cursorHoverAniOpacity.setAttribute('fill', 'forwards');
+            cursorHoverAniOpacity.setAttribute('from', '0.25');
+            cursorHoverAniOpacity.setAttribute('to', '1');
+            cursorHoverAniOpacity.setAttribute('dur', `${defaultHoverAnimationDuration}`);
+            cursorShadow.appendChild(cursorHoverAniOpacity);
+
+            var cursorLeaveAniColor = document.createElement("a-animation");
+            cursorLeaveAniColor.setAttribute('begin', 'leavegui');
+            cursorLeaveAniColor.setAttribute('easing', 'linear');
+            cursorLeaveAniColor.setAttribute('attribute', 'material.color');
+            cursorLeaveAniColor.setAttribute('fill', 'forwards');
+            cursorLeaveAniColor.setAttribute('from', `${data.color}`);
+            cursorLeaveAniColor.setAttribute('to', '#000000');
+            cursorLeaveAniColor.setAttribute('dur', `${defaultHoverAnimationDuration}`);
+            cursorShadow.appendChild(cursorLeaveAniColor);
+
+            var cursorLeaveAniOpacity = document.createElement("a-animation");
+            cursorLeaveAniOpacity.setAttribute('begin', 'leavegui');
+            cursorLeaveAniOpacity.setAttribute('easing', 'linear');
+            cursorLeaveAniOpacity.setAttribute('attribute', 'material.opacity');
+            cursorLeaveAniOpacity.setAttribute('fill', 'forwards');
+            cursorLeaveAniOpacity.setAttribute('from', '1');
+            cursorLeaveAniOpacity.setAttribute('to', '0.25');
+            cursorLeaveAniOpacity.setAttribute('dur', `${defaultHoverAnimationDuration}`);
+            cursorShadow.appendChild(cursorLeaveAniOpacity);
+
+
+            var cursorShadowTL = document.createElement("a-entity");
+            cursorShadowTL.setAttribute('geometry', 'primitive: plane; width:0.005; height:0.005;');
+            cursorShadowTL.setAttribute('material', 'color: #000000; shader: flat; opacity:0.25;');
+            cursorShadowTL.setAttribute('position', '-0.0325 0.0325 0');
+            el.appendChild(cursorShadowTL);
+            this.cursorShadowTL = cursorShadowTL;
+            var cursorShadowBL = document.createElement("a-entity");
+            cursorShadowBL.setAttribute('geometry', 'primitive: plane; width:0.005; height:0.005;');
+            cursorShadowBL.setAttribute('material', 'color: #000000; shader: flat; opacity:0.25;');
+            cursorShadowBL.setAttribute('position', '-0.0325 -0.0325 0');
+            el.appendChild(cursorShadowBL);
+            this.cursorShadowBL = cursorShadowBL;
+            var cursorShadowTR = document.createElement("a-entity");
+            cursorShadowTR.setAttribute('geometry', 'primitive: plane; width:0.005; height:0.005;');
+            cursorShadowTR.setAttribute('material', 'color: #000000; shader: flat; opacity:0.25;');
+            cursorShadowTR.setAttribute('position', '0.0325 0.0325 0');
+            el.appendChild(cursorShadowTR);
+            this.cursorShadowTR = cursorShadowTR;
+            var cursorShadowBR = document.createElement("a-entity");
+            cursorShadowBR.setAttribute('geometry', 'primitive: plane; width:0.005; height:0.005;');
+            cursorShadowBR.setAttribute('material', 'color: #000000; shader: flat; opacity:0.25;');
+            cursorShadowBR.setAttribute('position', '0.0325 -0.0325 0');
+            el.appendChild(cursorShadowBR);
+            this.cursorShadowBR = cursorShadowBR;
+
+
+            var cursorBoundTL = document.createElement("a-entity");
+            cursorBoundTL.setAttribute('geometry', 'primitive: plane; width:0.015; height:0.0035;');
+            cursorBoundTL.setAttribute('material', `color: ${data.color}; shader: flat; opacity:1;`);
+            cursorBoundTL.setAttribute('position', '-0.03 0.0375 0');
+            el.appendChild(cursorBoundTL);
+            this.cursorBoundTL = cursorBoundTL;
+            var cursorBoundTL2 = document.createElement("a-entity");
+            cursorBoundTL2.setAttribute('geometry', 'primitive: plane; width:0.0035; height:0.015;');
+            cursorBoundTL2.setAttribute('material', `color: ${data.color}; shader: flat; opacity:1;`);
+            cursorBoundTL2.setAttribute('position', '-0.0375 0.03 0');
+            el.appendChild(cursorBoundTL2);
+            this.cursorBoundTL2 = cursorBoundTL2;
+
+            var cursorBoundTR = document.createElement("a-entity");
+            cursorBoundTR.setAttribute('geometry', 'primitive: plane; width:0.015; height:0.0035;');
+            cursorBoundTR.setAttribute('material', `color: ${data.color}; shader: flat; opacity:1;`);
+            cursorBoundTR.setAttribute('position', '0.03 0.0375 0');
+            el.appendChild(cursorBoundTR);
+            this.cursorBoundTR = cursorBoundTR;
+            var cursorBoundTR2 = document.createElement("a-entity");
+            cursorBoundTR2.setAttribute('geometry', 'primitive: plane; width:0.0035; height:0.015;');
+            cursorBoundTR2.setAttribute('material', `color: ${data.color}; shader: flat; opacity:1;`);
+            cursorBoundTR2.setAttribute('position', '0.0375 0.03 0');
+            el.appendChild(cursorBoundTR2);
+            this.cursorBoundTR2 = cursorBoundTR2;
+
+            var cursorBoundBL = document.createElement("a-entity");
+            cursorBoundBL.setAttribute('geometry', 'primitive: plane; width:0.015; height:0.0035;');
+            cursorBoundBL.setAttribute('material', `color: ${data.color}; shader: flat; opacity:1;`);
+            cursorBoundBL.setAttribute('position', '-0.03 -0.0375 0');
+            el.appendChild(cursorBoundBL);
+            this.cursorBoundBL = cursorBoundBL;
+            var cursorBoundBL2 = document.createElement("a-entity");
+            cursorBoundBL2.setAttribute('geometry', 'primitive: plane; width:0.0035; height:0.015;');
+            cursorBoundBL2.setAttribute('material', `color: ${data.color}; shader: flat; opacity:1;`);
+            cursorBoundBL2.setAttribute('position', '-0.0375 -0.03 0');
+            el.appendChild(cursorBoundBL2);
+            this.cursorBoundBL2 = cursorBoundBL2;
+
+            var cursorBoundBR = document.createElement("a-entity");
+            cursorBoundBR.setAttribute('geometry', 'primitive: plane; width:0.015; height:0.0035;');
+            cursorBoundBR.setAttribute('material', `color: ${data.color}; shader: flat; opacity:1;`);
+            cursorBoundBR.setAttribute('position', '0.03 -0.0375 0');
+            el.appendChild(cursorBoundBR);
+            this.cursorBoundBR = cursorBoundBR;
+            var cursorBoundBR2 = document.createElement("a-entity");
+            cursorBoundBR2.setAttribute('geometry', 'primitive: plane; width:0.0035; height:0.015;');
+            cursorBoundBR2.setAttribute('material', `color: ${data.color}; shader: flat; opacity:1;`);
+            cursorBoundBR2.setAttribute('position', '0.0375 -0.03 0');
+            el.appendChild(cursorBoundBR2);
+            this.cursorBoundBR2 = cursorBoundBR2;
+
+
+            if(fuse){
+                var fuseLoader = document.createElement("a-entity");
+                fuseLoader.setAttribute('geometry', 'primitive: plane; width:0.000001; height:0.01;');
+                fuseLoader.setAttribute('material', `color: ${data.activeColor}; shader: flat; opacity:1;`);
+                fuseLoader.setAttribute('position', '0 -0.05 0');
+                el.appendChild(fuseLoader);
+                this.fuseLoader = fuseLoader;
+
+                var fuseLoaderFillAni = document.createElement("a-animation");
+                fuseLoaderFillAni.setAttribute('begin', 'start-fusing');
+                fuseLoaderFillAni.setAttribute('easing', 'linear');
+                fuseLoaderFillAni.setAttribute('attribute', 'geometry.width');
+                fuseLoaderFillAni.setAttribute('fill', 'forwards');
+                fuseLoaderFillAni.setAttribute('from', '0');
+                fuseLoaderFillAni.setAttribute('to', '0.075');
+                fuseLoaderFillAni.setAttribute('delay', `${defaultHoverAnimationDuration}`);
+                fuseLoaderFillAni.setAttribute('dur', `${fuseAnimationDuration}`);
+                fuseLoader.appendChild(fuseLoaderFillAni);
+            }
+
+
+            //end reticle design
+
+        }else if(data.design == 'cross'){    
+            el.setAttribute('geometry', 'primitive: ring; radiusInner:0.035; radiusOuter:0.0375');
+            el.setAttribute('material', `color: ${data.color}; shader: flat; opacity:1;`);
+            el.setAttribute('position', `0 0 ${data.distance}`);
+
+            var hoverAniInner = document.createElement("a-animation");
+            hoverAniInner.setAttribute('begin', 'hovergui');
+            hoverAniInner.setAttribute('easing', 'linear');
+            hoverAniInner.setAttribute('attribute', 'geometry.radiusInner');
+            hoverAniInner.setAttribute('fill', 'forwards');
+            hoverAniInner.setAttribute('from', '0.035');
+            hoverAniInner.setAttribute('to', '0.0315');
+            hoverAniInner.setAttribute('dur', `${defaultHoverAnimationDuration}`);
+            el.appendChild(hoverAniInner);
+
+            var leaveAniInner = document.createElement("a-animation");
+            leaveAniInner.setAttribute('begin', 'leavegui');
+            leaveAniInner.setAttribute('easing', 'linear');
+            leaveAniInner.setAttribute('attribute', 'geometry.radiusInner');
+            leaveAniInner.setAttribute('fill', 'forwards');
+            leaveAniInner.setAttribute('from', '0.0315');
+            leaveAniInner.setAttribute('to', '0.035');
+            leaveAniInner.setAttribute('dur', `${defaultHoverAnimationDuration}`);
+            el.appendChild(leaveAniInner);
+
+            var cursorShadow = document.createElement("a-entity");
+            cursorShadow.setAttribute('geometry', 'primitive: ring; radiusInner:0.0375; radiusOuter:0.04; thetaLength:360');
+            cursorShadow.setAttribute('material', 'color: #000000; shader: flat; opacity:0.25;');
+            cursorShadow.setAttribute('position', '0 0 0');
+            el.appendChild(cursorShadow);
+            this.cursorShadow = cursorShadow;
+
+            var cursorVerticalTop = document.createElement("a-entity");
+            cursorVerticalTop.setAttribute('geometry', 'primitive: plane; width:0.0035; height:0.01875');
+            cursorVerticalTop.setAttribute('material', `color: ${data.color}; shader: flat; opacity:1;`);
+            cursorVerticalTop.setAttribute('position', '0 0.028125 0');
+            el.appendChild(cursorVerticalTop);
+            this.cursorVerticalTop = cursorVerticalTop;
+
+            var hoverAniInner1 = document.createElement("a-animation");
+            hoverAniInner1.setAttribute('begin', 'hovergui');
+            hoverAniInner1.setAttribute('easing', 'linear');
+            hoverAniInner1.setAttribute('attribute', 'geometry.width');
+            hoverAniInner1.setAttribute('fill', 'forwards');
+            hoverAniInner1.setAttribute('from', '0.0035');
+            hoverAniInner1.setAttribute('to', '0.007');
+            hoverAniInner1.setAttribute('dur', `${defaultHoverAnimationDuration}`);
+            cursorVerticalTop.appendChild(hoverAniInner1);
+
+            var leaveAniInner1 = document.createElement("a-animation");
+            leaveAniInner1.setAttribute('begin', 'leavegui');
+            leaveAniInner1.setAttribute('easing', 'linear');
+            leaveAniInner1.setAttribute('attribute', 'geometry.width');
+            leaveAniInner1.setAttribute('fill', 'forwards');
+            leaveAniInner1.setAttribute('from', '0.007');
+            leaveAniInner1.setAttribute('to', '0.0035');
+            leaveAniInner1.setAttribute('dur', `${defaultHoverAnimationDuration}`);
+            cursorVerticalTop.appendChild(leaveAniInner1);
+
+
+            var cursorVerticalBottom = document.createElement("a-entity");
+            cursorVerticalBottom.setAttribute('geometry', 'primitive: plane; width:0.0035; height:0.01875');
+            cursorVerticalBottom.setAttribute('material', `color: ${data.color}; shader: flat; opacity:1;`);
+            cursorVerticalBottom.setAttribute('position', '0 -0.028125 0');
+            el.appendChild(cursorVerticalBottom);
+            this.cursorVerticalBottom = cursorVerticalBottom;
+
+            var hoverAniInner2 = document.createElement("a-animation");
+            hoverAniInner2.setAttribute('begin', 'hovergui');
+            hoverAniInner2.setAttribute('easing', 'linear');
+            hoverAniInner2.setAttribute('attribute', 'geometry.width');
+            hoverAniInner2.setAttribute('fill', 'forwards');
+            hoverAniInner2.setAttribute('from', '0.0035');
+            hoverAniInner2.setAttribute('to', '0.007');
+            hoverAniInner2.setAttribute('dur', `${defaultHoverAnimationDuration}`);
+            cursorVerticalBottom.appendChild(hoverAniInner2);
+
+            var leaveAniInner2 = document.createElement("a-animation");
+            leaveAniInner2.setAttribute('begin', 'leavegui');
+            leaveAniInner2.setAttribute('easing', 'linear');
+            leaveAniInner2.setAttribute('attribute', 'geometry.width');
+            leaveAniInner2.setAttribute('fill', 'forwards');
+            leaveAniInner2.setAttribute('from', '0.007');
+            leaveAniInner2.setAttribute('to', '0.0035');
+            leaveAniInner2.setAttribute('dur', `${defaultHoverAnimationDuration}`);
+            cursorVerticalBottom.appendChild(leaveAniInner2);
+
+
+            var cursorHorizontalLeft = document.createElement("a-entity");
+            cursorHorizontalLeft.setAttribute('geometry', 'primitive: plane; width:0.01875; height:0.0035');
+            cursorHorizontalLeft.setAttribute('material', `color: ${data.color}; shader: flat; opacity:1;`);
+            cursorHorizontalLeft.setAttribute('position', '-0.028125 0 0');
+            el.appendChild(cursorHorizontalLeft);
+            this.cursorHorizontalLeft = cursorHorizontalLeft;
+
+            var hoverAniInner3 = document.createElement("a-animation");
+            hoverAniInner3.setAttribute('begin', 'hovergui');
+            hoverAniInner3.setAttribute('easing', 'linear');
+            hoverAniInner3.setAttribute('attribute', 'geometry.height');
+            hoverAniInner3.setAttribute('fill', 'forwards');
+            hoverAniInner3.setAttribute('from', '0.0035');
+            hoverAniInner3.setAttribute('to', '0.007');
+            hoverAniInner3.setAttribute('dur', `${defaultHoverAnimationDuration}`);
+            cursorHorizontalLeft.appendChild(hoverAniInner3);
+
+            var leaveAniInner3 = document.createElement("a-animation");
+            leaveAniInner3.setAttribute('begin', 'leavegui');
+            leaveAniInner3.setAttribute('easing', 'linear');
+            leaveAniInner3.setAttribute('attribute', 'geometry.height');
+            leaveAniInner3.setAttribute('fill', 'forwards');
+            leaveAniInner3.setAttribute('from', '0.007');
+            leaveAniInner3.setAttribute('to', '0.0035');
+            leaveAniInner3.setAttribute('dur', `${defaultHoverAnimationDuration}`);
+            cursorHorizontalLeft.appendChild(leaveAniInner3);
+
+
+            var cursorHorizontalRight = document.createElement("a-entity");
+            cursorHorizontalRight.setAttribute('geometry', 'primitive: plane; width:0.01875; height:0.0035');
+            cursorHorizontalRight.setAttribute('material', `color: ${data.color}; shader: flat; opacity:1;`);
+            cursorHorizontalRight.setAttribute('position', '0.028125 0 0');
+            el.appendChild(cursorHorizontalRight);
+            this.cursorHorizontalRight = cursorHorizontalRight;
+
+            var hoverAniInner4 = document.createElement("a-animation");
+            hoverAniInner4.setAttribute('begin', 'hovergui');
+            hoverAniInner4.setAttribute('easing', 'linear');
+            hoverAniInner4.setAttribute('attribute', 'geometry.height');
+            hoverAniInner4.setAttribute('fill', 'forwards');
+            hoverAniInner4.setAttribute('from', '0.0035');
+            hoverAniInner4.setAttribute('to', '0.007');
+            hoverAniInner4.setAttribute('dur', `${defaultHoverAnimationDuration}`);
+            cursorHorizontalRight.appendChild(hoverAniInner4);
+
+            var leaveAniInner4 = document.createElement("a-animation");
+            leaveAniInner4.setAttribute('begin', 'leavegui');
+            leaveAniInner4.setAttribute('easing', 'linear');
+            leaveAniInner4.setAttribute('attribute', 'geometry.height');
+            leaveAniInner4.setAttribute('fill', 'forwards');
+            leaveAniInner4.setAttribute('from', '0.007');
+            leaveAniInner4.setAttribute('to', '0.0035');
+            leaveAniInner4.setAttribute('dur', `${defaultHoverAnimationDuration}`);
+            cursorHorizontalRight.appendChild(leaveAniInner4);
+
+
+            if(fuse){
+                var fuseLoader = document.createElement("a-entity");
+                fuseLoader.setAttribute('geometry', 'primitive: ring; radiusInner:0.0415; radiusOuter:0.0485; thetaLength:0');
+                fuseLoader.setAttribute('material', `color: ${data.activeColor}; shader: flat; opacity:1;`);
+                fuseLoader.setAttribute('position', `0 0 0`);
+                el.appendChild(fuseLoader);
+                this.fuseLoader = fuseLoader;
+
+                var fuseLoaderFillAni = document.createElement("a-animation");
+                fuseLoaderFillAni.setAttribute('begin', 'start-fusing');
+                fuseLoaderFillAni.setAttribute('easing', 'linear');
+                fuseLoaderFillAni.setAttribute('attribute', 'geometry.thetaLength');
+                fuseLoaderFillAni.setAttribute('fill', 'forwards');
+                fuseLoaderFillAni.setAttribute('from', '0');
+                fuseLoaderFillAni.setAttribute('to', '360');
+                fuseLoaderFillAni.setAttribute('delay', `${defaultHoverAnimationDuration}`);
+                fuseLoaderFillAni.setAttribute('dur', `${fuseAnimationDuration}`);
+                fuseLoader.appendChild(fuseLoaderFillAni);
+            }
+
+
+            //end cross design
+        
+        }
+
+        el.addEventListener('mouseenter', function () {
+            console.log("in gui-cursor mousenter, el: "+el);
+            el.emit('hovergui');
+            if (data.design == 'dot' || data.design == 'ring') {
+                cursorShadow.emit('hovergui');
+            }else if (data.design == 'cross') {
+                cursorShadow.emit('hovergui');
+                cursorVerticalTop.emit('hovergui');
+                cursorVerticalBottom.emit('hovergui');
+                cursorHorizontalLeft.emit('hovergui');
+                cursorHorizontalRight.emit('hovergui');
+            }else if (data.design == 'reticle') {
+                centerHoverAniOpacity.emit('hovergui');
+                cursorHoverAniColor.emit('hovergui');
+                cursorHoverAniOpacity.emit('hovergui');
+            }
+
+        });
+
+        el.addEventListener('mouseleave', function () {
+            console.log("in gui-cursor mouseleave, el: "+el);
+            el.emit('leavegui');
+            if (data.design == 'dot' || data.design == 'ring') {
+                cursorShadow.emit('leavegui');
+            }else if (data.design == 'cross') {
+                cursorVerticalTop.emit('leavegui');
+                cursorVerticalBottom.emit('leavegui');
+                cursorHorizontalLeft.emit('leavegui');
+                cursorHorizontalRight.emit('leavegui');
+            }else if (data.design == 'reticle') {
+                centerHoverAniOpacity.emit('leavegui');
+                cursorHoverAniColor.emit('leavegui');
+                cursorHoverAniOpacity.emit('leavegui');
+            }
+
+            if(fuse){
+                fuseLoaderFillAni.stop();
+            }
+
+            el.setAttribute('scale', '1 1 1');
+        });
+
+        if(fuse){
+            el.addEventListener('fusing', function () {
+                fuseLoader.emit('start-fusing');
+            });
+        }
+
+        el.addEventListener("stateremoved", function (evt) {
+            console.log("evt.detail.state " +evt.detail.state)
+            if (evt.detail.state === 'cursor-fusing') {
+                if(data.design == 'dot' || data.design == 'ring' || data.design == 'cross' ){  
+                    if(fuse){
+                        fuseLoaderFillAni.stop();
+                        AFRAME.utils.entity.setComponentProperty(fuseLoader, 'geometry.thetaLength', '0');
+                    }
+                }else if(data.design == 'reticle'){
+                    if(fuse){
+                        fuseLoaderFillAni.stop();
+                        AFRAME.utils.entity.setComponentProperty(fuseLoader, 'geometry.width', '0.000001');
+                    }                    
+                }
+            }else if(evt.detail.state === 'cursor-hovering') {
+                if(data.design == 'dot' || data.design == 'ring' ){  
+                    AFRAME.utils.entity.setComponentProperty(this, 'scale', '1 1 1');
+                    if(fuse){
+                        AFRAME.utils.entity.setComponentProperty(fuseLoader, 'geometry.thetaLength', '0');
+                    }
+                }else if(data.design == 'cross' ){  
+                    if(fuse){
+                        AFRAME.utils.entity.setComponentProperty(fuseLoader, 'geometry.thetaLength', '0');
+                    }
+                }else if(data.design == 'reticle' ){  
+                    if(fuse){
+                        AFRAME.utils.entity.setComponentProperty(fuseLoader, 'geometry.width', '0.000001');
+                    }
+                }
+            }
+        });
+
+
+    },
+    update: function () {
+    },
+    tick: function () {
+    },
+    remove: function () {
+    },
+    pause: function () {
+    },
+    play: function () {
+    },
+    resetcursor: function(){
+        // if (evt.detail.state === 'cursor-fusing') {
+        //     AFRAME.utils.entity.setComponentProperty(this, "geometry.thetaLength", 360);
+        //     AFRAME.utils.entity.setComponentProperty(this, "material.color", "#ffffff");
+        //     AFRAME.utils.entity.setComponentProperty(this, "scale", "1 1 1");
+        // }
+    }
+});
+
+AFRAME.registerPrimitive( 'a-gui-cursor', {
+    defaultComponents: {
+        'cursor': {},
+        'gui-cursor': { }
+    },
+    mappings: {
+        'fuse': 'cursor.fuse',
+        'fuse-timeout': 'cursor.fuseTimeout',
+        'color': 'gui-cursor.color',
+        'hover-color': 'gui-cursor.hoverColor',
+        'active-color': 'gui-cursor.activeColor',
+        'distance': 'gui-cursor.distance',
+        'design': 'gui-cursor.design'
+    }
+});
+  })();
+});
+
+require.register("aframe-gui/src/components/flex-container.js", function(exports, require, module) {
+  require = __makeRelativeRequire(require, {}, "aframe-gui");
+  (function() {
+    require('../scripts/vars.js')
+
+/*  //trying to figure out global styles that customize gui items
+var styles = StyleSheet.create({
+    fontFamily: {
+        type: 'string', 
+        default: 'Helvetica'
+    },
+    fontColor: {
+        type: 'string', 
+        default: key_offwhite
+    },
+    borderColor: {
+        type: 'string', 
+        default: key_offwhite
+    },
+    backgroundColor: {
+        type: 'string', 
+        default: key_grey
+    },
+    hoverColor: {
+        type: 'string', 
+        default: key_grey_dark
+    },
+    activeColor: {
+        type: 'string', 
+        default: key_orange
+    },
+    handleColor: {
+        type: 'string', 
+        default: key_offwhite
+    },            
+});
+*/
+
+AFRAME.registerComponent('gui-flex-container', {
+    schema: {
+        flexDirection: { type: 'string', default: 'row' },
+        justifyContent: { type: 'string', default: 'flexStart' },
+        alignItems: { type: 'string', default: 'flexStart' },
+        itemPadding: { type: 'number', default: 0.0 },
+        opacity: { type: 'number', default: 0.0 },
+        isTopContainer: {type: 'boolean', default: false},
+        panelColor: {type: 'string', default: key_grey},
+
+//global settings for GUI items
+        styles: {
+            fontFamily: {type: 'string', default: 'Helvetica'},
+            fontColor: {type: 'string', default: key_offwhite},
+            borderColor: {type: 'string', default: key_offwhite},
+            backgroundColor: {type: 'string', default: key_grey},
+            hoverColor: {type: 'string', default: key_grey_dark},
+            activeColor: {type: 'string', default: key_orange},
+            handleColor: {type: 'string', default: key_offwhite},            
+        }
+
+    },
+    init: function () {
+        console.log("in aframe-gui-component init for: "+this.el.getAttribute("id"));
+        var containerGuiItem = this.el.getAttribute("gui-item");
+
+        if (this.data.isTopContainer) {
+            this.setBackground();
+        }
+
+        this.el.setAttribute('geometry', `primitive: plane; height: ${containerGuiItem.height}; width: ${containerGuiItem.width};`);
+        this.el.setAttribute('material', `shader: flat; transparent: true; opacity: ${this.data.opacity}; color: ${this.data.panelColor}; side:front;`);
+
+        this.children = this.el.getChildEntities();
+        console.log("childElements: "+this.children);
+        console.log("num child Elements: "+this.children.length);
+
+        // coordinate system is 0, 0 in the top left
+        var cursorX = 0;
+        var cursorY = 0;
+        if (this.data.flexDirection == 'row') {
+            // first figure out cursor position on main X axis
+            if (this.data.justifyContent == 'flexStart') {
+                cursorX = 0;
+            } else if (this.data.justifyContent == 'center' || this.data.justifyContent == 'flexEnd') {
+                var rowWidth = 0;
+                for (var i = 0; i < this.children.length; i++) {
+                    var childElement = this.children[i];
+                    var childGuiItem = childElement.getAttribute("gui-item");
+                    rowWidth = rowWidth + childGuiItem.margin.w + childGuiItem.width + childGuiItem.margin.y;
+                }
+                if (this.data.justifyContent == 'center') {
+                    cursorX = (containerGuiItem.width - rowWidth)*0.5;
+                } else if (this.data.justifyContent == 'flexEnd') {
+                    cursorX = containerGuiItem.width - rowWidth;
+                }
+            }
+            // then figure out baseline / cursor position on cross Y axis
+            if (this.data.alignItems == 'center') {
+                cursorY = containerGuiItem.height; // baseline is center
+            } else if (this.data.alignItems == 'flexStart') {
+                cursorY = 0; // baseline is top of container
+            } else if (this.data.alignItems == 'flexEnd') {
+                cursorY = containerGuiItem.height; // baseline is bottom of container
+            }
+        } else if (this.data.flexDirection == 'column') {
+            // first figure out cursor position on main Y axis
+            if (this.data.justifyContent == 'flexStart') {
+                cursorY = 0;
+            } else if (this.data.justifyContent == 'center' || this.data.justifyContent == 'flexEnd') {
+                var columnHeight = 0;
+                for (var i = 0; i < this.children.length; i++) {
+                    var childElement = this.children[i];
+                    var childGuiItem = childElement.getAttribute("gui-item");
+                    columnHeight = columnHeight + childGuiItem.margin.x + childGuiItem.height + childGuiItem.margin.z;
+                }
+                if (this.data.justifyContent == 'center') {
+                    cursorY = (containerGuiItem.height - columnHeight)*0.5;
+                } else if (this.data.justifyContent == 'flexEnd') {
+                    cursorY = containerGuiItem.height - columnHeight;
+                }
+            }
+            // then figure out baseline / cursor position on cross X axis
+            if (this.data.alignItems == 'flexStart') {
+                cursorX = 0; // baseline is left
+            } else if (this.data.alignItems == 'center') {
+                cursorX = containerGuiItem.width*0.5; // baseline is center
+            } else if (this.data.alignItems == 'flexEnd') {
+                cursorX = 0; // baseline is right
+            }
+        }
+        console.log(`initial cursor position for ${this.el.getAttribute("id")}: ${cursorX} ${cursorY} 0.01`)
+
+        // not that cursor positions are determined, loop through and lay out items
+        var wrapOffsetX = 0; // not used yet since wrapping isn't supported
+        var wrapOffsetY = 0; // not used yet since wrapping isn't supported
+        for (var i = 0; i < this.children.length; i++) {
+            var childElement = this.children[i];
+            // TODO: change this to call gedWidth() and setWidth() of component
+            var childPositionX = 0;
+            var childPositionY = 0;
+            var childPositionZ = 0.01;
+            var childGuiItem = childElement.getAttribute("gui-item");
+
+            // now get object position in aframe container cordinates (0, 0 is center)
+            if (childGuiItem) {
+                if (this.data.flexDirection == 'row') {
+                    if (this.data.alignItems == 'center') {
+                        childPositionY = 0; // child position is always 0 for center vertical alignment
+                    } else if (this.data.alignItems == 'flexStart') {
+                        childPositionY = containerGuiItem.height * 0.5 - childGuiItem.margin.x - childGuiItem.height;
+                    } else if (this.data.alignItems == 'flexEnd') {
+                        childPositionY = -containerGuiItem.height * 0.5 + childGuiItem.margin.z + childGuiItem.height;
+                    }
+                    childPositionX = -containerGuiItem.width*0.5 + cursorX + childGuiItem.margin.w + childGuiItem.width * 0.5
+                    cursorX = cursorX + childGuiItem.margin.w + childGuiItem.width + childGuiItem.margin.y;
+                } else if (this.data.flexDirection == 'column') {
+                    if (this.data.alignItems == 'center') {
+                        childPositionX = 0; // child position is always 0 to center
+                    } else if (this.data.alignItems == 'flexStart') {
+                        childPositionX = -containerGuiItem.width*0.5 + childGuiItem.margin.w + childGuiItem.width * 0.5;
+                    } else if (this.data.alignItems == 'flexEnd') {
+                        childPositionX = containerGuiItem.width*0.5 - childGuiItem.margin.y - childGuiItem.width * 0.5;
+                    }
+                    childPositionY = containerGuiItem.height*0.5 - cursorY -  - childGuiItem.margin.x - childGuiItem.height * 0.5
+                    cursorY = cursorY + childGuiItem.margin.x + childGuiItem.height + childGuiItem.margin.z;
+                }
+                console.log(`child element position for ${childElement.id}: ${childPositionX} ${childPositionY} ${childPositionZ}`)
+                childElement.setAttribute('position', `${childPositionX} ${childPositionY} ${childPositionZ}`)
+                childElement.setAttribute('geometry', `primitive: plane; height: ${childGuiItem.height}; width: ${childGuiItem.width};`)
+                var childFlexContainer = childElement.components['gui-flex-container']
+                if (childFlexContainer) {
+                    childFlexContainer.setBackground();
+                }
+            }
+        }
+
+    },
+    update: function () {},
+    tick: function () {},
+    remove: function () {},
+    pause: function () {},
+    play: function () {},
+    getElementSize: function () {},
+    setBackground: function () {
+        if (this.data.opacity > 0) {
+            console.log("panel position: " + JSON.stringify(this.el.getAttribute("position")));
+            var guiItem = this.el.getAttribute("gui-item");
+            var panelBackground = document.createElement("a-entity");
+
+            panelBackground.setAttribute('geometry', `primitive: box; height: ${guiItem.height}; width: ${guiItem.width}; depth:0.025;`);
+            console.log("about to set panel background color to: : " + this.data.panelColor);
+            panelBackground.setAttribute('material', `shader: standard; depthTest: true; opacity: ${this.data.opacity}; color: ${this.data.panelColor};`);
+            panelBackground.setAttribute('position', this.el.getAttribute("position").x + ' ' + this.el.getAttribute("position").y + ' ' + (this.el.getAttribute("position").z - 0.0125));
+            panelBackground.setAttribute('rotation', this.el.getAttribute("rotation").x + ' ' + this.el.getAttribute("rotation").y + ' ' + this.el.getAttribute("rotation").z);
+            this.el.parentNode.insertBefore(panelBackground, this.el);
+        }
+
+    },
+});
+
+AFRAME.registerPrimitive( 'a-gui-flex-container', {
+    defaultComponents: {
+        'gui-item': { type: 'flex-container' },
+        'gui-flex-container': { }
+    },
+    mappings: {
+        'width': 'gui-item.width',
+        'height': 'gui-item.height',
+        'margin': 'gui-item.margin',
+        'flex-direction': 'gui-flex-container.flexDirection',
+        'justify-content': 'gui-flex-container.justifyContent',
+        'align-items': 'gui-flex-container.alignItems',
+        'item-padding': 'gui-flex-container.itemPadding',
+        'opacity': 'gui-flex-container.opacity',
+        'is-top-container': 'gui-flex-container.isTopContainer',
+        'panel-color': 'gui-flex-container.panelColor',
+        'font-family': 'gui-flex-container.styles.fontFamily',
+        'font-color': 'gui-flex-container.styles.fontColor',
+        'border-color': 'gui-flex-container.styles.borderColor',
+        'background-color': 'gui-flex-container.styles.backgroundColor',
+        'hover-color': 'gui-flex-container.styles.hoverColor',
+        'active-color': 'gui-flex-container.styles.activeColor',
+        'handle-color': 'gui-flex-container.styles.handleColor',
+    }
+});
+  })();
+});
+
+require.register("aframe-gui/src/components/icon-button.js", function(exports, require, module) {
+  require = __makeRelativeRequire(require, {}, "aframe-gui");
+  (function() {
+    AFRAME.registerComponent('gui-icon-button', {
+    schema: {
+        on: {default: 'click'},
+        icon: {type: 'string', default: ''},
+        iconActive: {type: 'string', default: ''},
+        toggle: {type: 'boolean', default: false},
+
+        fontFamily: {type: 'string', default: 'Helvetica'},
+        fontColor: {type: 'string', default: key_offwhite},
+        borderColor: {type: 'string', default: key_offwhite},
+        backgroundColor: {type: 'string', default: key_grey},
+        hoverColor: {type: 'string', default: key_grey_dark},
+        activeColor: {type: 'string', default: key_orange},
+    },
+    init: function() {
+
+        var data = this.data;
+        var el = this.el;
+        var guiItem = el.getAttribute("gui-item");
+        var multiplier = 350;
+        var canvasWidth = guiItem.height*multiplier; //square
+        var canvasHeight = guiItem.height*multiplier;
+        var toggleState = this.toggleState = data.toggle;
+
+        var canvasContainer = document.createElement('div');
+        canvasContainer.setAttribute('class', 'visuallyhidden');
+        document.body.appendChild(canvasContainer);
+
+        var canvas = document.createElement("canvas");
+        this.canvas = canvas;
+        canvas.className = "visuallyhidden";
+        canvas.setAttribute('width', canvasWidth);
+        canvas.setAttribute('height', canvasHeight);
+        canvas.id = getUniqueId('canvasIcon');
+        canvasContainer.appendChild(canvas);
+
+        var ctx = this.ctx = canvas.getContext('2d');
+
+        el.setAttribute('geometry', `primitive: plane; height: ${guiItem.height}; width: ${guiItem.height};`);
+        el.setAttribute('material', `shader: flat; transparent: true; opacity: 0.5; side:back; color:${data.backgroundColor};`);
+
+        drawIcon(ctx, canvas, data.icon, data.fontColor, 1);
+
+        var buttonContainer = document.createElement("a-entity");
+        buttonContainer.setAttribute('geometry', `primitive: cylinder; radius: ${guiItem.height/2}; height: 0.02;`);
+        buttonContainer.setAttribute('material', `shader: flat; opacity: 1; side:double; color: ${data.borderColor}`);
+        buttonContainer.setAttribute('rotation', '90 0 0');
+        buttonContainer.setAttribute('position', '0 0 0.01');
+        el.appendChild(buttonContainer);
+
+        var buttonEntity = document.createElement("a-entity");
+        buttonEntity.setAttribute('geometry', `primitive: cylinder; radius: ${(guiItem.height/2.05)}; height: 0.04;`);
+        buttonEntity.setAttribute('material', `shader: flat; opacity: 1; side:double; color: ${data.backgroundColor}`);
+        buttonEntity.setAttribute('rotation', '90 0 0');
+        buttonEntity.setAttribute('position', '0 0 0.02');
+        el.appendChild(buttonEntity);
+        this.buttonEntity = buttonEntity;
+
+        var buttonAnimation = document.createElement("a-animation");
+        buttonAnimation.setAttribute('attribute', 'material.color');
+        buttonAnimation.setAttribute('begin', 'fadeOut');
+        buttonAnimation.setAttribute('from', data.activeColor);
+        buttonAnimation.setAttribute('to', data.backgroundColor);
+        buttonAnimation.setAttribute('dur', '400');
+        buttonEntity.appendChild(buttonAnimation);
+
+        var textEntity = document.createElement("a-entity");
+        textEntity.setAttribute('geometry', `primitive: plane; width: ${guiItem.height/2}; height: ${guiItem.height/2};`);
+        textEntity.setAttribute('material', `shader: flat; src: #${canvas.id}; transparent: true; opacity: 1; side:front;`);
+        textEntity.setAttribute('position', '0 0 0.041');
+        el.appendChild(textEntity);
+
+        ////WAI ARIA Support
+        el.setAttribute('role', 'button');
+
+
+
+        el.addEventListener('mouseenter', function () {
+            buttonEntity.setAttribute('material', 'color', data.hoverColor);
+        });
+
+        el.addEventListener('mouseleave', function () {
+            if (!(data.toggle)) {
+                buttonEntity.setAttribute('material', 'color', data.backgroundColor);
+            }
+        });
+
+        el.addEventListener(data.on, function (evt) {            
+            if (!(data.toggle)) { // if not toggling flashing active state
+                buttonEntity.emit('fadeOut');
+            }else{
+                buttonEntity.setAttribute('material', 'color', data.activeColor);
+            }
+            this.toggleState = !(this.toggleState);
+
+            //console.log('I was clicked at: ', evt.detail.intersection.point);
+            var guiInteractable = el.getAttribute("gui-interactable");
+            //console.log("guiInteractable: "+guiInteractable);
+            var clickActionFunctionName = guiInteractable.clickAction;
+            //console.log("clickActionFunctionName: "+clickActionFunctionName);
+            // find object
+            var clickActionFunction = window[clickActionFunctionName];
+            //console.log("clickActionFunction: "+clickActionFunction);
+            // is object a function?
+            if (typeof clickActionFunction === "function") clickActionFunction();
+        });
+
+
+    },
+    play: function () {
+
+    },
+    update: function (oldData) {
+        console.log("In button update, toggle: "+this.toggleState);
+    },
+});
+
+AFRAME.registerPrimitive( 'a-gui-icon-button', {
+    defaultComponents: {
+        'gui-interactable': { },
+        'gui-item': { type: 'icon-button' },
+        'gui-icon-button': { }
+    },
+    mappings: {
+        'onclick': 'gui-interactable.clickAction',
+        'onhover': 'gui-interactable.hoverAction',
+        'key-code': 'gui-interactable.keyCode',
+        'width': 'gui-item.width',
+        'height': 'gui-item.height',
+        'margin': 'gui-item.margin',
+        'on': 'gui-icon-button.on',
+        'font-color': 'gui-icon-button.fontColor',
+        'font-family': 'gui-icon-button.fontFamily',
+        'border-color': 'gui-icon-button.borderColor',
+        'background-color': 'gui-icon-button.backgroundColor',
+        'hover-color': 'gui-icon-button.hoverColor',
+        'active-color': 'gui-icon-button.activeColor',
+        'toggle': 'gui-icon-button.toggle',
+        'icon': 'gui-icon-button.icon',
+        'icon-active': 'gui-icon-button.iconActive',
+    }
+});
+  })();
+});
+
+require.register("aframe-gui/src/components/icon-label-button.js", function(exports, require, module) {
+  require = __makeRelativeRequire(require, {}, "aframe-gui");
+  (function() {
+    AFRAME.registerComponent('gui-icon-label-button', {
+    schema: {
+        on: {default: 'click'},
+        icon: {type: 'string', default: ''},
+        iconActive: {type: 'string', default: ''},
+        text: {type: 'string', default: ''},
+        toggle: {type: 'boolean', default: false},
+
+        fontFamily: {type: 'string', default: 'Helvetica'},
+        fontColor: {type: 'string', default: key_offwhite},
+        borderColor: {type: 'string', default: key_offwhite},
+        backgroundColor: {type: 'string', default: key_grey},
+        hoverColor: {type: 'string', default: key_grey_dark},
+        activeColor: {type: 'string', default: key_orange},
+    },
+    init: function() {
+
+        var data = this.data;
+        var el = this.el;
+        var guiItem = el.getAttribute("gui-item");
+        var toggleState = this.toggleState = data.toggle;
+
+        el.setAttribute('geometry', `primitive: plane; height: ${guiItem.height}; width: ${guiItem.width};`);
+        el.setAttribute('material', `shader: flat; side:front; color:${data.backgroundColor};`);
+
+        var buttonContainer = document.createElement("a-entity");
+        buttonContainer.setAttribute('geometry', `primitive: box; width: ${guiItem.width}; height: ${guiItem.height}; depth: 0.02;`);
+        buttonContainer.setAttribute('material', `shader: flat; opacity: 1; side:double; color: ${data.borderColor}`);
+        buttonContainer.setAttribute('rotation', '0 0 0');
+        buttonContainer.setAttribute('position', '0 0 0.01');
+        el.appendChild(buttonContainer);
+
+        var buttonEntity = document.createElement("a-entity");
+        buttonEntity.setAttribute('geometry', `primitive: box; width: ${(guiItem.width-0.025)}; height: ${(guiItem.height-0.025)}; depth: 0.04;`);
+        buttonEntity.setAttribute('material', `shader: flat; opacity: 1; side:double; color: ${data.backgroundColor}`);
+        buttonEntity.setAttribute('rotation', '0 0 0');
+        buttonEntity.setAttribute('position', '0 0 0.02');
+        el.appendChild(buttonEntity);
+        this.buttonEntity = buttonEntity;
+
+        var buttonAnimation = document.createElement("a-animation");
+        buttonAnimation.setAttribute('attribute', 'material.color');
+        buttonAnimation.setAttribute('begin', 'fadeOut');
+        buttonAnimation.setAttribute('from', data.activeColor);
+        buttonAnimation.setAttribute('to', data.backgroundColor);
+        buttonAnimation.setAttribute('dur', '400');
+        buttonEntity.appendChild(buttonAnimation);
+
+        var multiplier = 550;
+        if(data.text != ''){
+            multiplier = 350;
+        }
+
+        var canvasContainer = document.createElement('div');
+        canvasContainer.setAttribute('class', 'visuallyhidden');
+        document.body.appendChild(canvasContainer);
+
+        var iconCanvasWidth = guiItem.height*multiplier; //square
+        var iconCanvasHeight = guiItem.height*multiplier;
+        var iconCanvas = document.createElement("canvas");
+        this.iconCanvas = iconCanvas;
+        iconCanvas.className = "visuallyhidden";
+        iconCanvas.setAttribute('width', iconCanvasWidth);
+        iconCanvas.setAttribute('height', iconCanvasHeight);
+        iconCanvas.id = getUniqueId('canvasIcon');
+        canvasContainer.appendChild(iconCanvas);
+
+        var ctxIcon = this.ctxIcon = iconCanvas.getContext('2d');
+        drawIcon(ctxIcon, iconCanvas, data.icon, data.fontColor, 1);
+
+        var iconEntityX = 0;
+        if(data.text != ''){
+            iconEntityX = -guiItem.width*0.5 + guiItem.height*0.5;
+        }
+
+        var iconEntity = document.createElement("a-entity");
+
+        if(data.text != ''){
+            iconEntity.setAttribute('geometry', `primitive: plane; width: ${guiItem.height/2}; height: ${guiItem.height/2};`);
+        }else{
+            iconEntity.setAttribute('geometry', `primitive: plane; width: ${guiItem.width/2}; height: ${guiItem.height/2};`);
+        }
+        iconEntity.setAttribute('material', `shader: flat; src: #${iconCanvas.id}; transparent: true; opacity: 1; side:front;`);
+        iconEntity.setAttribute('position', `${iconEntityX} 0 0.041`);
+        el.appendChild(iconEntity);
+
+        if(data.text != ''){
+
+            var labelWidth = guiItem.width - guiItem.height;
+            var canvasWidth = labelWidth*multiplier;
+            var canvasHeight = guiItem.height*multiplier;
+            var labelCanvas = document.createElement("canvas");
+            this.labelCanvas = labelCanvas;
+            labelCanvas.setAttribute('width', canvasWidth);
+            labelCanvas.setAttribute('height', canvasHeight);
+            labelCanvas.id = getUniqueId('canvasLabel');
+            canvasContainer.appendChild(labelCanvas);
+
+            var ctxLabel = this.ctxLabel = labelCanvas.getContext('2d');
+            drawLabel(this.ctxLabel, this.labelCanvas, data.text, '100px '+ data.fontFamily, data.fontColor);
+
+            var labelEntityX = guiItem.height*0.5 - guiItem.width*0.05;
+            var labelEntity = document.createElement("a-entity");
+            labelEntity.setAttribute('geometry', `primitive: plane; width: ${labelWidth}; height: ${guiItem.height/1.05};`);
+            labelEntity.setAttribute('material', `shader: flat; src: #${labelCanvas.id}; transparent: true; opacity: 1; side:front;`);
+            labelEntity.setAttribute('position', `${labelEntityX} 0 0.041`);
+            el.appendChild(labelEntity);
+
+        }
+
+        ////WAI ARIA Support
+        el.setAttribute('role', 'button');
+
+        el.addEventListener('mouseenter', function () {
+            buttonEntity.setAttribute('material', 'color', data.hoverColor);
+        });
+
+        el.addEventListener('mouseleave', function () {
+            if (!(data.toggle)) {
+                buttonEntity.setAttribute('material', 'color', data.backgroundColor);
+            }
+        });
+
+        el.addEventListener(data.on, function (evt) {            
+            if (!(data.toggle)) { // if not toggling flashing active state
+                buttonEntity.emit('fadeOut');
+            }else{
+                buttonEntity.setAttribute('material', 'color', data.activeColor);
+            }
+            this.toggleState = !(this.toggleState);
+
+//            console.log('I was clicked at: ', evt.detail.intersection.point);
+            var guiInteractable = el.getAttribute("gui-interactable");
+//            console.log("guiInteractable: "+guiInteractable);
+            var clickActionFunctionName = guiInteractable.clickAction;
+//            console.log("clickActionFunctionName: "+clickActionFunctionName);
+            // find object
+            var clickActionFunction = window[clickActionFunctionName];
+            //console.log("clickActionFunction: "+clickActionFunction);
+            // is object a function?
+            if (typeof clickActionFunction === "function") clickActionFunction();
+        });
+
+
+    },
+    play: function () {
+
+    },
+    update: function (oldData) {
+        console.log("In button update, toggle: "+this.toggleState);
+    },
+});
+
+AFRAME.registerPrimitive( 'a-gui-icon-label-button', {
+    defaultComponents: {
+        'gui-interactable': { },
+        'gui-item': { type: 'icon-label-button' },
+        'gui-icon-label-button': { }
+    },
+    mappings: {
+        'onclick': 'gui-interactable.clickAction',
+        'onhover': 'gui-interactable.hoverAction',
+        'key-code': 'gui-interactable.keyCode',
+        'width': 'gui-item.width',
+        'height': 'gui-item.height',
+        'margin': 'gui-item.margin',
+        'on': 'gui-icon-label-button.on',
+        'font-color': 'gui-icon-label-button.fontColor',
+        'font-family': 'gui-icon-label-button.fontFamily',
+        'border-color': 'gui-icon-label-button.borderColor',
+        'background-color': 'gui-icon-label-button.backgroundColor',
+        'hover-color': 'gui-icon-label-button.hoverColor',
+        'active-color': 'gui-icon-label-button.activeColor',
+        'toggle': 'gui-icon-label-button.toggle',
+        'icon': 'gui-icon-label-button.icon',
+        'icon-active': 'gui-icon-label-button.iconActive',
+        'value': 'gui-icon-label-button.text'
+    }
+});
+  })();
+});
+
+require.register("aframe-gui/src/components/input.js", function(exports, require, module) {
+  require = __makeRelativeRequire(require, {}, "aframe-gui");
+  (function() {
+    AFRAME.registerComponent('gui-input', {
+    schema: {
+        on: {default: 'click'},
+        inputText: {type: 'string', default: 'Placeholder'},
+        toggle: {type: 'boolean', default: false},
+
+        fontFamily: {type: 'string', default: 'Helvetica'},
+        fontColor: {type: 'string', default: key_grey_dark},
+        borderColor: {type: 'string', default: key_grey_dark},
+        borderHoverColor: {type: 'string', default: key_grey},
+        backgroundColor: {type: 'string', default: key_offwhite},
+        hoverColor: {type: 'string', default: key_white},
+        activeColor: {type: 'string', default: key_orange},
+    },
+    init: function() {
+
+        var data = this.data;
+        var el = this.el;
+        var guiItem = el.getAttribute("gui-item");
+        var multiplier = 350;
+        var canvasWidth = guiItem.width*multiplier;
+        var canvasHeight = guiItem.height*multiplier;
+
+        var canvasContainer = document.createElement('div');
+        canvasContainer.setAttribute('class', 'visuallyhidden');
+        document.body.appendChild(canvasContainer);
+
+        var canvas = document.createElement("canvas");
+        this.canvas = canvas;
+        canvas.className = "visuallyhidden";
+        canvas.setAttribute('width', canvasWidth);
+        canvas.setAttribute('height', canvasHeight);
+        canvas.id = getUniqueId('canvas');
+        canvasContainer.appendChild(canvas);
+
+        var ctx = this.ctx = canvas.getContext('2d');
+
+        el.setAttribute('geometry', `primitive: plane; height: ${guiItem.height}; width: ${guiItem.width};`);
+        el.setAttribute('material', `shader: flat; transparent: false; side:front; color:${data.backgroundColor};`);
+
+        drawText(ctx, canvas, data.inputText, '100px ' + data.fontFamily, data.fontColor, 1);
+
+
+        var inputEntity = document.createElement("a-entity");
+        inputEntity.setAttribute('geometry', `primitive: plane; width: ${guiItem.width/1.05}; height: ${guiItem.height/1.05};`);
+        inputEntity.setAttribute('material', `shader: flat; src: #${canvas.id}; transparent: true; opacity: 1; side:front;`);
+        inputEntity.setAttribute('position', '0 0 0.01');
+        el.appendChild(inputEntity);
+
+        var borderTopEntity = document.createElement("a-entity");
+        borderTopEntity.setAttribute('geometry', `primitive: box; width: ${(guiItem.width)}; height: 0.05; depth: 0.02;`);
+        borderTopEntity.setAttribute('material', `shader: flat; opacity: 1; side:double; color: ${data.borderColor}`);
+        borderTopEntity.setAttribute('position', `0 -${(guiItem.height/2)-0.025} 0.01`);
+        el.appendChild(borderTopEntity);
+        var borderBottomEntity = document.createElement("a-entity");
+        borderBottomEntity.setAttribute('geometry', `primitive: box; width: ${(guiItem.width)}; height: 0.05; depth: 0.02;`);
+        borderBottomEntity.setAttribute('material', `shader: flat; opacity: 1; side:double; color: ${data.borderColor}`);
+        borderBottomEntity.setAttribute('position', `0 ${(guiItem.height/2)-0.025} 0.01`);
+        el.appendChild(borderBottomEntity);
+        var borderLeftEntity = document.createElement("a-entity");
+        borderLeftEntity.setAttribute('geometry', `primitive: box; width: 0.05; height: ${(guiItem.height)}; depth: 0.02;`);
+        borderLeftEntity.setAttribute('material', `shader: flat; opacity: 1; side:double; color: ${data.borderColor}`);
+        borderLeftEntity.setAttribute('position', `-${(guiItem.width/2)-0.025} 0 0.01`);
+        el.appendChild(borderLeftEntity);
+        var borderRightEntity = document.createElement("a-entity");
+        borderRightEntity.setAttribute('geometry', `primitive: box; width: 0.05; height: ${(guiItem.height)}; depth: 0.02;`);
+        borderRightEntity.setAttribute('material', `shader: flat; opacity: 1; side:double; color: ${data.borderColor}`);
+        borderRightEntity.setAttribute('position', `${(guiItem.width/2)-0.025} 0 0.01`);
+        el.appendChild(borderRightEntity);
+
+        ////WAI ARIA Support
+        el.setAttribute('role', 'input');
+
+        el.addEventListener('mouseenter', function () {
+            el.setAttribute('material', 'color', data.hoverColor);
+            borderTopEntity.setAttribute('material', 'color', data.borderHoverColor);
+            borderBottomEntity.setAttribute('material', 'color', data.borderHoverColor);
+            borderLeftEntity.setAttribute('material', 'color', data.borderHoverColor);
+            borderRightEntity.setAttribute('material', 'color', data.borderHoverColor);
+        });
+
+        el.addEventListener('mouseleave', function () {
+            el.setAttribute('material', 'color', data.backgroundColor);
+            borderTopEntity.setAttribute('material', 'color', data.borderColor);
+            borderBottomEntity.setAttribute('material', 'color', data.borderColor);
+            borderLeftEntity.setAttribute('material', 'color', data.borderColor);
+            borderRightEntity.setAttribute('material', 'color', data.borderColor);
+        });
+
+        el.addEventListener(data.on, function (evt) {
+            console.log('I was clicked at: ', evt.detail.intersection.point);
+            var guiInteractable = el.getAttribute("gui-interactable");
+            console.log("guiInteractable: "+guiInteractable);
+            var clickActionFunctionName = guiInteractable.clickAction;
+            console.log("clickActionFunctionName: "+clickActionFunctionName);
+            // find object
+            var clickActionFunction = window[clickActionFunctionName];
+            //console.log("clickActionFunction: "+clickActionFunction);
+            // is object a function?
+            if (typeof clickActionFunction === "function") clickActionFunction();
+        });
+
+
+    },
+    play: function () {
+
+    },
+    update: function (oldData) {
+
+    },
+});
+
+AFRAME.registerPrimitive( 'a-gui-input', {
+    defaultComponents: {
+        'gui-interactable': { },
+        'gui-item': { type: 'input' },
+        'gui-input': { }
+    },
+    mappings: {
+        'onclick': 'gui-interactable.clickAction',
+        'onhover': 'gui-interactable.hoverAction',
+        'key-code': 'gui-interactable.keyCode',
+        'width': 'gui-item.width',
+        'height': 'gui-item.height',
+        'margin': 'gui-item.margin',
+        'on': 'gui-input.on',
+        'value': 'gui-input.inputText',
+        'toggle': 'gui-input.toggle',
+        'font-color': 'gui-input.fontColor',
+        'font-family': 'gui-input.fontFamily',
+        'border-color': 'gui-input.borderColor',
+        'border-hover-color': 'gui-input.borderHoverColor',
+        'background-color': 'gui-input.backgroundColor',
+        'hover-color': 'gui-input.hoverColor',
+        'active-color': 'gui-input.activeColor',
+    }
+});
+  })();
+});
+
+require.register("aframe-gui/src/components/interactable.js", function(exports, require, module) {
+  require = __makeRelativeRequire(require, {}, "aframe-gui");
+  (function() {
+    AFRAME.registerComponent('gui-interactable', {
+    schema: {
+        clickAction: {type: 'string'},
+        hoverAction: {type: 'string'},
+        keyCode: {type: 'number', default: null},
+    },
+    init: function () {
+        var _this = this;
+        var data = this.data;
+        var el = this.el;
+
+        if(data.keyCode){
+            window.addEventListener("keydown", function (event) {
+                if(event.keyCode == data.keyCode){                  
+                    console.log("key press by gui-interactable : " + data.keyCode);
+                    el.emit('click');
+                }
+                event.preventDefault();
+            }, true);
+        }
+    },
+    update: function () {
+    },
+    tick: function () {
+    },
+    remove: function () {
+    },
+    pause: function () {
+    },
+    play: function () {
+    },
+    setClickAction: function (action) {
+        this.data.clickAction = action; //change function dynamically
+    },
+});
+  })();
+});
+
+require.register("aframe-gui/src/components/item.js", function(exports, require, module) {
+  require = __makeRelativeRequire(require, {}, "aframe-gui");
+  (function() {
+    AFRAME.registerComponent('gui-item', {
+    schema: {
+        type: {type: 'string'},
+        width: {type: 'number', default: 1},
+        height: {type: 'number', default: 1},
+        margin: { type: 'vec4', default: '0 0 0 0'}
+    },
+    init: function () {
+    },
+    update: function () {
+    },
+    tick: function () {
+    },
+    remove: function () {
+    },
+    pause: function () {
+    },
+    play: function () {
+    },
+});
+  })();
+});
+
+require.register("aframe-gui/src/components/label.js", function(exports, require, module) {
+  require = __makeRelativeRequire(require, {}, "aframe-gui");
+  (function() {
+    AFRAME.registerComponent('gui-label', {
+    schema: {
+        text: {type: 'string', default: 'label text'},
+        labelFor: {type: 'selector', default: null},
+
+        fontFamily: {type: 'string', default: 'Helvetica'},
+        fontColor: {type: 'string', default: key_grey_dark},
+        backgroundColor: {type: 'string', default: key_offwhite},
+    },
+    init: function() {
+
+        var data = this.data;
+        var el = this.el;
+        var guiItem = el.getAttribute("gui-item");
+        var multiplier = 350;
+        var canvasWidth = guiItem.width*multiplier;
+        var canvasHeight = guiItem.height*multiplier;
+
+        var canvasContainer = document.createElement('div');
+        canvasContainer.setAttribute('class', 'visuallyhidden');
+        document.body.appendChild(canvasContainer);
+
+        var canvas = document.createElement("canvas");
+        this.canvas = canvas;
+        canvas.className = "visuallyhidden";
+        canvas.setAttribute('width', canvasWidth);
+        canvas.setAttribute('height', canvasHeight);
+        canvas.id = getUniqueId('canvas');
+        canvasContainer.appendChild(canvas);
+
+        var ctx = this.ctx = canvas.getContext('2d');
+
+        el.setAttribute('geometry', `primitive: plane; height: ${guiItem.height}; width: ${guiItem.width};`);
+        el.setAttribute('material', `shader: flat; side:front; color:${data.backgroundColor};`);
+
+        drawText(ctx, canvas, data.text, '100px ' + data.fontFamily, data.fontColor, 1);
+
+        var textEntity = document.createElement("a-entity");
+        textEntity.setAttribute('geometry', `primitive: plane; width: ${guiItem.width/1.05}; height: ${guiItem.height/1.05};`);
+        textEntity.setAttribute('material', `shader: flat; src: #${canvas.id}; transparent: true; opacity: 1; side:front;`);
+        textEntity.setAttribute('position', '0 0 0.001');
+        el.appendChild(textEntity);
+
+        ////WAI ARIA Support
+
+        if(data.labelFor){
+            // el.setAttribute('role', 'button');
+        }
+
+
+    },
+});
+
+AFRAME.registerPrimitive( 'a-gui-label', {
+    defaultComponents: {
+        'gui-item': { type: 'label' },
+        'gui-label': { }
+    },
+    mappings: {
+        'width': 'gui-item.width',
+        'height': 'gui-item.height',
+        'margin': 'gui-item.margin',
+        'on': 'gui-button.on',
+        'value': 'gui-label.text',
+        'label-for': 'gui-label.labelFor',
+        'font-color': 'gui-label.fontColor',
+        'font-family': 'gui-label.fontFamily',
+        'background-color': 'gui-label.backgroundColor'
+    }
+});
+  })();
+});
+
+require.register("aframe-gui/src/components/progress-bar.js", function(exports, require, module) {
+  require = __makeRelativeRequire(require, {}, "aframe-gui");
+  (function() {
+    AFRAME.registerComponent('gui-progressbar', {
+    schema: {
+        backgroundColor: {type: 'string', default: key_grey},
+        activeColor: {type: 'string', default: key_orange},
+    },
+    init: function () {
+
+        var data = this.data;
+        var el = this.el;
+        var guiItem = el.getAttribute("gui-item");
+
+        el.setAttribute('geometry', `primitive: plane; height: ${guiItem.height}; width: ${guiItem.width};`);
+        el.setAttribute('material', `shader: flat; opacity: 1;  color: ${data.backgroundColor}; side:front;`);
+
+
+        var progressMeter = document.createElement("a-entity");
+        progressMeter.setAttribute('geometry', `primitive: box; width: 0.04; height: ${guiItem.height}; depth: 0.02;`);
+        progressMeter.setAttribute('material', `shader: flat; opacity: 1; side:double; color: ${data.activeColor}`);
+        progressMeter.setAttribute('position', -guiItem.width/2 +' 0 0.01');
+        progressMeter.id = "progress_meter";
+        el.appendChild(progressMeter);
+
+        // <a-entity id="progress_meter"
+        //           geometry="primitive: box; width: 0.04; height: 0.3; depth: 0.004;"
+        //           material="shader: flat; opacity: 1; color: blue;"
+        //             position="-1.23  0 0.0">
+        // </a-entity>
+
+    },
+    update: function () {
+    },
+    tick: function () {
+    },
+    remove: function () {
+    },
+    pause: function () {
+    },
+    play: function () {
+    },
+});
+
+AFRAME.registerPrimitive( 'a-gui-progressbar', {
+    defaultComponents: {
+        'gui-item': { type: 'progressbar' },
+        'gui-progressbar': { }
+    },
+    mappings: {
+        'width': 'gui-item.width',
+        'height': 'gui-item.height',
+        'margin': 'gui-item.margin',
+        'background-color': 'gui-progressbar.backgroundColor',
+        'active-color': 'gui-progressbar.activeColor'
+    }
+});
+  })();
+});
+
+require.register("aframe-gui/src/components/radio.js", function(exports, require, module) {
+  require = __makeRelativeRequire(require, {}, "aframe-gui");
+  (function() {
+    AFRAME.registerComponent('gui-radio', {
+    schema: {
+        on: {default: 'click'},
+        text: {type: 'string', default: 'text'},
+        active: {type: 'boolean', default: true},
+        checked: {type: 'boolean', default: false},
+
+        fontFamily: {type: 'string', default: 'Helvetica'},
+        fontColor: {type: 'string', default: key_grey_dark},
+        borderColor: {type: 'string', default: key_white},
+        backgroundColor: {type: 'string', default: key_offwhite},
+        hoverColor: {type: 'string', default: key_grey_light},
+        activeColor: {type: 'string', default: key_orange},
+        handleColor: {type: 'string', default: key_grey},
+    },
+    init: function() {
+
+        var data = this.data;
+        var el = this.el;
+        var guiItem = el.getAttribute("gui-item");
+
+        el.setAttribute('material', `shader: flat; depthTest:true;transparent: false; opacity: 1;  color: ${this.data.backgroundColor}; side:front;`);
+        el.setAttribute('geometry', `primitive: plane; height: ${guiItem.height}; width: ${guiItem.height};`);
+
+        var radioBoxWidth = 0.50
+        var radioBoxX = -guiItem.width*0.5 + guiItem.height*0.5;
+        var radioBox = document.createElement("a-cylinder");
+        radioBox.setAttribute('radius', '0.17');
+        radioBox.setAttribute('height', '0.01');
+        radioBox.setAttribute('rotation', '90 0 0');
+        radioBox.setAttribute('material', `color:${data.handleColor}; shader: flat;`);
+        radioBox.setAttribute('position', `${radioBoxX} 0 0`);
+        el.appendChild(radioBox);
+
+        var radioborder = document.createElement("a-torus");
+        radioborder.setAttribute('radius', '0.16');
+        radioborder.setAttribute('radius-tubular', '0.01');
+        radioborder.setAttribute('rotation', '90 0 0');
+        radioborder.setAttribute('material', `color:${data.borderColor}; shader: flat;`);
+        radioBox.appendChild(radioborder);
+
+        var radioCenter = document.createElement("a-cylinder");
+        radioCenter.setAttribute('radius', '0.15');
+        radioCenter.setAttribute('height', '0.02');
+        radioCenter.setAttribute('rotation', '0 0 0');
+        radioCenter.setAttribute('material', `color:${data.handleColor}; shader: flat;`);
+        radioBox.appendChild(radioCenter);
+
+        var radioColorAnimation = document.createElement("a-animation");
+        radioColorAnimation.setAttribute('begin', 'radioAnimation');
+        radioColorAnimation.setAttribute('direction', 'alternate');
+        radioColorAnimation.setAttribute('attribute', 'material.color');
+        radioColorAnimation.setAttribute('from', `${data.handleColor}`);
+        radioColorAnimation.setAttribute('to', `${data.activeColor}`);
+        radioColorAnimation.setAttribute('dur', '500');
+        radioColorAnimation.setAttribute('easing', 'ease-in-out-cubic');
+        radioCenter.appendChild(radioColorAnimation);
+
+        var radioRotationAnimation = document.createElement("a-animation");
+        radioRotationAnimation.setAttribute('begin', 'radioAnimation');
+        radioRotationAnimation.setAttribute('direction', 'alternate');
+        radioRotationAnimation.setAttribute('attribute', 'rotation');
+        radioRotationAnimation.setAttribute('from', '0 0 0');
+        radioRotationAnimation.setAttribute('to', '-180 0 0');
+        radioRotationAnimation.setAttribute('dur', '500');
+        radioRotationAnimation.setAttribute('easing', 'ease-in-out-cubic');
+        radioCenter.appendChild(radioRotationAnimation);
+
+        var radioShiftOutAnimation = document.createElement("a-animation");
+        radioShiftOutAnimation.setAttribute('begin', 'radioAnimation');
+        radioShiftOutAnimation.setAttribute('direction', 'normal');
+        radioShiftOutAnimation.setAttribute('attribute', 'position');
+        radioShiftOutAnimation.setAttribute('from', '0 0 0');
+        radioShiftOutAnimation.setAttribute('to', '0 0.3 0 ');
+        radioShiftOutAnimation.setAttribute('dur', '300');
+        radioShiftOutAnimation.setAttribute('easing', 'ease-in-out-cubic');
+        radioCenter.appendChild(radioShiftOutAnimation);
+
+        var radioShiftInAnimation = document.createElement("a-animation");
+        radioShiftInAnimation.setAttribute('begin', 'radioAnimation');
+        radioShiftInAnimation.setAttribute('direction', 'normal');
+        radioShiftInAnimation.setAttribute('attribute', 'position');
+        radioShiftInAnimation.setAttribute('from', '0 0.3 0');
+        radioShiftInAnimation.setAttribute('to', '0 0 0 ');
+        radioShiftInAnimation.setAttribute('delay', '300');
+        radioShiftInAnimation.setAttribute('dur', '200');
+        radioShiftInAnimation.setAttribute('easing', 'ease-in-out-cubic');
+        radioCenter.appendChild(radioShiftInAnimation);
+
+//        var labelWidth = guiItem.width - radioBoxWidth;
+        var labelWidth = guiItem.width - guiItem.height;
+        var multiplier = 350;
+        var canvasWidth = labelWidth*multiplier;
+        var canvasHeight = guiItem.height*multiplier;
+
+        var canvasContainer = document.createElement('div');
+        canvasContainer.setAttribute('class', 'visuallyhidden');
+        document.body.appendChild(canvasContainer);
+
+        var labelCanvas = document.createElement("canvas");
+        this.labelCanvas = labelCanvas;
+        labelCanvas.className = "visuallyhidden";
+        labelCanvas.setAttribute('width', canvasWidth);
+        labelCanvas.setAttribute('height', canvasHeight);
+        labelCanvas.id = getUniqueId('canvas');
+        canvasContainer.appendChild(labelCanvas);
+
+        var ctxLabel = this.ctxLabel = labelCanvas.getContext('2d');
+        drawLabel(this.ctxLabel, this.labelCanvas, this.data.text, '100px '+ data.fontFamily, this.data.fontColor);
+
+        var labelEntityX = guiItem.height*0.5 - guiItem.width*0.05;
+        var labelEntity = document.createElement("a-entity");
+        labelEntity.setAttribute('geometry', `primitive: plane; width: ${labelWidth}; height: ${guiItem.height/1.05};`);
+        labelEntity.setAttribute('material', `shader: flat; src: #${labelCanvas.id}; transparent: true; opacity: 1;  color: ${this.data.backgroundColor}; side:front;`);
+        labelEntity.setAttribute('position', `${labelEntityX} 0 0.02`);
+        el.appendChild(labelEntity);
+
+
+        this.updateToggle(data.active);
+
+        el.addEventListener('mouseenter', function () {
+            radioborder.setAttribute('material', 'color', data.hoverColor);
+        });
+
+        el.addEventListener('mouseleave', function () {
+            radioborder.setAttribute('material', 'color', data.borderColor);
+        });
+
+        el.addEventListener(data.on, function (evt) {
+            console.log('I was clicked at: ', evt.detail.intersection.point);
+            data.checked = !data.checked;
+            radioColorAnimation.emit('radioAnimation');
+            var guiInteractable = el.getAttribute("gui-interactable");
+            console.log("guiInteractable: "+guiInteractable);
+            var clickActionFunctionName = guiInteractable.clickAction;
+            console.log("clickActionFunctionName: "+clickActionFunctionName);
+            // find object
+            var clickActionFunction = window[clickActionFunctionName];
+            //console.log("clickActionFunction: "+clickActionFunction);
+            // is object a function?
+            if (typeof clickActionFunction === "function") clickActionFunction();
+        });
+
+    },
+    update: function(){
+        var data = this.data;
+        this.updateToggle(data.active)
+    },
+
+
+    updateToggle: function(active){
+
+        if(active){
+
+        }else{
+        }
+
+    },
+
+
+});
+
+AFRAME.registerPrimitive( 'a-gui-radio', {
+    defaultComponents: {
+        'gui-interactable': { },
+        'gui-item': { type: 'radio' },
+        'gui-radio': { }
+    },
+    mappings: {
+        'onclick': 'gui-interactable.clickAction',
+        'onhover': 'gui-interactable.hoverAction',
+        'key-code': 'gui-interactable.keyCode',
+        'width': 'gui-item.width',
+        'height': 'gui-item.height',
+        'margin': 'gui-item.margin',
+        'on': 'gui-radio.on',
+        'value': 'gui-radio.text',
+        'active': 'gui-radio.active',
+        'checked': 'gui-radio.checked',
+        'font-color': 'gui-radio.fontColor',
+        'font-family': 'gui-radio.fontFamily',
+        'border-color': 'gui-radio.borderColor',
+        'background-color': 'gui-radio.backgroundColor',
+        'hover-color': 'gui-radio.hoverColor',
+        'active-color': 'gui-radio.activeColor',
+        'handle-color': 'gui-radio.handleColor'
+    }
+});
+  })();
+});
+
+require.register("aframe-gui/src/components/slider.js", function(exports, require, module) {
+  require = __makeRelativeRequire(require, {}, "aframe-gui");
+  (function() {
+    AFRAME.registerComponent('gui-slider', {
+    schema: {
+        percent: {type: 'number', default: '0.5'},
+        handleOuterRadius: {type: 'number', default: '0.17'},
+        handleInnerRadius: {type: 'number', default: '0.13'},
+        handleOuterDepth: {type: 'number', default: '0.04'},
+        handleInnerDepth: {type: 'number', default: '0.02'},
+        sliderBarHeight: {type: 'number', default: '0.05'},
+        sliderBarDepth: {type: 'number', default: '0.03'},
+        leftRightPadding: {type: 'number', default: '0.25'},
+        topBottomPadding: {type: 'number', default: '0.125'},
+
+        borderColor: {type: 'string', default: key_grey},
+        backgroundColor: {type: 'string', default: key_offwhite},
+        hoverColor: {type: 'string', default: key_grey_light},        
+        activeColor: {type: 'string', default: key_orange},
+        handleColor: {type: 'string', default: key_white},
+    },
+    init: function() {
+
+        var data = this.data;
+        var el = this.el;
+        var guiItem = el.getAttribute("gui-item");
+        var sliderWidth = guiItem.width - data.leftRightPadding*2.0
+        var sliderHeight = guiItem.height - data.topBottomPadding*2.0
+
+        el.setAttribute('geometry', `primitive: plane; height: ${guiItem.height}; width: ${guiItem.height};`);
+        el.setAttribute('material', `shader: flat; opacity: 1;  color: ${data.backgroundColor}; side:front;`);
+
+        var sliderActiveBar = document.createElement("a-entity");
+        sliderActiveBar.setAttribute('geometry', `primitive: box; width: ${data.percent*sliderWidth}; height: ${data.sliderBarHeight}; depth: ${data.sliderBarDepth};`);
+        sliderActiveBar.setAttribute('material', `shader: flat; opacity: 1; side:double; color: ${data.activeColor};`);
+        sliderActiveBar.setAttribute('position', `${data.percent - sliderWidth*0.5} 0 ${data.sliderBarDepth - 0.01}`);
+        el.appendChild(sliderActiveBar);
+
+        var sliderBar = document.createElement("a-entity");
+        sliderBar.setAttribute('geometry', `primitive: box; width: ${sliderWidth - data.percent * sliderWidth}; height: ${data.sliderBarHeight}; depth: ${data.sliderBarDepth};`);
+        sliderBar.setAttribute('material', `shader: flat; opacity: 1; side:double; color: ${data.borderColor};`);
+        sliderBar.setAttribute('position', `${data.percent * sliderWidth * 0.5} 0 ${data.sliderBarDepth - 0.01}`);
+        el.appendChild(sliderBar);
+
+        var handleContainer = document.createElement("a-entity");
+        handleContainer.setAttribute('geometry', `primitive: cylinder; radius: ${data.handleOuterRadius}; height: ${data.handleOuterDepth};`);
+        handleContainer.setAttribute('material', `shader: flat; opacity: 1; side:double; color: ${data.borderColor};`);
+        handleContainer.setAttribute('rotation', '90 0 0');
+        handleContainer.setAttribute('position', `${data.percent*sliderWidth - sliderWidth*0.5} 0 ${data.handleOuterDepth - 0.01}`);
+        el.appendChild(handleContainer);
+
+        var handle = document.createElement("a-entity");
+        handle.setAttribute('geometry', `primitive: cylinder; radius: ${data.handleInnerRadius}; height: ${data.handleInnerDepth};`);
+        handle.setAttribute('material', `shader: flat; opacity: 1; side:double; color: ${data.handleColor};`);
+        handle.setAttribute('position', `0 ${data.handleInnerDepth} 0`);
+        handleContainer.appendChild(handle);
+
+
+
+        el.addEventListener('mouseenter', function () {
+            handle.setAttribute('material', 'color', data.hoverColor);
+        });
+
+        el.addEventListener('mouseleave', function () {
+            handle.setAttribute('material', 'color', data.handleColor);
+        });
+
+        el.addEventListener('click', function (evt) {
+            console.log('I was clicked at: ', evt.detail.intersection.point);
+            var localCoordinates = el.object3D.worldToLocal(evt.detail.intersection.point);
+            console.log('local coordinates: ', localCoordinates);
+            console.log('current percent: '+data.percent);
+            var sliderBarWidth = 2; // total width of slider bar
+            if (localCoordinates.x <= (-sliderBarWidth / 2)) {
+                data.percent = 0;
+            } else if (localCoordinates.x >= (sliderBarWidth / 2)) {
+                data.percent = 1.0;
+            } else {
+                data.percent = (localCoordinates.x + (sliderBarWidth /2)) / sliderBarWidth;
+            }
+            console.log("handle container: "+handleContainer);
+            sliderActiveBar.setAttribute('geometry', `primitive: box; width: ${data.percent*2}; height: 0.05; depth: 0.03;`);
+            sliderActiveBar.setAttribute('position', `${data.percent-1} 0 0.02`);
+            sliderBar.setAttribute('geometry', `primitive: box; width: ${2-data.percent*2}; height: 0.05; depth: 0.03;`);
+            sliderBar.setAttribute('position', `${data.percent*1} 0 0.02`);
+            handleContainer.setAttribute('position', `${data.percent*2-1} 0 0.03`);
+            var guiInteractable = el.getAttribute("gui-interactable");
+            console.log("guiInteractable: "+guiInteractable);
+            var clickActionFunctionName = guiInteractable.clickAction;
+            console.log("clickActionFunctionName: "+clickActionFunctionName);
+            // find object
+            var clickActionFunction = window[clickActionFunctionName];
+            //console.log("clickActionFunction: "+clickActionFunction);
+            // is object a function?
+            if (typeof clickActionFunction === "function") clickActionFunction();
+        });
+
+
+    },
+    update: function () {
+    },
+    tick: function () {
+    },
+    remove: function () {
+    },
+    pause: function () {
+    },
+    play: function () {
+    },
+});
+
+AFRAME.registerPrimitive( 'a-gui-slider', {
+    defaultComponents: {
+        'gui-interactable': { },
+        'gui-item': { type: 'slider' },
+        'gui-slider': { }
+    },
+    mappings: {
+        'onclick': 'gui-interactable.clickAction',
+        'onhover': 'gui-interactable.hoverAction',
+        'key-code': 'gui-interactable.keyCode',
+        'width': 'gui-item.width',
+        'height': 'gui-item.height',
+        'margin': 'gui-item.margin',
+        'percent': 'gui-slider.percent',
+        'handle-outer-radius': 'gui-slider.handleOuterRadius',
+        'handle-inner-radius': 'gui-slider.handleInnerRadius',
+        'handle-outer-depth': 'gui-slider.handleOuterDepth',
+        'handle-inner-depth': 'gui-slider.handleInnerDepth',
+        'slider-bar-height': 'gui-slider.sliderBarHeight',
+        'slider-bar-depth': 'gui-slider.sliderBarDepth',
+        'left-right-padding': 'gui-slider.leftRightPadding',
+        'top-bottom-padding': 'gui-slider.topBottomPadding',
+        'border-color': 'gui-slider.borderColor',
+        'background-color': 'gui-slider.backgroundColor',
+        'hover-color': 'gui-slider.hoverColor',
+        'active-color': 'gui-slider.activeColor',
+        'handle-color': 'gui-slider.handleColor'
+    }
+});
+  })();
+});
+
+require.register("aframe-gui/src/components/toggle.js", function(exports, require, module) {
+  require = __makeRelativeRequire(require, {}, "aframe-gui");
+  (function() {
+    AFRAME.registerComponent('gui-toggle', {
+    schema: {
+        on: {default: 'click'},
+        text: {type: 'string', default: 'text'},
+        active: {type: 'boolean', default: true},
+        checked: {type: 'boolean', default: false},
+        borderWidth: {type: 'number', default: 1},
+
+        fontFamily: {type: 'string', default: 'Helvetica'},
+        fontColor: {type: 'string', default: key_grey_dark},
+        borderColor: {type: 'string', default: key_grey},
+        backgroundColor: {type: 'string', default: key_offwhite},
+        hoverColor: {type: 'string', default: key_grey_light},
+        activeColor: {type: 'string', default: key_orange},
+        handleColor: {type: 'string', default: key_offwhite},
+    },
+    init: function() {
+
+        var data = this.data;
+        var el = this.el;
+        var guiItem = el.getAttribute("gui-item");
+
+        el.setAttribute('material', `shader: flat; depthTest:true;transparent: false; opacity: 1;  color: ${this.data.backgroundColor}; side:front;`);
+        el.setAttribute('geometry', `primitive: plane; height: ${guiItem.height}; width: ${guiItem.height};`);
+
+        var toggleBoxWidth = guiItem.height/1.75;
+        var toggleBoxX = -guiItem.width*0.5 + guiItem.height/2;
+        var toggleBox = document.createElement("a-box");
+        toggleBox.setAttribute('width', `${toggleBoxWidth}`);
+        toggleBox.setAttribute('height', '0.35');
+        toggleBox.setAttribute('depth', '0.01');
+        toggleBox.setAttribute('material', `color:${data.borderColor}; shader: flat;`);
+        toggleBox.setAttribute('position', `${toggleBoxX} 0 0`);
+        el.appendChild(toggleBox);
+
+        var toggleColorAnimation = document.createElement("a-animation");
+        toggleColorAnimation.setAttribute('begin', 'toggleAnimation');
+        toggleColorAnimation.setAttribute('direction', 'alternate');
+        toggleColorAnimation.setAttribute('attribute', 'material.color');
+        toggleColorAnimation.setAttribute('from', `${data.borderColor}`);
+        toggleColorAnimation.setAttribute('to', `${data.activeColor}`);
+        toggleColorAnimation.setAttribute('dur', '500');
+        toggleColorAnimation.setAttribute('easing', 'ease-in-out-cubic');
+        toggleBox.appendChild(toggleColorAnimation);
+
+        var toggleHandleWidth = guiItem.height/6;
+        var toggleHandleXStart = -toggleBoxWidth*0.5 + toggleHandleWidth*0.5 + 0.05;
+        var toggleHandleXEnd = toggleHandleXStart + toggleBoxWidth - toggleHandleWidth - 0.1;
+        var toggleHandle = document.createElement("a-box");
+        toggleHandle.setAttribute('width', `${toggleHandleWidth}`);
+        toggleHandle.setAttribute('height', '0.3');
+        toggleHandle.setAttribute('depth', '0.02');
+        toggleHandle.setAttribute('material', `color:${data.handleColor}`);
+        toggleHandle.setAttribute('position', `${toggleHandleXStart} 0 0.02`);
+        toggleBox.appendChild(toggleHandle);
+
+        var toggleHandleAnimation = document.createElement("a-animation");
+        toggleHandleAnimation.setAttribute('begin', 'toggleAnimation');
+        toggleHandleAnimation.setAttribute('direction', 'alternate');
+        toggleHandleAnimation.setAttribute('attribute', 'position');
+        toggleHandleAnimation.setAttribute('from', `${toggleHandleXStart} 0 0.02`);
+        toggleHandleAnimation.setAttribute('to', `${toggleHandleXEnd} 0 0.02`);
+        toggleHandleAnimation.setAttribute('dur', '500');
+        toggleHandleAnimation.setAttribute('easing', 'ease-in-out-cubic');
+        toggleHandle.appendChild(toggleHandleAnimation);
+
+        var labelWidth = guiItem.width - guiItem.height;
+        var multiplier = 350;
+        var canvasWidth = labelWidth*multiplier;
+        var canvasHeight = guiItem.height*multiplier;
+
+        var canvasContainer = document.createElement('div');
+        canvasContainer.setAttribute('class', 'visuallyhidden');
+        document.body.appendChild(canvasContainer);
+        
+        var labelCanvas = document.createElement("canvas");
+        this.labelCanvas = labelCanvas;
+        labelCanvas.className = "visuallyhidden";
+        labelCanvas.setAttribute('width', canvasWidth);
+        labelCanvas.setAttribute('height', canvasHeight);
+        labelCanvas.id = getUniqueId('canvas');
+        canvasContainer.appendChild(labelCanvas);
+
+        var ctxLabel = this.ctxLabel = labelCanvas.getContext('2d');
+        drawLabel(this.ctxLabel, this.labelCanvas, this.data.text, '100px '+ data.fontFamily, this.data.fontColor);
+
+        var labelEntityX = guiItem.height*0.5 - guiItem.width*0.05;
+        var labelEntity = document.createElement("a-entity");
+        labelEntity.setAttribute('geometry', `primitive: plane; width: ${labelWidth}; height: ${guiItem.height/1.05};`);
+        labelEntity.setAttribute('material', `shader: flat; src: #${labelCanvas.id}; transparent: true; opacity: 1;  color: ${this.data.backgroundColor}; side:front;`);
+        labelEntity.setAttribute('position', `${labelEntityX} 0 0.02`);
+        el.appendChild(labelEntity);
+
+        this.updateToggle(data.active);
+
+        el.addEventListener('mouseenter', function () {
+            toggleHandle.setAttribute('material', 'color', data.hoverColor);
+        });
+
+        el.addEventListener('mouseleave', function () {
+            toggleHandle.setAttribute('material', 'color', data.handleColor);
+        });
+
+        el.addEventListener(data.on, function (evt) {
+            console.log('I was clicked at: ', evt.detail.intersection.point);
+            data.checked = !data.checked;
+            toggleColorAnimation.emit('toggleAnimation');
+            toggleHandleAnimation.emit('toggleAnimation');
+            var guiInteractable = el.getAttribute("gui-interactable");
+            console.log("guiInteractable: "+guiInteractable);
+            var clickActionFunctionName = guiInteractable.clickAction;
+            console.log("clickActionFunctionName: "+clickActionFunctionName);
+            // find object
+            var clickActionFunction = window[clickActionFunctionName];
+            //console.log("clickActionFunction: "+clickActionFunction);
+            // is object a function?
+            if (typeof clickActionFunction === "function") clickActionFunction();
+        });
+
+    },
+    update: function(){
+        var data = this.data;
+        this.updateToggle(data.active)
+    },
+
+
+    updateToggle: function(active){
+
+        if(active){
+
+        }else{
+        }
+
+    },
+});
+
+AFRAME.registerPrimitive( 'a-gui-toggle', {
+    defaultComponents: {
+        'gui-interactable': { },
+        'gui-item': { type: 'toggle' },
+        'gui-toggle': { }
+    },
+    mappings: {
+        'onclick': 'gui-interactable.clickAction',
+        'onhover': 'gui-interactable.hoverAction',
+        'key-code': 'gui-interactable.keyCode',
+        'width': 'gui-item.width',
+        'height': 'gui-item.height',
+        'margin': 'gui-item.margin',
+        'on': 'gui-toggle.on',
+        'active': 'gui-toggle.active',
+        'checked': 'gui-toggle.checked',
+        'value': 'gui-toggle.text',
+        'font-color': 'gui-toggle.fontColor',
+        'font-family': 'gui-toggle.fontFamily',
+        'border-width': 'gui-toggle.borderWidth',
+        'border-color': 'gui-toggle.borderColor',
+        'background-color': 'gui-toggle.backgroundColor',
+        'hover-color': 'gui-toggle.hoverColor',
+        'active-color': 'gui-toggle.activeColor',
+        'handle-color': 'gui-toggle.handleColor'
+    }
+});
+  })();
+});
+
+require.register("aframe-gui/src/index.js", function(exports, require, module) {
+  require = __makeRelativeRequire(require, {}, "aframe-gui");
+  (function() {
+    if (typeof AFRAME === 'undefined') {
+    throw new Error('Component attempted to register before AFRAME was available.');
+}
+
+// Components
+require('./scripts/vars.js');
+require('./components/item.js');
+require('./components/interactable.js');
+require('./components/flex-container.js');
+require('./components/label.js');
+require('./components/button.js');
+require('./components/icon-button.js');
+require('./components/icon-label-button.js');
+require('./components/toggle.js');
+require('./components/radio.js');
+require('./components/circle-loader.js');
+require('./components/progress-bar.js');
+require('./components/circle-timer.js');
+require('./components/slider.js');
+require('./components/input.js');
+require('./components/cursor.js');
+require('./scripts/reset-cursor.js');
+  })();
+});
+
+require.register("aframe-gui/src/scripts/reset-cursor.js", function(exports, require, module) {
+  require = __makeRelativeRequire(require, {}, "aframe-gui");
+  (function() {
+    // Reset cursor
+var cursor = document.querySelector("#cursor");
+if (cursor) {
+    cursor.addEventListener("stateremoved", function (evt) {
+        if (evt.detail.state === 'cursor-fusing') {
+            AFRAME.utils.entity.setComponentProperty(this, "geometry.thetaLength", 360);
+            AFRAME.utils.entity.setComponentProperty(this, "material.color", key_white);
+            AFRAME.utils.entity.setComponentProperty(this, "scale", "1 1 1");
+        }
+    });
+}
+  })();
+});
+
+require.register("aframe-gui/src/scripts/vars.js", function(exports, require, module) {
+  require = __makeRelativeRequire(require, {}, "aframe-gui");
+  (function() {
+    window.normalYPosition = 1.5;
+window.hiddenYPosition = 1000;
+
+//default colors
+window.key_orange       = '#ed5b21' // rgb(237, 91, 33) Light orange
+window.key_orange_light = '#ef8c60' // rgb (239, 140, 96) Extra Light Orange
+window.key_grey         = '#22252a' // rgb(34, 37, 42) Standard grey
+window.key_grey_dark    = '#2c3037' // rgb(44, 48, 55) Medium grey
+window.key_grey_light   = '#606876' // rgb(96, 104, 118) Light grey
+window.key_offwhite     = '#d3d3d4' // rgb(211, 211, 212) Extra Light grey
+window.key_white        = '#fff'
+
+//icon font variables
+window.icon_font = {"alert": "\uf101", "alert-circled": "\uf100", "android-add": "\uf2c7", "android-add-circle": "\uf359", "android-alarm-clock": "\uf35a", "android-alert": "\uf35b", "android-apps": "\uf35c", "android-archive": "\uf2c9", "android-arrow-back": "\uf2ca", "android-arrow-down": "\uf35d", "android-arrow-dropdown": "\uf35f", "android-arrow-dropdown-circle": "\uf35e", "android-arrow-dropleft": "\uf361", "android-arrow-dropleft-circle": "\uf360", "android-arrow-dropright": "\uf363", "android-arrow-dropright-circle": "\uf362", "android-arrow-dropup": "\uf365", "android-arrow-dropup-circle": "\uf364", "android-arrow-forward": "\uf30f", "android-arrow-up": "\uf366", "android-attach": "\uf367", "android-bar": "\uf368", "android-bicycle": "\uf369", "android-boat": "\uf36a", "android-bookmark": "\uf36b", "android-bulb": "\uf36c", "android-bus": "\uf36d", "android-calendar": "\uf2d1", "android-call": "\uf2d2", "android-camera": "\uf2d3", "android-cancel": "\uf36e", "android-car": "\uf36f", "android-cart": "\uf370", "android-chat": "\uf2d4", "android-checkbox": "\uf374", "android-checkbox-blank": "\uf371", "android-checkbox-outline": "\uf373", "android-checkbox-outline-blank": "\uf372", "android-checkmark-circle": "\uf375", "android-clipboard": "\uf376", "android-close": "\uf2d7", "android-cloud": "\uf37a", "android-cloud-circle": "\uf377", "android-cloud-done": "\uf378", "android-cloud-outline": "\uf379", "android-color-palette": "\uf37b", "android-compass": "\uf37c", "android-contact": "\uf2d8", "android-contacts": "\uf2d9", "android-contract": "\uf37d", "android-create": "\uf37e", "android-delete": "\uf37f", "android-desktop": "\uf380", "android-document": "\uf381", "android-done": "\uf383", "android-done-all": "\uf382", "android-download": "\uf2dd", "android-drafts": "\uf384", "android-exit": "\uf385", "android-expand": "\uf386", "android-favorite": "\uf388", "android-favorite-outline": "\uf387", "android-film": "\uf389", "android-folder": "\uf2e0", "android-folder-open": "\uf38a", "android-funnel": "\uf38b", "android-globe": "\uf38c", "android-hand": "\uf2e3", "android-hangout": "\uf38d", "android-happy": "\uf38e", "android-home": "\uf38f", "android-image": "\uf2e4", "android-laptop": "\uf390", "android-list": "\uf391", "android-locate": "\uf2e9", "android-lock": "\uf392", "android-mail": "\uf2eb", "android-map": "\uf393", "android-menu": "\uf394", "android-microphone": "\uf2ec", "android-microphone-off": "\uf395", "android-more-horizontal": "\uf396", "android-more-vertical": "\uf397", "android-navigate": "\uf398", "android-notifications": "\uf39b", "android-notifications-none": "\uf399", "android-notifications-off": "\uf39a", "android-open": "\uf39c", "android-options": "\uf39d", "android-people": "\uf39e", "android-person": "\uf3a0", "android-person-add": "\uf39f", "android-phone-landscape": "\uf3a1", "android-phone-portrait": "\uf3a2", "android-pin": "\uf3a3", "android-plane": "\uf3a4", "android-playstore": "\uf2f0", "android-print": "\uf3a5", "android-radio-button-off": "\uf3a6", "android-radio-button-on": "\uf3a7", "android-refresh": "\uf3a8", "android-remove": "\uf2f4", "android-remove-circle": "\uf3a9", "android-restaurant": "\uf3aa", "android-sad": "\uf3ab", "android-search": "\uf2f5", "android-send": "\uf2f6", "android-settings": "\uf2f7", "android-share": "\uf2f8", "android-share-alt": "\uf3ac", "android-star": "\uf2fc", "android-star-half": "\uf3ad", "android-star-outline": "\uf3ae", "android-stopwatch": "\uf2fd", "android-subway": "\uf3af", "android-sunny": "\uf3b0", "android-sync": "\uf3b1", "android-textsms": "\uf3b2", "android-time": "\uf3b3", "android-train": "\uf3b4", "android-unlock": "\uf3b5", "android-upload": "\uf3b6", "android-volume-down": "\uf3b7", "android-volume-mute": "\uf3b8", "android-volume-off": "\uf3b9", "android-volume-up": "\uf3ba", "android-walk": "\uf3bb", "android-warning": "\uf3bc", "android-watch": "\uf3bd", "android-wifi": "\uf305", "aperture": "\uf313", "archive": "\uf102", "arrow-down-a": "\uf103", "arrow-down-b": "\uf104", "arrow-down-c": "\uf105", "arrow-expand": "\uf25e", "arrow-graph-down-left": "\uf25f", "arrow-graph-down-right": "\uf260", "arrow-graph-up-left": "\uf261", "arrow-graph-up-right": "\uf262", "arrow-left-a": "\uf106", "arrow-left-b": "\uf107", "arrow-left-c": "\uf108", "arrow-move": "\uf263", "arrow-resize": "\uf264", "arrow-return-left": "\uf265", "arrow-return-right": "\uf266", "arrow-right-a": "\uf109", "arrow-right-b": "\uf10a", "arrow-right-c": "\uf10b", "arrow-shrink": "\uf267", "arrow-swap": "\uf268", "arrow-up-a": "\uf10c", "arrow-up-b": "\uf10d", "arrow-up-c": "\uf10e", "asterisk": "\uf314", "at": "\uf10f", "backspace": "\uf3bf", "backspace-outline": "\uf3be", "bag": "\uf110", "battery-charging": "\uf111", "battery-empty": "\uf112", "battery-full": "\uf113", "battery-half": "\uf114", "battery-low": "\uf115", "beaker": "\uf269", "beer": "\uf26a", "bluetooth": "\uf116", "bonfire": "\uf315", "bookmark": "\uf26b", "bowtie": "\uf3c0", "briefcase": "\uf26c", "bug": "\uf2be", "calculator": "\uf26d", "calendar": "\uf117", "camera": "\uf118", "card": "\uf119", "cash": "\uf316", "chatbox": "\uf11b", "chatbox-working": "\uf11a", "chatboxes": "\uf11c", "chatbubble": "\uf11e", "chatbubble-working": "\uf11d", "chatbubbles": "\uf11f", "checkmark": "\uf122", "checkmark-circled": "\uf120", "checkmark-round": "\uf121", "chevron-down": "\uf123", "chevron-left": "\uf124", "chevron-right": "\uf125", "chevron-up": "\uf126", "clipboard": "\uf127", "clock": "\uf26e", "close": "\uf12a", "close-circled": "\uf128", "close-round": "\uf129", "closed-captioning": "\uf317", "cloud": "\uf12b", "code": "\uf271", "code-download": "\uf26f", "code-working": "\uf270", "coffee": "\uf272", "compass": "\uf273", "compose": "\uf12c", "connection-bars": "\uf274", "contrast": "\uf275", "crop": "\uf3c1", "cube": "\uf318", "disc": "\uf12d", "document": "\uf12f", "document-text": "\uf12e", "drag": "\uf130", "earth": "\uf276", "easel": "\uf3c2", "edit": "\uf2bf", "egg": "\uf277", "eject": "\uf131", "email": "\uf132", "email-unread": "\uf3c3", "erlenmeyer-flask": "\uf3c5", "erlenmeyer-flask-bubbles": "\uf3c4", "eye": "\uf133", "eye-disabled": "\uf306", "female": "\uf278", "filing": "\uf134", "film-marker": "\uf135", "fireball": "\uf319", "flag": "\uf279", "flame": "\uf31a", "flash": "\uf137", "flash-off": "\uf136", "folder": "\uf139", "fork": "\uf27a", "fork-repo": "\uf2c0", "forward": "\uf13a", "funnel": "\uf31b", "gear-a": "\uf13d", "gear-b": "\uf13e", "grid": "\uf13f", "hammer": "\uf27b", "happy": "\uf31c", "happy-outline": "\uf3c6", "headphone": "\uf140", "heart": "\uf141", "heart-broken": "\uf31d", "help": "\uf143", "help-buoy": "\uf27c", "help-circled": "\uf142", "home": "\uf144", "icecream": "\uf27d", "image": "\uf147", "images": "\uf148", "information": "\uf14a", "information-circled": "\uf149", "ionic": "\uf14b", "ios-alarm": "\uf3c8", "ios-alarm-outline": "\uf3c7", "ios-albums": "\uf3ca", "ios-albums-outline": "\uf3c9", "ios-americanfootball": "\uf3cc", "ios-americanfootball-outline": "\uf3cb", "ios-analytics": "\uf3ce", "ios-analytics-outline": "\uf3cd", "ios-arrow-back": "\uf3cf", "ios-arrow-down": "\uf3d0", "ios-arrow-forward": "\uf3d1", "ios-arrow-left": "\uf3d2", "ios-arrow-right": "\uf3d3", "ios-arrow-thin-down": "\uf3d4", "ios-arrow-thin-left": "\uf3d5", "ios-arrow-thin-right": "\uf3d6", "ios-arrow-thin-up": "\uf3d7", "ios-arrow-up": "\uf3d8", "ios-at": "\uf3da", "ios-at-outline": "\uf3d9", "ios-barcode": "\uf3dc", "ios-barcode-outline": "\uf3db", "ios-baseball": "\uf3de", "ios-baseball-outline": "\uf3dd", "ios-basketball": "\uf3e0", "ios-basketball-outline": "\uf3df", "ios-bell": "\uf3e2", "ios-bell-outline": "\uf3e1", "ios-body": "\uf3e4", "ios-body-outline": "\uf3e3", "ios-bolt": "\uf3e6", "ios-bolt-outline": "\uf3e5", "ios-book": "\uf3e8", "ios-book-outline": "\uf3e7", "ios-bookmarks": "\uf3ea", "ios-bookmarks-outline": "\uf3e9", "ios-box": "\uf3ec", "ios-box-outline": "\uf3eb", "ios-briefcase": "\uf3ee", "ios-briefcase-outline": "\uf3ed", "ios-browsers": "\uf3f0", "ios-browsers-outline": "\uf3ef", "ios-calculator": "\uf3f2", "ios-calculator-outline": "\uf3f1", "ios-calendar": "\uf3f4", "ios-calendar-outline": "\uf3f3", "ios-camera": "\uf3f6", "ios-camera-outline": "\uf3f5", "ios-cart": "\uf3f8", "ios-cart-outline": "\uf3f7", "ios-chatboxes": "\uf3fa", "ios-chatboxes-outline": "\uf3f9", "ios-chatbubble": "\uf3fc", "ios-chatbubble-outline": "\uf3fb", "ios-checkmark": "\uf3ff", "ios-checkmark-empty": "\uf3fd", "ios-checkmark-outline": "\uf3fe", "ios-circle-filled": "\uf400", "ios-circle-outline": "\uf401", "ios-clock": "\uf403", "ios-clock-outline": "\uf402", "ios-close": "\uf406", "ios-close-empty": "\uf404", "ios-close-outline": "\uf405", "ios-cloud": "\uf40c", "ios-cloud-download": "\uf408", "ios-cloud-download-outline": "\uf407", "ios-cloud-outline": "\uf409", "ios-cloud-upload": "\uf40b", "ios-cloud-upload-outline": "\uf40a", "ios-cloudy": "\uf410", "ios-cloudy-night": "\uf40e", "ios-cloudy-night-outline": "\uf40d", "ios-cloudy-outline": "\uf40f", "ios-cog": "\uf412", "ios-cog-outline": "\uf411", "ios-color-filter": "\uf414", "ios-color-filter-outline": "\uf413", "ios-color-wand": "\uf416", "ios-color-wand-outline": "\uf415", "ios-compose": "\uf418", "ios-compose-outline": "\uf417", "ios-contact": "\uf41a", "ios-contact-outline": "\uf419", "ios-copy": "\uf41c", "ios-copy-outline": "\uf41b", "ios-crop": "\uf41e", "ios-crop-strong": "\uf41d", "ios-download": "\uf420", "ios-download-outline": "\uf41f", "ios-drag": "\uf421", "ios-email": "\uf423", "ios-email-outline": "\uf422", "ios-eye": "\uf425", "ios-eye-outline": "\uf424", "ios-fastforward": "\uf427", "ios-fastforward-outline": "\uf426", "ios-filing": "\uf429", "ios-filing-outline": "\uf428", "ios-film": "\uf42b", "ios-film-outline": "\uf42a", "ios-flag": "\uf42d", "ios-flag-outline": "\uf42c", "ios-flame": "\uf42f", "ios-flame-outline": "\uf42e", "ios-flask": "\uf431", "ios-flask-outline": "\uf430", "ios-flower": "\uf433", "ios-flower-outline": "\uf432", "ios-folder": "\uf435", "ios-folder-outline": "\uf434", "ios-football": "\uf437", "ios-football-outline": "\uf436", "ios-game-controller-a": "\uf439", "ios-game-controller-a-outline": "\uf438", "ios-game-controller-b": "\uf43b", "ios-game-controller-b-outline": "\uf43a", "ios-gear": "\uf43d", "ios-gear-outline": "\uf43c", "ios-glasses": "\uf43f", "ios-glasses-outline": "\uf43e", "ios-grid-view": "\uf441", "ios-grid-view-outline": "\uf440", "ios-heart": "\uf443", "ios-heart-outline": "\uf442", "ios-help": "\uf446", "ios-help-empty": "\uf444", "ios-help-outline": "\uf445", "ios-home": "\uf448", "ios-home-outline": "\uf447", "ios-infinite": "\uf44a", "ios-infinite-outline": "\uf449", "ios-information": "\uf44d", "ios-information-empty": "\uf44b", "ios-information-outline": "\uf44c", "ios-ionic-outline": "\uf44e", "ios-keypad": "\uf450", "ios-keypad-outline": "\uf44f", "ios-lightbulb": "\uf452", "ios-lightbulb-outline": "\uf451", "ios-list": "\uf454", "ios-list-outline": "\uf453", "ios-location": "\uf456", "ios-location-outline": "\uf455", "ios-locked": "\uf458", "ios-locked-outline": "\uf457", "ios-loop": "\uf45a", "ios-loop-strong": "\uf459", "ios-medical": "\uf45c", "ios-medical-outline": "\uf45b", "ios-medkit": "\uf45e", "ios-medkit-outline": "\uf45d", "ios-mic": "\uf461", "ios-mic-off": "\uf45f", "ios-mic-outline": "\uf460", "ios-minus": "\uf464", "ios-minus-empty": "\uf462", "ios-minus-outline": "\uf463", "ios-monitor": "\uf466", "ios-monitor-outline": "\uf465", "ios-moon": "\uf468", "ios-moon-outline": "\uf467", "ios-more": "\uf46a", "ios-more-outline": "\uf469", "ios-musical-note": "\uf46b", "ios-musical-notes": "\uf46c", "ios-navigate": "\uf46e", "ios-navigate-outline": "\uf46d", "ios-nutrition": "\uf470", "ios-nutrition-outline": "\uf46f", "ios-paper": "\uf472", "ios-paper-outline": "\uf471", "ios-paperplane": "\uf474", "ios-paperplane-outline": "\uf473", "ios-partlysunny": "\uf476", "ios-partlysunny-outline": "\uf475", "ios-pause": "\uf478", "ios-pause-outline": "\uf477", "ios-paw": "\uf47a", "ios-paw-outline": "\uf479", "ios-people": "\uf47c", "ios-people-outline": "\uf47b", "ios-person": "\uf47e", "ios-person-outline": "\uf47d", "ios-personadd": "\uf480", "ios-personadd-outline": "\uf47f", "ios-photos": "\uf482", "ios-photos-outline": "\uf481", "ios-pie": "\uf484", "ios-pie-outline": "\uf483", "ios-pint": "\uf486", "ios-pint-outline": "\uf485", "ios-play": "\uf488", "ios-play-outline": "\uf487", "ios-plus": "\uf48b", "ios-plus-empty": "\uf489", "ios-plus-outline": "\uf48a", "ios-pricetag": "\uf48d", "ios-pricetag-outline": "\uf48c", "ios-pricetags": "\uf48f", "ios-pricetags-outline": "\uf48e", "ios-printer": "\uf491", "ios-printer-outline": "\uf490", "ios-pulse": "\uf493", "ios-pulse-strong": "\uf492", "ios-rainy": "\uf495", "ios-rainy-outline": "\uf494", "ios-recording": "\uf497", "ios-recording-outline": "\uf496", "ios-redo": "\uf499", "ios-redo-outline": "\uf498", "ios-refresh": "\uf49c", "ios-refresh-empty": "\uf49a", "ios-refresh-outline": "\uf49b", "ios-reload": "\uf49d", "ios-reverse-camera": "\uf49f", "ios-reverse-camera-outline": "\uf49e", "ios-rewind": "\uf4a1", "ios-rewind-outline": "\uf4a0", "ios-rose": "\uf4a3", "ios-rose-outline": "\uf4a2", "ios-search": "\uf4a5", "ios-search-strong": "\uf4a4", "ios-settings": "\uf4a7", "ios-settings-strong": "\uf4a6", "ios-shuffle": "\uf4a9", "ios-shuffle-strong": "\uf4a8", "ios-skipbackward": "\uf4ab", "ios-skipbackward-outline": "\uf4aa", "ios-skipforward": "\uf4ad", "ios-skipforward-outline": "\uf4ac", "ios-snowy": "\uf4ae", "ios-speedometer": "\uf4b0", "ios-speedometer-outline": "\uf4af", "ios-star": "\uf4b3", "ios-star-half": "\uf4b1", "ios-star-outline": "\uf4b2", "ios-stopwatch": "\uf4b5", "ios-stopwatch-outline": "\uf4b4", "ios-sunny": "\uf4b7", "ios-sunny-outline": "\uf4b6", "ios-telephone": "\uf4b9", "ios-telephone-outline": "\uf4b8", "ios-tennisball": "\uf4bb", "ios-tennisball-outline": "\uf4ba", "ios-thunderstorm": "\uf4bd", "ios-thunderstorm-outline": "\uf4bc", "ios-time": "\uf4bf", "ios-time-outline": "\uf4be", "ios-timer": "\uf4c1", "ios-timer-outline": "\uf4c0", "ios-toggle": "\uf4c3", "ios-toggle-outline": "\uf4c2", "ios-trash": "\uf4c5", "ios-trash-outline": "\uf4c4", "ios-undo": "\uf4c7", "ios-undo-outline": "\uf4c6", "ios-unlocked": "\uf4c9", "ios-unlocked-outline": "\uf4c8", "ios-upload": "\uf4cb", "ios-upload-outline": "\uf4ca", "ios-videocam": "\uf4cd", "ios-videocam-outline": "\uf4cc", "ios-volume-high": "\uf4ce", "ios-volume-low": "\uf4cf", "ios-wineglass": "\uf4d1", "ios-wineglass-outline": "\uf4d0", "ios-world": "\uf4d3", "ios-world-outline": "\uf4d2", "ipad": "\uf1f9", "iphone": "\uf1fa", "ipod": "\uf1fb", "jet": "\uf295", "key": "\uf296", "knife": "\uf297", "laptop": "\uf1fc", "leaf": "\uf1fd", "levels": "\uf298", "lightbulb": "\uf299", "link": "\uf1fe", "load-a": "\uf29a", "load-b": "\uf29b", "load-c": "\uf29c", "load-d": "\uf29d", "location": "\uf1ff", "lock-combination": "\uf4d4", "locked": "\uf200", "log-in": "\uf29e", "log-out": "\uf29f", "loop": "\uf201", "magnet": "\uf2a0", "male": "\uf2a1", "man": "\uf202", "map": "\uf203", "medkit": "\uf2a2", "merge": "\uf33f", "mic-a": "\uf204", "mic-b": "\uf205", "mic-c": "\uf206", "minus": "\uf209", "minus-circled": "\uf207", "minus-round": "\uf208", "model-s": "\uf2c1", "monitor": "\uf20a", "more": "\uf20b", "mouse": "\uf340", "music-note": "\uf20c", "navicon": "\uf20e", "navicon-round": "\uf20d", "navigate": "\uf2a3", "network": "\uf341", "no-smoking": "\uf2c2", "nuclear": "\uf2a4", "outlet": "\uf342", "paintbrush": "\uf4d5", "paintbucket": "\uf4d6", "paper-airplane": "\uf2c3", "paperclip": "\uf20f", "pause": "\uf210", "person": "\uf213", "person-add": "\uf211", "person-stalker": "\uf212", "pie-graph": "\uf2a5", "pin": "\uf2a6", "pinpoint": "\uf2a7", "pizza": "\uf2a8", "plane": "\uf214", "planet": "\uf343", "play": "\uf215", "playstation": "\uf30a", "plus": "\uf218", "plus-circled": "\uf216", "plus-round": "\uf217", "podium": "\uf344", "pound": "\uf219", "power": "\uf2a9", "pricetag": "\uf2aa", "pricetags": "\uf2ab", "printer": "\uf21a", "pull-request": "\uf345", "qr-scanner": "\uf346", "quote": "\uf347", "radio-waves": "\uf2ac", "record": "\uf21b", "refresh": "\uf21c", "reply": "\uf21e", "reply-all": "\uf21d", "ribbon-a": "\uf348", "ribbon-b": "\uf349", "sad": "\uf34a", "sad-outline": "\uf4d7", "scissors": "\uf34b", "search": "\uf21f", "settings": "\uf2ad", "share": "\uf220", "shuffle": "\uf221", "skip-backward": "\uf222", "skip-forward": "\uf223", "social-android": "\uf225", "social-android-outline": "\uf224", "social-angular": "\uf4d9", "social-angular-outline": "\uf4d8", "social-apple": "\uf227", "social-apple-outline": "\uf226", "social-bitcoin": "\uf2af", "social-bitcoin-outline": "\uf2ae", "social-buffer": "\uf229", "social-buffer-outline": "\uf228", "social-chrome": "\uf4db", "social-chrome-outline": "\uf4da", "social-codepen": "\uf4dd", "social-codepen-outline": "\uf4dc", "social-css3": "\uf4df", "social-css3-outline": "\uf4de", "social-designernews": "\uf22b", "social-designernews-outline": "\uf22a", "social-dribbble": "\uf22d", "social-dribbble-outline": "\uf22c", "social-dropbox": "\uf22f", "social-dropbox-outline": "\uf22e", "social-euro": "\uf4e1", "social-euro-outline": "\uf4e0", "social-facebook": "\uf231", "social-facebook-outline": "\uf230", "social-foursquare": "\uf34d", "social-foursquare-outline": "\uf34c", "social-freebsd-devil": "\uf2c4", "social-github": "\uf233", "social-github-outline": "\uf232", "social-google": "\uf34f", "social-google-outline": "\uf34e", "social-googleplus": "\uf235", "social-googleplus-outline": "\uf234", "social-hackernews": "\uf237", "social-hackernews-outline": "\uf236", "social-html5": "\uf4e3", "social-html5-outline": "\uf4e2", "social-instagram": "\uf351", "social-instagram-outline": "\uf350", "social-javascript": "\uf4e5", "social-javascript-outline": "\uf4e4", "social-linkedin": "\uf239", "social-linkedin-outline": "\uf238", "social-markdown": "\uf4e6", "social-nodejs": "\uf4e7", "social-octocat": "\uf4e8", "social-pinterest": "\uf2b1", "social-pinterest-outline": "\uf2b0", "social-python": "\uf4e9", "social-reddit": "\uf23b", "social-reddit-outline": "\uf23a", "social-rss": "\uf23d", "social-rss-outline": "\uf23c", "social-sass": "\uf4ea", "social-skype": "\uf23f", "social-skype-outline": "\uf23e", "social-snapchat": "\uf4ec", "social-snapchat-outline": "\uf4eb", "social-tumblr": "\uf241", "social-tumblr-outline": "\uf240", "social-tux": "\uf2c5", "social-twitch": "\uf4ee", "social-twitch-outline": "\uf4ed", "social-twitter": "\uf243", "social-twitter-outline": "\uf242", "social-usd": "\uf353", "social-usd-outline": "\uf352", "social-vimeo": "\uf245", "social-vimeo-outline": "\uf244", "social-whatsapp": "\uf4f0", "social-whatsapp-outline": "\uf4ef", "social-windows": "\uf247", "social-windows-outline": "\uf246", "social-wordpress": "\uf249", "social-wordpress-outline": "\uf248", "social-yahoo": "\uf24b", "social-yahoo-outline": "\uf24a", "social-yen": "\uf4f2", "social-yen-outline": "\uf4f1", "social-youtube": "\uf24d", "social-youtube-outline": "\uf24c", "soup-can": "\uf4f4", "soup-can-outline": "\uf4f3", "speakerphone": "\uf2b2", "speedometer": "\uf2b3", "spoon": "\uf2b4", "star": "\uf24e", "stats-bars": "\uf2b5", "steam": "\uf30b", "stop": "\uf24f", "thermometer": "\uf2b6", "thumbsdown": "\uf250", "thumbsup": "\uf251", "toggle": "\uf355", "toggle-filled": "\uf354", "transgender": "\uf4f5", "trash-a": "\uf252", "trash-b": "\uf253", "trophy": "\uf356", "tshirt": "\uf4f7", "tshirt-outline": "\uf4f6", "umbrella": "\uf2b7", "university": "\uf357", "unlocked": "\uf254", "upload": "\uf255", "usb": "\uf2b8", "videocamera": "\uf256", "volume-high": "\uf257", "volume-low": "\uf258", "volume-medium": "\uf259", "volume-mute": "\uf25a", "wand": "\uf358", "waterdrop": "\uf25b", "wifi": "\uf25c", "wineglass": "\uf2b9", "woman": "\uf25d", "wrench": "\uf2ba", "xbox": "\uf30c"};
+
+window.getUniqueId = function (stringPrefix) {
+    var datestr = new Date().getTime().toString();
+    var randomstr = Math.random().toString().replace('.', '');
+    return stringPrefix + '_' + datestr + randomstr;
+}
+
+window.getTextWidth = function(text, font) {
+    // re-use canvas object for better performance
+    var canvas = getTextWidth.canvas || (getTextWidth.canvas = document.createElement("canvas"));
+    var context = canvas.getContext("2d");
+    context.font = font;
+    var metrics = context.measureText(text);
+    return metrics.width;
+}
+
+window.drawText = function(ctx, canvas, text, font, color, size) {
+    setTimeout(function(){
+        ctx.font = font;
+        ctx.fillStyle = color;
+        ctx.textAlign = "center";
+        ctx.textBaseline = 'middle';
+        ctx.shadowColor = 'rgba(0,0,0,0.5)';
+        ctx.shadowBlur = 8;
+        ctx.shadowOffsetY = 0;
+        ctx.shadowOffsetX = 0;
+        ctx.scale(1, 1);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        var textString = text + ''
+		if (textString.match("char#")) {
+			var char = textString.substring(textString.indexOf('#')+1);
+	       	ctx.fillText(String.fromCharCode(char), canvas.width/2, canvas.height/2); // position x, y
+        }else{
+ 	       	ctx.fillText(textString, canvas.width/2, canvas.height/2); // position x, y
+ 	    }
+
+    },500); // callback when font is loaded needed
+}
+
+window.drawIcon = function(ctx, canvas, icon, color, size = 1) {
+    setTimeout(function(){
+        ctx.font = '240px Ionicons';
+        ctx.fillStyle = color;
+        ctx.textAlign = "center";
+        ctx.textBaseline = 'middle';
+        ctx.shadowColor = 'rgba(0,0,0,0.5)';
+        ctx.shadowBlur = 8;
+        ctx.shadowOffsetY = 0;
+        ctx.shadowOffsetX = 0;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        ctx.scale(size, size);
+
+        console.log("icon" + icon);
+        if(icon_font[icon]){
+            ctx.fillText(icon_font[icon], canvas.width/2, canvas.height/2);
+        }else{
+            ctx.fillText('?', canvas.width/2, canvas.height/2);
+        }
+
+    },500); // callback when font is loaded needed
+}
+
+window.drawLabel = function(ctx, canvas, text, font, color, size) {
+    setTimeout(function(){
+        ctx.font = font;
+        ctx.fillStyle = color;
+        ctx.textAlign = "left";
+        ctx.textBaseline = 'middle';
+        ctx.shadowColor = 'rgba(0,0,0,0.5)';
+        ctx.shadowBlur = 8;
+        ctx.shadowOffsetY = 0;
+        ctx.shadowOffsetX = 0;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        ctx.scale(1, 1);
+        ctx.fillText(text, canvas.height/8, canvas.height/2); // position x, y
+
+    },500); // callback when font is loaded needed
+}
+  })();
+});
+
+require.register("aframe-mouse-cursor-component/dist/aframe-mouse-cursor-component.js", function(exports, require, module) {
+  require = __makeRelativeRequire(require, {}, "aframe-mouse-cursor-component");
+  (function() {
+    /******/ (function(modules) { // webpackBootstrap
+/******/ 	// The module cache
+/******/ 	var installedModules = {};
+
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+
+/******/ 		// Check if module is in cache
+/******/ 		if(installedModules[moduleId])
+/******/ 			return installedModules[moduleId].exports;
+
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = installedModules[moduleId] = {
+/******/ 			exports: {},
+/******/ 			id: moduleId,
+/******/ 			loaded: false
+/******/ 		};
+
+/******/ 		// Execute the module function
+/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
+
+/******/ 		// Flag the module as loaded
+/******/ 		module.loaded = true;
+
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+
+
+/******/ 	// expose the modules object (__webpack_modules__)
+/******/ 	__webpack_require__.m = modules;
+
+/******/ 	// expose the module cache
+/******/ 	__webpack_require__.c = installedModules;
+
+/******/ 	// __webpack_public_path__
+/******/ 	__webpack_require__.p = "";
+
+/******/ 	// Load entry module and return exports
+/******/ 	return __webpack_require__(0);
+/******/ })
+/************************************************************************/
+/******/ ([
+/* 0 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	var _lodash = __webpack_require__(1);
+
+	var _lodash2 = _interopRequireDefault(_lodash);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	if (typeof AFRAME === 'undefined') {
+		throw 'mouse-cursor Component attempted to register before AFRAME was available.';
+	}
+
+	var IS_VR_AVAILABLE = AFRAME.utils.device.isMobile() || window.hasNonPolyfillWebVRSupport;
+
+	/**
+	 * Mouse Cursor Component for A-Frame.
+	 */
+	AFRAME.registerComponent('mouse-cursor', {
+		schema: {},
+
+		/**
+	  * Called once when component is attached. Generally for initial setup.
+	  * @protected
+	  */
+		init: function init() {
+			this._raycaster = new THREE.Raycaster();
+			this._mouse = new THREE.Vector2();
+			this._isMobile = this.el.sceneEl.isMobile;
+			this._isStereo = false;
+			this._active = false;
+			this._isDown = false;
+			this._intersectedEl = null;
+			this._attachEventListeners();
+			this._canvasSize = false;
+			/* bind functions */
+			this.__getCanvasPos = this._getCanvasPos.bind(this);
+			this.__getCanvasPos = this._getCanvasPos.bind(this);
+			this.__onEnterVR = this._onEnterVR.bind(this);
+			this.__onExitVR = this._onExitVR.bind(this);
+			this.__onDown = this._onDown.bind(this);
+			this.__onClick = this._onClick.bind(this);
+			this.__onMouseMove = this._onMouseMove.bind(this);
+			this.__onRelease = this._onRelease.bind(this);
+			this.__onTouchMove = this._onTouchMove.bind(this);
+			this.__onComponentChanged = this._onComponentChanged.bind(this);
+		},
+
+
+		/**
+	  * Called when component is attached and when component data changes.
+	  * Generally modifies the entity based on the data.
+	  * @protected
+	  */
+		update: function update(oldData) {},
+
+
+		/**
+	  * Called when a component is removed (e.g., via removeAttribute).
+	  * Generally undoes all modifications to the entity.
+	  * @protected
+	  */
+		remove: function remove() {
+			this._removeEventListeners();
+			this._raycaster = null;
+		},
+
+
+		/**
+	  * Called on each scene tick.
+	  * @protected
+	  */
+		// tick (t) { },
+
+		/**
+	  * Called when entity pauses.
+	  * Use to stop or remove any dynamic or background behavior such as events.
+	  * @protected
+	  */
+		pause: function pause() {
+			this._active = false;
+		},
+
+
+		/**
+	  * Called when entity resumes.
+	  * Use to continue or add any dynamic or background behavior such as events.
+	  * @protected
+	  */
+		play: function play() {
+			this._active = true;
+		},
+
+
+		/*==============================
+	  =            events            =
+	  ==============================*/
+
+		/**
+	  * @private
+	  */
+		_attachEventListeners: function _attachEventListeners() {
+			var el = this.el;
+			var sceneEl = el.sceneEl;
+			var canvas = sceneEl.canvas;
+			/* if canvas doesn't exist, listen for canvas to load. */
+
+			if (!canvas) {
+				el.sceneEl.addEventListener('render-target-loaded', this._attachEventListeners.bind(this));
+				return;
+			}
+
+			window.addEventListener('resize', this.__getCanvasPos);
+			document.addEventListener('scroll', this.__getCanvasPos);
+			/* update _canvas in case scene is embedded */
+			this._getCanvasPos();
+
+			/* scene */
+			sceneEl.addEventListener('enter-vr', this.__onEnterVR);
+			sceneEl.addEventListener('exit-vr', this.__onExitVR);
+
+			/* Mouse events */
+			canvas.addEventListener('mousedown', this.__onDown);
+			canvas.addEventListener('mousemove', this.__onMouseMove);
+			canvas.addEventListener('mouseup', this.__onRelease);
+			canvas.addEventListener('mouseout', this.__onRelease);
+
+			/* Touch events */
+			canvas.addEventListener('touchstart', this.__onDown);
+			canvas.addEventListener('touchmove', this.__onTouchMove);
+			canvas.addEventListener('touchend', this.__onRelease);
+
+			/* Click event */
+			canvas.addEventListener('click', this.__onClick);
+
+			/* Element component change */
+			el.addEventListener('componentchanged', this.__onComponentChanged);
+		},
+
+
+		/**
+	  * @private
+	  */
+		_removeEventListeners: function _removeEventListeners() {
+			var el = this.el;
+			var sceneEl = el.sceneEl;
+			var canvas = sceneEl.canvas;
+
+			if (!canvas) {
+				return;
+			}
+
+			window.removeEventListener('resize', this.__getCanvasPos);
+			document.removeEventListener('scroll', this.__getCanvasPos);
+
+			/* scene */
+			sceneEl.removeEventListener('enter-vr', this.__onEnterVR);
+			sceneEl.removeEventListener('exit-vr', this.__onExitVR);
+
+			/* Mouse events */
+			canvas.removeEventListener('mousedown', this.__onDown);
+			canvas.removeEventListener('mousemove', this.__onMouseMove);
+			canvas.removeEventListener('mouseup', this.__onRelease);
+			canvas.removeEventListener('mouseout', this.__onRelease);
+
+			/* Touch events */
+			canvas.removeEventListener('touchstart', this.__onDown);
+			canvas.removeEventListener('touchmove', this.__onTouchMove);
+			canvas.removeEventListener('touchend', this.__onRelease);
+
+			/* Click event */
+			canvas.removeEventListener('click', this.__onClick);
+
+			/* Element component change */
+			el.removeEventListener('componentchanged', this.__onComponentChanged);
+		},
+
+
+		/**
+	  * Check if the mouse cursor is active
+	  * @private
+	  */
+		_isActive: function _isActive() {
+			return !!(this._active || this._raycaster);
+		},
+
+
+		/**
+	  * @private
+	  */
+		_onDown: function _onDown(evt) {
+			if (!this._isActive()) {
+				return;
+			}
+
+			this._isDown = true;
+
+			this._updateMouse(evt);
+			this._updateIntersectObject();
+
+			if (!this._isMobile) {
+				this._setInitMousePosition(evt);
+			}
+			if (this._intersectedEl) {
+				this._emit('mousedown');
+			}
+		},
+
+
+		/**
+	  * @private
+	  */
+		_onClick: function _onClick(evt) {
+			if (!this._isActive()) {
+				return;
+			}
+
+			this._updateMouse(evt);
+			this._updateIntersectObject();
+
+			if (this._intersectedEl) {
+				this._emit('click');
+			}
+		},
+
+
+		/**
+	  * @private
+	  */
+		_onRelease: function _onRelease() {
+			if (!this._isActive()) {
+				return;
+			}
+
+			/* check if mouse position has updated */
+			if (this._defMousePosition) {
+				var defX = Math.abs(this._initMousePosition.x - this._defMousePosition.x);
+				var defY = Math.abs(this._initMousePosition.y - this._defMousePosition.y);
+				var def = Math.max(defX, defY);
+				if (def > 0.04) {
+					/* mouse has moved too much to recognize as click. */
+					this._isDown = false;
+				}
+			}
+
+			if (this._isDown && this._intersectedEl) {
+				this._emit('mouseup');
+			}
+			this._isDown = false;
+			this._resetMousePosition();
+		},
+
+
+		/**
+	  * @private
+	  */
+		_onMouseMove: function _onMouseMove(evt) {
+			if (!this._isActive()) {
+				return;
+			}
+
+			this._updateMouse(evt);
+			this._updateIntersectObject();
+
+			if (this._isDown) {
+				this._setMousePosition(evt);
+			}
+		},
+
+
+		/**
+	  * @private
+	  */
+		_onTouchMove: function _onTouchMove(evt) {
+			if (!this._isActive()) {
+				return;
+			}
+
+			this._isDown = false;
+		},
+
+
+		/**
+	  * @private
+	  */
+		_onEnterVR: function _onEnterVR() {
+			if (IS_VR_AVAILABLE) {
+				this._isStereo = true;
+			}
+			this._getCanvasPos();
+		},
+
+
+		/**
+	  * @private
+	  */
+		_onExitVR: function _onExitVR() {
+			this._isStereo = false;
+			this._getCanvasPos();
+		},
+
+
+		/**
+	  * @private
+	  */
+		_onComponentChanged: function _onComponentChanged(evt) {
+			if (evt.detail.name === 'position') {
+				this._updateIntersectObject();
+			}
+		},
+
+
+		/*=============================
+	  =            mouse            =
+	  =============================*/
+
+		/**
+	  * Get mouse position from size of canvas element
+	  * @private
+	  */
+		_getPosition: function _getPosition(evt) {
+			var _canvasSize = this._canvasSize,
+			    w = _canvasSize.width,
+			    h = _canvasSize.height,
+			    offsetW = _canvasSize.left,
+			    offsetH = _canvasSize.top;
+
+
+			var cx = void 0,
+			    cy = void 0;
+			if (this._isMobile) {
+				var touches = evt.touches;
+
+				if (!touches || touches.length !== 1) {
+					return;
+				}
+				var touch = touches[0];
+				cx = touch.clientX;
+				cy = touch.clientY;
+			} else {
+				cx = evt.clientX;
+				cy = evt.clientY;
+			}
+
+			/* account for the offset if scene is embedded */
+			cx = cx - offsetW;
+			cy = cy - offsetH;
+
+			if (this._isStereo) {
+				cx = cx % (w / 2) * 2;
+			}
+
+			var x = cx / w * 2 - 1;
+			var y = -(cy / h) * 2 + 1;
+
+			return { x: x, y: y };
+		},
+
+
+		/**
+	  * Update mouse
+	  * @private
+	  */
+		_updateMouse: function _updateMouse(evt) {
+			var pos = this._getPosition(evt);
+			if (!pos) {
+				return;
+			}
+
+			this._mouse.x = pos.x;
+			this._mouse.y = pos.y;
+		},
+
+
+		/**
+	  * Update mouse position
+	  * @private
+	  */
+		_setMousePosition: function _setMousePosition(evt) {
+			this._defMousePosition = this._getPosition(evt);
+		},
+
+
+		/**
+	  * Update initial mouse position
+	  * @private
+	  */
+		_setInitMousePosition: function _setInitMousePosition(evt) {
+			this._initMousePosition = this._getPosition(evt);
+		},
+		_resetMousePosition: function _resetMousePosition() {
+			this._initMousePosition = this._defMousePosition = null;
+		},
+
+
+		/*======================================
+	  =            scene children            =
+	  ======================================*/
+
+		/**
+	  * @private
+	  */
+		_getCanvasPos: function _getCanvasPos() {
+			this._canvasSize = this.el.sceneEl.canvas.getBoundingClientRect(); // update _canvas in case scene is embedded
+		},
+
+
+		/**
+	  * Get non group object3D
+	  * @private
+	  */
+		_getChildren: function _getChildren(object3D) {
+			var _this = this;
+
+			return object3D.children.map(function (obj) {
+				return obj.type === 'Group' ? _this._getChildren(obj) : obj;
+			});
+		},
+
+
+		/**
+	  * Get all non group object3D
+	  * @private
+	  */
+		_getAllChildren: function _getAllChildren() {
+			var children = this._getChildren(this.el.sceneEl.object3D);
+			return (0, _lodash2.default)(children);
+		},
+
+
+		/*====================================
+	  =            intersection            =
+	  ====================================*/
+
+		/**
+	  * Update intersect element with cursor
+	  * @private
+	  */
+		_updateIntersectObject: function _updateIntersectObject() {
+			var _raycaster = this._raycaster,
+			    el = this.el,
+			    _mouse = this._mouse;
+			var scene = el.sceneEl.object3D;
+
+			var camera = this.el.getObject3D('camera');
+			this._getAllChildren();
+			/* find intersections */
+			// _raycaster.setFromCamera(_mouse, camera) /* this somehow gets error so did the below */
+			_raycaster.ray.origin.setFromMatrixPosition(camera.matrixWorld);
+			_raycaster.ray.direction.set(_mouse.x, _mouse.y, 0.5).unproject(camera).sub(_raycaster.ray.origin).normalize();
+
+			/* get objects intersected between mouse and camera */
+			var children = this._getAllChildren();
+			var intersects = _raycaster.intersectObjects(children);
+
+			if (intersects.length > 0) {
+				/* get the closest three obj */
+				var obj = void 0;
+				intersects.every(function (item) {
+					if (item.object.parent.visible === true) {
+						obj = item.object;
+						return false;
+					} else {
+						return true;
+					}
+				});
+				if (!obj) {
+					this._clearIntersectObject();
+					return;
+				}
+				/* get the entity */
+				var _el = obj.parent.el;
+				/* only updates if the object is not the activated object */
+
+				if (this._intersectedEl === _el) {
+					return;
+				}
+				this._clearIntersectObject();
+				/* apply new object as intersected */
+				this._setIntersectObject(_el);
+			} else {
+				this._clearIntersectObject();
+			}
+		},
+
+
+		/**
+	  * Set intersect element
+	  * @private
+	  * @param {AEntity} el `a-entity` element
+	  */
+		_setIntersectObject: function _setIntersectObject(el) {
+			this._intersectedEl = el;
+			if (this._isMobile) {
+				return;
+			}
+			el.addState('hovered');
+			el.emit('mouseenter');
+			this.el.addState('hovering');
+		},
+
+
+		/**
+	  * Clear intersect element
+	  * @private
+	  */
+		_clearIntersectObject: function _clearIntersectObject() {
+			var el = this._intersectedEl;
+
+			if (el && !this._isMobile) {
+				el.removeState('hovered');
+				el.emit('mouseleave');
+				this.el.removeState('hovering');
+			}
+
+			this._intersectedEl = null;
+		},
+
+
+		/*===============================
+	  =            emitter            =
+	  ===============================*/
+
+		/**
+	  * @private
+	  */
+		_emit: function _emit(evt) {
+			var _intersectedEl = this._intersectedEl;
+
+			this.el.emit(evt, { target: _intersectedEl });
+			if (_intersectedEl) {
+				_intersectedEl.emit(evt);
+			}
+		}
+	});
+
+/***/ }),
+/* 1 */
+/***/ (function(module, exports) {
+
+	/* WEBPACK VAR INJECTION */(function(global) {/**
+	 * lodash (Custom Build) <https://lodash.com/>
+	 * Build: `lodash modularize exports="npm" -o ./`
+	 * Copyright jQuery Foundation and other contributors <https://jquery.org/>
+	 * Released under MIT license <https://lodash.com/license>
+	 * Based on Underscore.js 1.8.3 <http://underscorejs.org/LICENSE>
+	 * Copyright Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
+	 */
+
+	/** Used as references for various `Number` constants. */
+	var INFINITY = 1 / 0,
+	    MAX_SAFE_INTEGER = 9007199254740991;
+
+	/** `Object#toString` result references. */
+	var argsTag = '[object Arguments]',
+	    funcTag = '[object Function]',
+	    genTag = '[object GeneratorFunction]';
+
+	/** Detect free variable `global` from Node.js. */
+	var freeGlobal = typeof global == 'object' && global && global.Object === Object && global;
+
+	/** Detect free variable `self`. */
+	var freeSelf = typeof self == 'object' && self && self.Object === Object && self;
+
+	/** Used as a reference to the global object. */
+	var root = freeGlobal || freeSelf || Function('return this')();
+
+	/**
+	 * Appends the elements of `values` to `array`.
+	 *
+	 * @private
+	 * @param {Array} array The array to modify.
+	 * @param {Array} values The values to append.
+	 * @returns {Array} Returns `array`.
+	 */
+	function arrayPush(array, values) {
+	  var index = -1,
+	      length = values.length,
+	      offset = array.length;
+
+	  while (++index < length) {
+	    array[offset + index] = values[index];
+	  }
+	  return array;
+	}
+
+	/** Used for built-in method references. */
+	var objectProto = Object.prototype;
+
+	/** Used to check objects for own properties. */
+	var hasOwnProperty = objectProto.hasOwnProperty;
+
+	/**
+	 * Used to resolve the
+	 * [`toStringTag`](http://ecma-international.org/ecma-262/7.0/#sec-object.prototype.tostring)
+	 * of values.
+	 */
+	var objectToString = objectProto.toString;
+
+	/** Built-in value references. */
+	var Symbol = root.Symbol,
+	    propertyIsEnumerable = objectProto.propertyIsEnumerable,
+	    spreadableSymbol = Symbol ? Symbol.isConcatSpreadable : undefined;
+
+	/**
+	 * The base implementation of `_.flatten` with support for restricting flattening.
+	 *
+	 * @private
+	 * @param {Array} array The array to flatten.
+	 * @param {number} depth The maximum recursion depth.
+	 * @param {boolean} [predicate=isFlattenable] The function invoked per iteration.
+	 * @param {boolean} [isStrict] Restrict to values that pass `predicate` checks.
+	 * @param {Array} [result=[]] The initial result value.
+	 * @returns {Array} Returns the new flattened array.
+	 */
+	function baseFlatten(array, depth, predicate, isStrict, result) {
+	  var index = -1,
+	      length = array.length;
+
+	  predicate || (predicate = isFlattenable);
+	  result || (result = []);
+
+	  while (++index < length) {
+	    var value = array[index];
+	    if (depth > 0 && predicate(value)) {
+	      if (depth > 1) {
+	        // Recursively flatten arrays (susceptible to call stack limits).
+	        baseFlatten(value, depth - 1, predicate, isStrict, result);
+	      } else {
+	        arrayPush(result, value);
+	      }
+	    } else if (!isStrict) {
+	      result[result.length] = value;
+	    }
+	  }
+	  return result;
+	}
+
+	/**
+	 * Checks if `value` is a flattenable `arguments` object or array.
+	 *
+	 * @private
+	 * @param {*} value The value to check.
+	 * @returns {boolean} Returns `true` if `value` is flattenable, else `false`.
+	 */
+	function isFlattenable(value) {
+	  return isArray(value) || isArguments(value) ||
+	    !!(spreadableSymbol && value && value[spreadableSymbol]);
+	}
+
+	/**
+	 * Recursively flattens `array`.
+	 *
+	 * @static
+	 * @memberOf _
+	 * @since 3.0.0
+	 * @category Array
+	 * @param {Array} array The array to flatten.
+	 * @returns {Array} Returns the new flattened array.
+	 * @example
+	 *
+	 * _.flattenDeep([1, [2, [3, [4]], 5]]);
+	 * // => [1, 2, 3, 4, 5]
+	 */
+	function flattenDeep(array) {
+	  var length = array ? array.length : 0;
+	  return length ? baseFlatten(array, INFINITY) : [];
+	}
+
+	/**
+	 * Checks if `value` is likely an `arguments` object.
+	 *
+	 * @static
+	 * @memberOf _
+	 * @since 0.1.0
+	 * @category Lang
+	 * @param {*} value The value to check.
+	 * @returns {boolean} Returns `true` if `value` is an `arguments` object,
+	 *  else `false`.
+	 * @example
+	 *
+	 * _.isArguments(function() { return arguments; }());
+	 * // => true
+	 *
+	 * _.isArguments([1, 2, 3]);
+	 * // => false
+	 */
+	function isArguments(value) {
+	  // Safari 8.1 makes `arguments.callee` enumerable in strict mode.
+	  return isArrayLikeObject(value) && hasOwnProperty.call(value, 'callee') &&
+	    (!propertyIsEnumerable.call(value, 'callee') || objectToString.call(value) == argsTag);
+	}
+
+	/**
+	 * Checks if `value` is classified as an `Array` object.
+	 *
+	 * @static
+	 * @memberOf _
+	 * @since 0.1.0
+	 * @category Lang
+	 * @param {*} value The value to check.
+	 * @returns {boolean} Returns `true` if `value` is an array, else `false`.
+	 * @example
+	 *
+	 * _.isArray([1, 2, 3]);
+	 * // => true
+	 *
+	 * _.isArray(document.body.children);
+	 * // => false
+	 *
+	 * _.isArray('abc');
+	 * // => false
+	 *
+	 * _.isArray(_.noop);
+	 * // => false
+	 */
+	var isArray = Array.isArray;
+
+	/**
+	 * Checks if `value` is array-like. A value is considered array-like if it's
+	 * not a function and has a `value.length` that's an integer greater than or
+	 * equal to `0` and less than or equal to `Number.MAX_SAFE_INTEGER`.
+	 *
+	 * @static
+	 * @memberOf _
+	 * @since 4.0.0
+	 * @category Lang
+	 * @param {*} value The value to check.
+	 * @returns {boolean} Returns `true` if `value` is array-like, else `false`.
+	 * @example
+	 *
+	 * _.isArrayLike([1, 2, 3]);
+	 * // => true
+	 *
+	 * _.isArrayLike(document.body.children);
+	 * // => true
+	 *
+	 * _.isArrayLike('abc');
+	 * // => true
+	 *
+	 * _.isArrayLike(_.noop);
+	 * // => false
+	 */
+	function isArrayLike(value) {
+	  return value != null && isLength(value.length) && !isFunction(value);
+	}
+
+	/**
+	 * This method is like `_.isArrayLike` except that it also checks if `value`
+	 * is an object.
+	 *
+	 * @static
+	 * @memberOf _
+	 * @since 4.0.0
+	 * @category Lang
+	 * @param {*} value The value to check.
+	 * @returns {boolean} Returns `true` if `value` is an array-like object,
+	 *  else `false`.
+	 * @example
+	 *
+	 * _.isArrayLikeObject([1, 2, 3]);
+	 * // => true
+	 *
+	 * _.isArrayLikeObject(document.body.children);
+	 * // => true
+	 *
+	 * _.isArrayLikeObject('abc');
+	 * // => false
+	 *
+	 * _.isArrayLikeObject(_.noop);
+	 * // => false
+	 */
+	function isArrayLikeObject(value) {
+	  return isObjectLike(value) && isArrayLike(value);
+	}
+
+	/**
+	 * Checks if `value` is classified as a `Function` object.
+	 *
+	 * @static
+	 * @memberOf _
+	 * @since 0.1.0
+	 * @category Lang
+	 * @param {*} value The value to check.
+	 * @returns {boolean} Returns `true` if `value` is a function, else `false`.
+	 * @example
+	 *
+	 * _.isFunction(_);
+	 * // => true
+	 *
+	 * _.isFunction(/abc/);
+	 * // => false
+	 */
+	function isFunction(value) {
+	  // The use of `Object#toString` avoids issues with the `typeof` operator
+	  // in Safari 8-9 which returns 'object' for typed array and other constructors.
+	  var tag = isObject(value) ? objectToString.call(value) : '';
+	  return tag == funcTag || tag == genTag;
+	}
+
+	/**
+	 * Checks if `value` is a valid array-like length.
+	 *
+	 * **Note:** This method is loosely based on
+	 * [`ToLength`](http://ecma-international.org/ecma-262/7.0/#sec-tolength).
+	 *
+	 * @static
+	 * @memberOf _
+	 * @since 4.0.0
+	 * @category Lang
+	 * @param {*} value The value to check.
+	 * @returns {boolean} Returns `true` if `value` is a valid length, else `false`.
+	 * @example
+	 *
+	 * _.isLength(3);
+	 * // => true
+	 *
+	 * _.isLength(Number.MIN_VALUE);
+	 * // => false
+	 *
+	 * _.isLength(Infinity);
+	 * // => false
+	 *
+	 * _.isLength('3');
+	 * // => false
+	 */
+	function isLength(value) {
+	  return typeof value == 'number' &&
+	    value > -1 && value % 1 == 0 && value <= MAX_SAFE_INTEGER;
+	}
+
+	/**
+	 * Checks if `value` is the
+	 * [language type](http://www.ecma-international.org/ecma-262/7.0/#sec-ecmascript-language-types)
+	 * of `Object`. (e.g. arrays, functions, objects, regexes, `new Number(0)`, and `new String('')`)
+	 *
+	 * @static
+	 * @memberOf _
+	 * @since 0.1.0
+	 * @category Lang
+	 * @param {*} value The value to check.
+	 * @returns {boolean} Returns `true` if `value` is an object, else `false`.
+	 * @example
+	 *
+	 * _.isObject({});
+	 * // => true
+	 *
+	 * _.isObject([1, 2, 3]);
+	 * // => true
+	 *
+	 * _.isObject(_.noop);
+	 * // => true
+	 *
+	 * _.isObject(null);
+	 * // => false
+	 */
+	function isObject(value) {
+	  var type = typeof value;
+	  return !!value && (type == 'object' || type == 'function');
+	}
+
+	/**
+	 * Checks if `value` is object-like. A value is object-like if it's not `null`
+	 * and has a `typeof` result of "object".
+	 *
+	 * @static
+	 * @memberOf _
+	 * @since 4.0.0
+	 * @category Lang
+	 * @param {*} value The value to check.
+	 * @returns {boolean} Returns `true` if `value` is object-like, else `false`.
+	 * @example
+	 *
+	 * _.isObjectLike({});
+	 * // => true
+	 *
+	 * _.isObjectLike([1, 2, 3]);
+	 * // => true
+	 *
+	 * _.isObjectLike(_.noop);
+	 * // => false
+	 *
+	 * _.isObjectLike(null);
+	 * // => false
+	 */
+	function isObjectLike(value) {
+	  return !!value && typeof value == 'object';
+	}
+
+	module.exports = flattenDeep;
+
+	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
+
+/***/ })
+/******/ ]);
+  })();
+});
+
 require.register("aframe-physics-system/index.js", function(exports, require, module) {
   require = __makeRelativeRequire(require, {}, "aframe-physics-system");
   (function() {
@@ -95662,8 +99352,6 @@ for (var i = 0, len = code.length; i < len; ++i) {
   revLookup[code.charCodeAt(i)] = i
 }
 
-// Support decoding URL-safe base64 strings, as Node.js does.
-// See: https://en.wikipedia.org/wiki/Base64#URL_applications
 revLookup['-'.charCodeAt(0)] = 62
 revLookup['_'.charCodeAt(0)] = 63
 
@@ -95725,7 +99413,7 @@ function encodeChunk (uint8, start, end) {
   var tmp
   var output = []
   for (var i = start; i < end; i += 3) {
-    tmp = ((uint8[i] << 16) & 0xFF0000) + ((uint8[i + 1] << 8) & 0xFF00) + (uint8[i + 2] & 0xFF)
+    tmp = (uint8[i] << 16) + (uint8[i + 1] << 8) + (uint8[i + 2])
     output.push(tripletToBase64(tmp))
   }
   return output.join('')
@@ -97228,57 +100916,11 @@ function blitBuffer (src, dst, offset, length) {
 });
 require.register("cannon/package.json", function(exports, require, module) {
   module.exports = {
-  "_from": "github:donmccurdy/cannon.js#v0.6.2-dev1",
-  "_id": "cannon@0.6.2",
-  "_inBundle": false,
-  "_integrity": "",
-  "_location": "/cannon",
-  "_phantomChildren": {},
-  "_requested": {
-    "type": "git",
-    "raw": "cannon@github:donmccurdy/cannon.js#v0.6.2-dev1",
-    "name": "cannon",
-    "escapedName": "cannon",
-    "rawSpec": "github:donmccurdy/cannon.js#v0.6.2-dev1",
-    "saveSpec": "github:donmccurdy/cannon.js#v0.6.2-dev1",
-    "fetchSpec": null,
-    "gitCommittish": "v0.6.2-dev1"
-  },
-  "_requiredBy": [
-    "/aframe-physics-system"
-  ],
-  "_resolved": "github:donmccurdy/cannon.js#022e8ba53fa83abf0ad8a0e4fd08623123838a17",
-  "_spec": "cannon@github:donmccurdy/cannon.js#v0.6.2-dev1",
-  "_where": "/Users/michaelmarlow/Desktop/DESKTOP/GALVANIZE/Projects/VR_Apps/eventide/node_modules/aframe-physics-system",
-  "author": {
-    "name": "Stefan Hedman",
-    "email": "schteppe@gmail.com",
-    "url": "http://steffe.se"
-  },
-  "bugs": {
-    "url": "https://github.com/schteppe/cannon.js/issues"
-  },
-  "bundleDependencies": false,
-  "dependencies": {},
-  "deprecated": false,
+  "name": "cannon",
+  "version": "0.6.2",
   "description": "A lightweight 3D physics engine written in JavaScript.",
-  "devDependencies": {
-    "browserify": "*",
-    "grunt": "~0.4.0",
-    "grunt-browserify": "^2.1.4",
-    "grunt-contrib-concat": "~0.1.3",
-    "grunt-contrib-jshint": "~0.1.1",
-    "grunt-contrib-nodeunit": "^0.4.1",
-    "grunt-contrib-uglify": "^0.5.1",
-    "grunt-contrib-yuidoc": "^0.5.2",
-    "jshint": "latest",
-    "nodeunit": "^0.9.0",
-    "uglify-js": "latest"
-  },
-  "engines": {
-    "node": "*"
-  },
   "homepage": "https://github.com/schteppe/cannon.js",
+  "author": "Stefan Hedman <schteppe@gmail.com> (http://steffe.se)",
   "keywords": [
     "cannon.js",
     "cannon",
@@ -97286,18 +100928,36 @@ require.register("cannon/package.json", function(exports, require, module) {
     "engine",
     "3d"
   ],
+  "main": "./src/Cannon.js",
+  "engines": {
+    "node": "*"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/schteppe/cannon.js.git"
+  },
+  "bugs": {
+    "url": "https://github.com/schteppe/cannon.js/issues"
+  },
   "licenses": [
     {
       "type": "MIT"
     }
   ],
-  "main": "./src/Cannon.js",
-  "name": "cannon",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/schteppe/cannon.js.git"
+  "devDependencies": {
+    "jshint": "latest",
+    "uglify-js": "latest",
+    "nodeunit": "^0.9.0",
+    "grunt": "~0.4.0",
+    "grunt-contrib-jshint": "~0.1.1",
+    "grunt-contrib-nodeunit": "^0.4.1",
+    "grunt-contrib-concat": "~0.1.3",
+    "grunt-contrib-uglify": "^0.5.1",
+    "grunt-browserify": "^2.1.4",
+    "grunt-contrib-yuidoc": "^0.5.2",
+    "browserify": "*"
   },
-  "version": "0.6.2"
+  "dependencies": {}
 }
 ;
 });
@@ -111955,7 +115615,7 @@ require.register("ieee754/index.js", function(exports, require, module) {
   (function() {
     exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   var e, m
-  var eLen = (nBytes * 8) - mLen - 1
+  var eLen = nBytes * 8 - mLen - 1
   var eMax = (1 << eLen) - 1
   var eBias = eMax >> 1
   var nBits = -7
@@ -111968,12 +115628,12 @@ require.register("ieee754/index.js", function(exports, require, module) {
   e = s & ((1 << (-nBits)) - 1)
   s >>= (-nBits)
   nBits += eLen
-  for (; nBits > 0; e = (e * 256) + buffer[offset + i], i += d, nBits -= 8) {}
+  for (; nBits > 0; e = e * 256 + buffer[offset + i], i += d, nBits -= 8) {}
 
   m = e & ((1 << (-nBits)) - 1)
   e >>= (-nBits)
   nBits += mLen
-  for (; nBits > 0; m = (m * 256) + buffer[offset + i], i += d, nBits -= 8) {}
+  for (; nBits > 0; m = m * 256 + buffer[offset + i], i += d, nBits -= 8) {}
 
   if (e === 0) {
     e = 1 - eBias
@@ -111988,7 +115648,7 @@ require.register("ieee754/index.js", function(exports, require, module) {
 
 exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
   var e, m, c
-  var eLen = (nBytes * 8) - mLen - 1
+  var eLen = nBytes * 8 - mLen - 1
   var eMax = (1 << eLen) - 1
   var eBias = eMax >> 1
   var rt = (mLen === 23 ? Math.pow(2, -24) - Math.pow(2, -77) : 0)
@@ -112021,7 +115681,7 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
       m = 0
       e = eMax
     } else if (e + eBias >= 1) {
-      m = ((value * c) - 1) * Math.pow(2, mLen)
+      m = (value * c - 1) * Math.pow(2, mLen)
       e = e + eBias
     } else {
       m = value * Math.pow(2, eBias - 1) * Math.pow(2, mLen)
@@ -115232,6 +118892,24 @@ require('./components/aframe-environment');
 
 require('./components/aframe-effects');
 
+require('aframe-controller-cursor-component');
+
+require('aframe-extras');
+
+require('aframe-dev-components');
+
+require('aframe-fps-counter-component');
+
+require('aframe-teleport-controls');
+
+require('aframe-aabb-collider-component');
+
+require('aframe-mouse-cursor-component');
+
+require('aframe-text-geometry-component');
+
+require('aframe-gui');
+
 var _preact = require('preact');
 
 var _main = require('./main');
@@ -115240,16 +118918,10 @@ var _main2 = _interopRequireDefault(_main);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-/**
- * @fileoverview
- * This file imports all our required packages.
- * It also includes 3rd party A-Frame components.
- * Finally, it mounts the app to the root node.
- */
-
 document.addEventListener('DOMContentLoaded', function () {
   (0, _preact.render)((0, _preact.h)(_main2.default, null), document.querySelector('#app'));
 });
+// import 'aframe-text-component';
 
 });
 
@@ -115268,50 +118940,45 @@ var _aframeReact = require('aframe-react');
 
 var _Shape = require('./components/Shape');
 
-require('aframe-controller-cursor-component');
-
-require('aframe-extras');
-
-require('aframe-dev-components');
-
-require('aframe-fps-counter-component');
-
-require('aframe-teleport-controls');
-
-require('aframe-aabb-collider-component');
-
-require('aframe-text-geometry-component');
-
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; } /**
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * @fileoverview
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * This is our main A-Frame application.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * It defines the main A-Frame Scene which gets mounted root div.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                */
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-// import 'aframe-text-component';
-
-
-var COLORS = ['#D92B6A', '#9564F2', '#FFCF59'];
+var interval = false;
 
 var Main = function (_Component) {
   _inherits(Main, _Component);
 
-  function Main() {
+  function Main(props) {
     _classCallCheck(this, Main);
 
-    var _this = _possibleConstructorReturn(this, (Main.__proto__ || Object.getPrototypeOf(Main)).call(this));
+    var _this = _possibleConstructorReturn(this, (Main.__proto__ || Object.getPrototypeOf(Main)).call(this, props));
 
     _this.state = {
       colorIndex: 0,
-      spherePosition: { x: 0.0, y: 4, z: -10.0 }
-
+      intervalId: 0,
+      bpm: 80,
+      inTime: 250,
+      intervalLeft: 0,
+      intervalRight: 0,
+      sounds: {
+        kick1: "src: url(/sounds/kick-1.wav); poolSize: 10; on: mousedown",
+        kick2: "src: url(/sounds/kick-2.wav); poolSize: 10; on: mousedown",
+        kick3: "src: url(/sounds/kick-3.wav); poolSize: 16; on: mousedown",
+        snare1: "src: url(/sounds/snare-1.wav); poolSize: 10; on: mousedown",
+        snare2: "src: url(/sounds/snare-2.wav); poolSize: 10; on: mousedown",
+        snare3: "src: url(/sounds/snare-3.wav); poolSize: 10; on: mousedown",
+        hihat1: "src: url(/sounds/E808_CH-03.wav); poolSize: 10; on: mousedown",
+        hihat2: "src: url(/sounds/E808_CH-07.wav); poolSize: 10; on: mousedown",
+        hihat3: "src: url(/sounds/E808_OH-07.wav); poolSize: 10; on: mousedown"
+      }
     };
     _this._handleClick = _this._handleClick.bind(_this);
-
+    _this._handleMouseUp = _this._handleMouseUp.bind(_this);
+    _this._handleMouseDown = _this._handleMouseDown.bind(_this);
+    _this.onMouseEnter = _this.onMouseEnter.bind(_this);
     return _this;
   }
 
@@ -115360,39 +119027,37 @@ var Main = function (_Component) {
              to: { x: 3.0, y: 0.25, z: 0.0 }
            }}
          /> */
+
         (0, _preact.h)(
           'a-scene',
-          null,
+          { stats: true },
           (0, _preact.h)(
             'a-assets',
             null,
-            (0, _preact.h)('img', { id: 'pink', src: 'https://img.gs/bbdkhfbzkk/stretch/http://i.imgur.com/1hyyIUi.jpg', crossorigin: 'anonymous' }),
             (0, _preact.h)('img', { src: 'https://img.gs/bbdkhfbzkk/stretch/https://i.imgur.com/25P1geh.png', id: 'grid', crossorigin: 'anonymous' }),
             (0, _preact.h)('img', { src: 'https://img.gs/bbdkhfbzkk/2048x1024,stretch/http://i.imgur.com/WMNH2OF.jpg', id: 'chrome', crossorigin: 'anonymous' }),
             (0, _preact.h)('img', { id: 'sky', src: 'https://img.gs/bbdkhfbzkk/2048x2048,stretch/http://i.imgur.com/WqlqEkq.jpg', crossorigin: 'anonymous' }),
-            (0, _preact.h)('a-asset-item', { id: 'dawningFont', src: 'https://cdn.glitch.com/c719c986-c0c5-48b8-967c-3cd8b8aa17f3%2FdawningOfANewDayRegular.typeface.json?1490305922844' }),
+            (0, _preact.h)('img', { id: 'floor', src: 'https://cdn.aframe.io/a-painter/images/floor.jpg', crossOrigin: 'anonymous' }),
             (0, _preact.h)('a-asset-item', { id: 'exoFont', src: 'https://cdn.glitch.com/c719c986-c0c5-48b8-967c-3cd8b8aa17f3%2Fexo2Black.typeface.json?1490305922150' }),
             (0, _preact.h)('a-asset-item', { id: 'exoItalicFont', src: 'https://cdn.glitch.com/c719c986-c0c5-48b8-967c-3cd8b8aa17f3%2Fexo2BlackItalic.typeface.json?1490305922725' }),
+            '/*  ',
             (0, _preact.h)('a-asset-item', { id: 'speaker-obj', src: '/speaker-model.obj' }),
             (0, _preact.h)('a-asset-item', { id: 'speaker-mtl', src: '/speaker-materials.mtl' }),
-            (0, _preact.h)('a-asset-item', { id: 'desk-obj', src: '/desk-model.obj' }),
-            (0, _preact.h)('a-asset-item', { id: 'desk-mtl', src: '/desk-materials.mtl' }),
-            (0, _preact.h)('a-mixin', { id: 'curved-panel',
-              material: 'side:back;',
-              geometry: 'radius:5; theta-start:165; theta-length:30; open-ended:true;height:2;' }),
-            (0, _preact.h)('a-mixin', { id: 'translucent-black',
-              material: 'color:black; opacity:0.25;' })
+            (0, _preact.h)('a-asset-item', { id: 'studio-obj', src: '/studio-minimal-object.obj' }),
+            (0, _preact.h)('a-asset-item', { id: 'studio-mtl', src: '/studio-minimal-materials.mtl' }),
+            ' */'
           ),
           (0, _preact.h)(
             'a-entity',
-            { id: 'cameraRig', position: '2.000 0 2.000', rotation: '0 90 0' },
-            (0, _preact.h)('a-entity', { id: 'head', 'wasd-controls': true, camera: true, 'look-controls': true }),
-            (0, _preact.h)('a-entity', { id: 'my-raycaster', 'teleport-controls': 'startEvents: teleportstart; endEvents: teleportend; type: parabolic;', 'aabb-collider': 'objects: .clickable;', raycaster: 'objects: .clickable;', line: 'color: blue;', 'oculus-touch-controls': 'hand: left;', 'laser-controls': 'hand: left; objects: .clickable;' }),
-            (0, _preact.h)('a-entity', { id: 'right-hand', 'wasd-controls': true, 'oculus-touch-controls': 'hand: right;', 'teleport-controls': 'startEvents: teleportstart; endEvents: teleportend; type: parabolic;', 'fps-counter': true })
+            { 'wasd-controls': true, id: 'cameraRig', position: '2.339 0 1.614', rotation: '0 90 0' },
+            (0, _preact.h)('a-entity', { id: 'head', rotation: '0 90 0', camera: true, 'look-controls': true }),
+            (0, _preact.h)('a-entity', { id: 'left-hand', raycaster: 'objects: .clickable;', line: 'color: blue;', 'oculus-touch-controls': 'hand: left;', 'laser-controls': 'hand: left; objects: .clickable;' }),
+            (0, _preact.h)('a-entity', { id: 'right-hand', 'aabb-collider': 'objects: .clickable;', raycaster: 'objects: .clickable;', line: 'color: blue;', 'oculus-touch-controls': 'hand: right;', 'laser-controls': 'hand: right; objects: .clickable;' })
           ),
           (0, _preact.h)('a-entity', { id: 'ground',
-            geometry: 'primitive: plane; width: 10000; height: 10000;', rotation: '-90 0 0',
-            material: 'src: #grid; repeat: 10000 10000; transparent: true;metalness:0.6; roughness: 0.4; sphericalEnvMap: #sky;' }),
+            geometry: 'primitive: circle; radius: 100', rotation: '-90 0 0',
+            material: 'src: #floor; transparent: false; metalness:0.2; roughness: 0.4;' }),
+          (0, _preact.h)('a-entity', { light: 'color: #ccccff; intensity: 1; type: ambient;', visible: '' }),
           (0, _preact.h)('a-entity', { light: 'color: white; intensity: 0.5', position: '-5 5 15' }),
           (0, _preact.h)('a-entity', { light: 'color: white; type: ambient;' }),
           (0, _preact.h)('a-sky', { src: '#sky', rotation: '0 -90 0' }),
@@ -115400,281 +119065,283 @@ var Main = function (_Component) {
           (0, _preact.h)(
             'a-entity',
             { position: '-9.5 2 -9', rotation: '10 25 0' },
-            (0, _preact.h)('a-entity', { position: '-4.4 3.4 16.4', rotation: '0 80 0', scale: '0.6 1.2 1', 'text-geometry': 'value: DrumLab; font: #exoFont; bevelEnabled: true; bevelSize: 0.1; bevelThickness: 0.1; curveSegments: 1; size: 1.0; height: 0.5;', material: 'color:pink; metalness:0.9; roughness: 0.05; sphericalEnvMap: #chrome;' }),
-            (0, _preact.h)('a-entity', { position: '-3.4 3.2 12.6', rotation: '0 80 0', 'text-geometry': 'value: VR; font: #exoItalicFont; style: italic; size: 0.8; weight: bold; height: 0;',
+            (0, _preact.h)('a-entity', { position: '6.7 5.06 6.5', rotation: '10 -25 5', scale: '0.6 1.2 1', 'text-geometry': 'value: DrumLab; font: #exoFont; bevelEnabled: true; bevelSize: 0.1; bevelThickness: 0.1; curveSegments: 1; size: 1.0; height: 0.5;', material: 'color:blue; metalness:0.9; roughness: 0.05; sphericalEnvMap: #chrome;' }),
+            (0, _preact.h)('a-entity', { position: '9.95 5.5 8.66', rotation: '10 -25 5', 'text-geometry': 'value: VR; font: #exoItalicFont; style: italic; size: 0.8; weight: bold; height: 0;',
               material: 'shader: flat; color: white' }),
-            (0, _preact.h)('a-entity', { position: '-3.4 3.2 12.6', rotation: '0 80 0', 'text-geometry': 'value: VR; font: #exoItalicFont; style: italic; size: 0.8; weight: bold; height: 0; bevelEnabled: true; bevelSize: 0.04; bevelThickness: 0.04; curveSegments: 1',
+            (0, _preact.h)('a-entity', { position: '9.95 5.5 8.66', rotation: '10 -25 5', 'text-geometry': 'value: VR; font: #exoItalicFont; style: italic; size: 0.8; weight: bold; height: 0; bevelEnabled: true; bevelSize: 0.04; bevelThickness: 0.04; curveSegments: 1',
               material: 'shader: flat; color: white; transparent: true; opacity: 0.4' })
           ),
           '/////////////////////////////////',
-          (0, _preact.h)('a-entity', { 'obj-model': 'obj: #desk-obj; mtl: #desk-mtl;', scale: '1.5 1.5 1.5', position: '1.52 1.05 1.67', rotation: '0 90 0' }),
-          (0, _preact.h)(
-            'a-entity',
-            { 'collider-check': true, 'class': 'clickable', onMouseDown: this._handleMouseDown.bind(this), onClick: this._handleClick.bind(this),
-              geometry: 'primitive: box; depth=0.2 height=0.06 width=0.06',
-              position: '1.914 1.012 1.794',
-              rotation: '0 90 0',
-              scale: '0.100 0.100 0.100',
-              material: 'color: #104',
-              sound: 'src: url(/sounds/kick-1.wav); poolSize: 10; on: mousedown' },
-            (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mouseover', from: 'lightblue', to: '#104', dur: '100' }),
-            (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
-          ),
-          (0, _preact.h)(
-            'a-entity',
-            { 'collider-check': true, 'class': 'clickable', onMouseDown: this._handleMouseDown.bind(this), onClick: this._handleClick.bind(this),
-              geometry: 'primitive: box; depth=0.2 height=0.06 width=0.06',
-              position: '1.914 1.012 1.665',
-              rotation: '0 90 0',
-              scale: '0.100 0.100 0.100',
-              material: 'color: #104',
-              sound: 'src: url(/sounds/kick-1.wav); poolSize: 10; on: mousedown' },
-            (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mouseover', from: 'lightblue', to: '#104', dur: '100' }),
-            (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
-          ),
-          (0, _preact.h)(
-            'a-entity',
-            { 'collider-check': true, 'class': 'clickable', onMouseDown: this._handleMouseDown.bind(this), onClick: this._handleClick.bind(this),
-              geometry: 'primitive: box; depth=0.2 height=0.06 width=0.06',
-              position: '1.914 1.012 1.520',
-              rotation: '0 90 0',
-              scale: '0.100 0.100 0.100',
-              material: 'color: #104',
-              sound: 'src: url(/sounds/kick-1.wav); poolSize: 10; on: mousedown' },
-            (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mouseover', from: 'lightblue', to: '#104', dur: '100' }),
-            (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
-          ),
-          (0, _preact.h)(
-            'a-entity',
-            { 'collider-check': true, 'class': 'clickable', onMouseDown: this._handleMouseDown.bind(this), onClick: this._handleClick.bind(this),
-              geometry: 'primitive: box; depth=0.2 height=0.06 width=0.06',
-              position: '1.773 1.012 1.794',
-              rotation: '0 90 0',
-              scale: '0.100 0.100 0.100',
-              material: 'color: #104',
-              sound: 'src: url(/sounds/kick-1.wav); poolSize: 10; on: mousedown' },
-            (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mouseover', from: 'lightblue', to: '#104', dur: '100' }),
-            (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
-          ),
-          (0, _preact.h)(
-            'a-entity',
-            { 'collider-check': true, 'class': 'clickable', onMouseDown: this._handleMouseDown.bind(this), onClick: this._handleClick.bind(this),
-              geometry: 'primitive: box; depth=0.2 height=0.06 width=0.06',
-              position: '1.773 1.012 1.662',
-              rotation: '0 90 0',
-              scale: '0.100 0.100 0.100',
-              material: 'color: #104',
-              sound: 'src: url(/sounds/kick-1.wav); poolSize: 10; on: mousedown' },
-            (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mouseover', from: 'lightblue', to: '#104', dur: '100' }),
-            (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
-          ),
-          (0, _preact.h)(
-            'a-entity',
-            { 'collider-check': true, 'class': 'clickable', onMouseDown: this._handleMouseDown.bind(this), onClick: this._handleClick.bind(this),
-              geometry: 'primitive: box; depth=0.2 height=0.06 width=0.06',
-              position: '1.773 1.012 1.793',
-              rotation: '0 90 0',
-              scale: '0.100 0.100 0.100',
-              material: 'color: #104',
-              sound: 'src: url(/sounds/kick-1.wav); poolSize: 10; on: mousedown' },
-            (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mouseover', from: 'lightblue', to: '#104', dur: '100' }),
-            (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
-          ),
-          (0, _preact.h)(
-            'a-entity',
-            { 'collider-check': true, 'class': 'clickable', onMouseDown: this._handleMouseDown.bind(this), onClick: this._handleClick.bind(this),
-              geometry: 'primitive: box; depth=0.2 height=0.06 width=0.06',
-              position: '1.625 1.012 1.793',
-              rotation: '0 90 0',
-              scale: '0.100 0.100 0.100',
-              material: 'color: #104',
-              sound: 'src: url(/sounds/kick-1.wav); poolSize: 10; on: mousedown' },
-            (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mouseover', from: 'lightblue', to: '#104', dur: '100' }),
-            (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
-          ),
-          (0, _preact.h)(
-            'a-entity',
-            { 'collider-check': true, 'class': 'clickable', onMouseDown: this._handleMouseDown.bind(this), onClick: this._handleClick.bind(this),
-              geometry: 'primitive: box; depth=0.2 height=0.06 width=0.06',
-              position: '1.625 1.012 1.662',
-              rotation: '0 90 0',
-              scale: '0.100 0.100 0.100',
-              material: 'color: #104',
-              sound: 'src: url(/sounds/kick-1.wav); poolSize: 10; on: mousedown' },
-            (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mouseover', from: 'lightblue', to: '#104', dur: '100' }),
-            (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
-          ),
-          (0, _preact.h)(
-            'a-entity',
-            { 'collider-check': true, 'class': 'clickable', onMouseDown: this._handleMouseDown.bind(this), onClick: this._handleClick.bind(this),
-              geometry: 'primitive: box; depth=0.2 height=0.06 width=0.06',
-              position: '1.625 1.012 1.520',
-              rotation: '0 90 0',
-              scale: '0.100 0.100 0.100',
-              material: 'color: #104',
-              sound: 'src: url(/sounds/kick-1.wav); poolSize: 10; on: mousedown' },
-            (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mouseover', from: 'lightblue', to: '#104', dur: '100' }),
-            (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
-          ),
           '//////////////////////////////////////////',
-          (0, _preact.h)('a-entity', { 'obj-model': 'obj: #speaker-obj; mtl: #speaker-mtl', scale: '2 2 2', position: '-2 1.900 -4', rotation: '-10 160 10' }),
-          (0, _preact.h)('a-entity', { 'obj-model': 'obj: #speaker-obj; mtl: #speaker-mtl', scale: '2 2 2', position: '6 1.900 -4', rotation: '-10 90 10' }),
           '//////////////////////////////////////////',
           (0, _preact.h)(
             'a-entity',
-            { 'collider-check': true, 'class': 'one clickable', onMouseDown: this._handleMouseDown.bind(this), onClick: this._handleClick.bind(this),
+            { 'collider-check': true, 'class': 'one clickable', onMouseEnter: this.onMouseEnter, onMouseDown: this._handleMouseDown, onMouseUp: this._handleMouseUp, onClick: this._handleClick,
               geometry: 'primitive: box; depth=0.2 height=0.5 width=0.5',
               position: '0.5 0.5 -4',
               rotation: '0 0 0',
-              material: 'color: #104',
-              sound: 'src: url(/sounds/kick-1.wav); poolSize: 10; on: mousedown' },
-            (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mouseover', from: 'lightblue', to: '#104', dur: '100' }),
+              material: 'color: #124E78',
+              sound: this.state.sounds.kick1 },
+            (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mousedown', from: 'lightblue', to: '#124E78', dur: '100' }),
             (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
           ),
           (0, _preact.h)(
             'a-entity',
-            { 'class': 'two clickable',
+            { 'class': 'two clickable', onMouseEnter: this.onMouseEnter, onMouseDown: this._handleMouseDown, onMouseUp: this._handleMouseUp,
               geometry: 'primitive: box; depth=0.0 height=0.5 width=0.5',
               position: '0.5 2 -4',
               rotation: '0 0 0',
-              material: 'color: #104',
-              sound: 'src: url(/sounds/kick-2.wav); poolSize: 10; on: mousedown' },
-            (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mousedown', from: 'lightblue', to: '#104', dur: '100' }),
+              material: 'color: #124E78',
+              sound: this.state.sounds.kick2 },
+            (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mousedown', from: 'lightblue', to: '#124E78', dur: '100' }),
             (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
           ),
           (0, _preact.h)(
             'a-entity',
-            { 'class': 'three clickable', onClick: this._handleClick.bind(this),
+            { 'class': 'three clickable', onMouseEnter: this.onMouseEnter, onMouseDown: this._handleMouseDown, onMouseUp: this._handleMouseUp, onClick: this._handleClick,
               geometry: 'primitive: box; depth=0.0 height=0.5 width=0.5',
               position: '0.5 3.5 -4',
               rotation: '0 0 0',
-              material: 'color: #104',
-              sound: 'src: url(/sounds/kick-3.wav); poolSize: 10; on: mousedown' },
-            (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mousedown', from: 'lightblue', to: '#104', dur: '100' }),
+              material: 'color: #124E78',
+              sound: this.state.sounds.kick3 },
+            (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mousedown', from: 'lightblue', to: '#124E78', dur: '100' }),
             (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
           ),
           '///////////////////////////////////////////////',
           (0, _preact.h)(
             'a-entity',
-            { 'class': 'four clickable', onClick: this._handleClick.bind(this),
+            { 'class': 'four clickable', onMouseEnter: this.onMouseEnter, onMouseDown: this._handleMouseDown, onMouseUp: this._handleMouseUp, onClick: this._handleClick,
               geometry: 'primitive: box; depth=0.0 height=0.5 width=0.5',
               position: '2 0.5 -4',
               rotation: '0 0 0',
-              material: 'color: #404',
-              sound: 'src: url(/sounds/snare-1.wav); poolSize: 10; on: mousedown' },
-            (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mousedown', from: 'red', to: '#404', dur: '100' }),
+              material: 'color: #D74E09',
+              sound: this.state.sounds.snare1 },
+            (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mousedown', from: 'red', to: '#D74E09', dur: '100' }),
             (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
           ),
           (0, _preact.h)(
             'a-entity',
-            { 'class': 'five clickable', onClick: this._handleClick.bind(this),
+            { 'class': 'five clickable', onMouseEnter: this.onMouseEnter, onMouseDown: this._handleMouseDown, onMouseUp: this._handleMouseUp, onClick: this._handleClick,
               geometry: 'primitive: box; depth=0.0 height=0.5 width=0.5',
               position: '2 2 -4',
               rotation: '0 0 0',
-              material: 'color: #404',
-              sound: 'src: url(/sounds/snare-2.wav); poolSize: 10; on: mousedown' },
-            (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mousedown', from: 'red', to: '#404', dur: '100' }),
+              material: 'color: #D74E09',
+              sound: this.state.sounds.snare2 },
+            (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mousedown', from: 'red', to: '#D74E09', dur: '100' }),
             (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
           ),
           (0, _preact.h)(
             'a-entity',
-            { 'class': 'six clickable', onClick: this._handleClick.bind(this),
+            { 'class': 'six clickable', onMouseEnter: this.onMouseEnter, onMouseDown: this._handleMouseDown, onMouseUp: this._handleMouseUp, onClick: this._handleClick,
               geometry: 'primitive: box; depth=0.0 height=0.5 width=0.5',
               position: '2 3.5 -4',
               rotation: '0 0 0',
-              material: 'color: #404',
-              sound: 'src: url(/sounds/snare-3.wav); poolSize: 10; on: mousedown' },
-            (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mousedown', from: 'red', to: '#404', dur: '100' }),
+              material: 'color: #D74E09',
+              sound: this.state.sounds.snare3 },
+            (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mousedown', from: 'red', to: '#D74E09', dur: '100' }),
             (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
           ),
           '///////////////////////////////////////////////',
           (0, _preact.h)(
             'a-entity',
-            { 'class': 'seven clickable', onClick: this._handleClick.bind(this),
+            { 'class': 'seven clickable', onMouseEnter: this.onMouseEnter, onMouseDown: this._handleMouseDown, onMouseUp: this._handleMouseUp, onClick: this._handleClick,
               geometry: 'primitive: box; depth=0.0 height=0.5 width=0.5',
               position: '3.5 0.5 -4',
               rotation: '0 0 0',
-              material: 'color: #EEE',
-              sound: 'src: url(/sounds/E808_CH-03.wav); poolSize: 10; on: mousedown' },
-            (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mousedown', from: 'purple', to: '#EEE', dur: '100' }),
+              material: 'color: #0C8346',
+              sound: this.state.sounds.hihat1 },
+            (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mousedown', from: 'purple', to: '#0C8346', dur: '100' }),
             (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
           ),
           (0, _preact.h)(
             'a-entity',
-            { 'class': 'eight clickable', onClick: this._handleClick.bind(this),
+            { 'class': 'eight clickable', onMouseEnter: this.onMouseEnter, onMouseDown: this._handleMouseDown, onMouseUp: this._handleMouseUp, onClick: this._handleClick,
               geometry: 'primitive: box; depth=0.0 height=0.5 width=0.5',
               position: '3.5 2 -4',
               rotation: '0 0 0',
-              material: 'color: #EEE',
-              sound: 'src: url(/sounds/E808_CH-07.wav); poolSize: 10; on: mousedown' },
-            (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mousedown', from: 'purple', to: '#EEE', dur: '100' }),
+              material: 'color: #0C8346',
+              sound: this.state.sounds.hihat2 },
+            (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mousedown', from: 'purple', to: '#0C8346', dur: '100' }),
             (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
           ),
           (0, _preact.h)(
             'a-entity',
-            { 'class': 'nine clickable', onClick: this._handleClick.bind(this),
+            { 'class': 'nine clickable', onMouseEnter: this.onMouseEnter, onMouseDown: this._handleMouseDown, onMouseUp: this._handleMouseUp, onClick: this._handleClick,
               geometry: 'primitive: box; depth=0.0 height=0.5 width=0.5',
               position: '3.5 3.5 -4',
               rotation: '0 0 0',
-              material: 'color: #EEE',
-              sound: 'src: url(/sounds/E808_OH-07.wav); poolSize: 10; on: mousedown' },
-            (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mousedown', from: 'purple', to: '#EEE', dur: '100' }),
+              material: 'color: #0C8346',
+              sound: this.state.sounds.hihat3 },
+            (0, _preact.h)('a-animation', { attribute: 'material.color', begin: 'mousedown', from: 'purple', to: '#0C8346', dur: '100' }),
             (0, _preact.h)('a-animation', { attribute: 'rotation', begin: 'mousedown', dur: '100', fill: 'forwards', to: '0 90 0' })
+          ),
+          '/////////////////////////////////',
+          (0, _preact.h)(
+            'a-gui-flex-container',
+            { 'class': 'increaser', 'flex-direction': 'column', 'justify-content': 'center',
+              'align-items': 'normal', opacity: '0.7', width: '4.5', height: '4.5',
+              position: '7.5 2 -4', 'panel-color': 'blue', rotation: '0 -20 0' },
+            (0, _preact.h)('a-gui-label', { value: 'Select drums: ', width: '4', height: '0.75' }),
+            (0, _preact.h)(
+              'a-gui-flex-container',
+              { 'class': 'soundset', 'flex-direction': 'row', 'justify-content': 'center', 'align-items': 'center', height: '1', width: '0' },
+              (0, _preact.h)('a-gui-button', { id: 'set1', 'class': 'clickable', width: '1.3', height: '0.75',
+                onclick: this._handleClick,
+                value: '808',
+                'hover-color': 'yellow',
+                'font-family': 'Arial',
+                margin: '0 0 0.05 0',
+                'border-color': 'black' }),
+              (0, _preact.h)('a-gui-button', { id: 'set2', 'class': 'clickable', width: '1.3', height: '0.75',
+                onclick: this._handleClick,
+                value: 'Modern',
+                'hover-color': 'yellow',
+                'font-family': 'Arial',
+                margin: '0 0 0.05 0',
+                'border-color': 'black' }),
+              (0, _preact.h)('a-gui-button', { id: 'set3', 'class': 'clickable', width: '1.3', height: '0.75',
+                onclick: this._handleClick,
+                value: 'Classic',
+                'hover-color': 'yellow',
+                'font-family': 'Arial',
+                margin: '0 0 0.05 0',
+                'border-color': 'black' })
+            ),
+            (0, _preact.h)('a-gui-label', { value: 'Set repeat: ', width: '4', height: '0.75' }),
+            (0, _preact.h)(
+              'a-gui-flex-container',
+              { 'class': 'increaser', 'flex-direction': 'row', 'justify-content': 'center', 'align-items': 'center', height: '1', width: '0' },
+              (0, _preact.h)('a-gui-button', { id: 'quarter', 'class': 'clickable', width: '1.3', height: '0.75',
+                onclick: this._handleClick,
+                value: '1/4th',
+                'hover-color': 'purple',
+                'font-family': 'Arial',
+                margin: '0 0 0.05 0',
+                'border-color': 'black' }),
+              (0, _preact.h)('a-gui-button', { id: 'eighth', 'class': 'clickable', width: '1.3', height: '0.75',
+                onclick: this._handleClick,
+                value: '1/8th',
+                'hover-color': 'purple',
+                'font-family': 'Arial',
+                margin: '0 0 0.05 0',
+                'border-color': 'black' }),
+              (0, _preact.h)('a-gui-button', { id: 'sixteenth', 'class': 'clickable', width: '1.3', height: '0.75',
+                onclick: this._handleClick,
+                value: '1/16th',
+                'hover-color': 'purple',
+                'font-family': 'Arial',
+                margin: '0 0 0.05 0',
+                'border-color': 'black' })
+            )
           )
         )
       );
     }
   }, {
+    key: 'inValue',
+    value: function inValue() {
+      return this.state.inTime;
+    }
+  }, {
+    key: 'onMouseEnter',
+    value: function onMouseEnter(event) {}
+  }, {
+    key: 'componentWillMount',
+    value: function componentWillMount() {
+      console.log(this.state.inTime, "will mount this.state.inTime");
+    }
+  }, {
     key: '_handleMouseDown',
     value: function _handleMouseDown(event) {
-      console.log("mouse down fired!!!");
-      var entity = document.querySelector('[sound]');
-      console.log(entity.components.sound, ".... sound");
-      // if (event.type == 'mousedown') {
-      //   var myInterval = setInterval(() => {
-      //     yah();
-      //   }, 500);
-      //   function yah() {
-      //     entity.components.sound.playSound();
-      //   }
-      // }
-      // if (event.type == 'mouseup') {
-      //   console.log("mouseupppppppp");
-      //   clearInterval(myInterval);
-      // }
+      event.preventDefault();
+      if (event.detail.cursorEl.id === "right-hand" && this.state.intervalRight === 0) {
+        var rI = setInterval(function () {
+          event.target.components.sound.playSound();
+        }, this.state.inTime);
+        this.setState({ intervalRight: rI });
+      }
+      if (event.detail.cursorEl.id === "left-hand" && this.state.intervalLeft === 0) {
+        var lI = setInterval(function () {
+          event.target.components.sound.playSound();
+        }, this.state.inTime);
+        this.setState({ intervalLeft: lI });
+      }
+    }
+  }, {
+    key: '_handleMouseUp',
+    value: function _handleMouseUp(event) {
+      event.preventDefault();
+      if (event.detail.cursorEl.id === "right-hand") {
+        if (this.state.intervalRight > 0) {
+          clearInterval(this.state.intervalRight);
+          this.setState({ intervalRight: 0 });
+        }
+      }
+      if (event.detail.cursorEl.id === "left-hand") {
+        if (this.state.intervalLeft > 0) {
+          clearInterval(this.state.intervalLeft);
+          this.setState({ intervalLeft: 0 });
+        }
+      }
     }
   }, {
     key: '_handleClick',
     value: function _handleClick(event) {
-      console.log("clicked");
-      // console.log("event.target", event.target);
-      var entity = document.querySelector('[sound]');
-      // entity.components.sound.playSound();
-      // console.log("sounddd entity val: ", entity.components.sound);
-      // console.log(event, " ....wtf is this event evaluate to?");
-      // console.log(event.type, "  === event.type");
-      if (event.type == 'mousedown') {
-        console.log("event!!!!");
-        // if (entity.components.sound.evtDetail.isPlaying == true) {
-        //   console.log("jeyahhh boiiiiiiiiiiiiii");
-        //   entity.components.sound.evtDetail.isPlaying = false;
-        //   entity.components.sound.playSound();
-        // }
+      event.preventDefault();
+      if (event.target.parentEl.id === "quarter") {
+        this.setState({ inTime: 500 });
       }
-      console.log("triggerdown");
-      var caster = document.querySelector('#my-raycaster');
-      var raycaster = document.querySelector('#my-raycaster').components.raycaster;
-      // var cubes = document.querySelectorAll('.clickable');
-      // console.log("current cube maybeeee?...", cubes);
-      // cubes.components.raycaster.refreshObjects();
-      // cubes.addEventListener("model-loaded", () => {
-      //   raycaster.refreshObjects();
-      // })
-      // entity.components.sound.stopSound();
-      // entity.components.sound.playSound();
-      // this.setState({
-      //   colorIndex: (this.state.colorIndex + 1) % COLORS.length
-      // })
+      if (event.target.parentEl.id === "eighth") {
+        this.setState({ inTime: 250 });
+      }
+      if (event.target.parentEl.id === "sixteenth") {
+        this.setState({ inTime: 125 });
+      }
+      if (event.target.parentEl.id === "set1") {
+        this.setState({ sounds: {
+            kick1: "src: url(/sounds/kick-1.wav); poolSize: 10; on: mousedown",
+            kick2: "src: url(/sounds/kick-2.wav); poolSize: 10; on: mousedown",
+            kick3: "src: url(/sounds/kick-3.wav); poolSize: 16; on: mousedown",
+            snare1: "src: url(/sounds/snare-1.wav); poolSize: 10; on: mousedown",
+            snare2: "src: url(/sounds/snare-2.wav); poolSize: 10; on: mousedown",
+            snare3: "src: url(/sounds/snare-3.wav); poolSize: 10; on: mousedown",
+            hihat1: "src: url(/sounds/E808_CH-03.wav); poolSize: 10; on: mousedown",
+            hihat2: "src: url(/sounds/E808_CH-07.wav); poolSize: 10; on: mousedown",
+            hihat3: "src: url(/sounds/E808_OH-07.wav); poolSize: 10; on: mousedown"
+          }
+
+        });
+      }
+      if (event.target.parentEl.id === "set2") {
+        this.setState({ sounds: {
+            kick1: "src: url(/sounds/kick-1.wav); poolSize: 10; on: mousedown",
+            kick2: "src: url(/sounds/kick-2.wav); poolSize: 10; on: mousedown",
+            kick3: "src: url(/sounds/kick-3.wav); poolSize: 10; on: mousedown",
+            snare1: "src: url(/sounds/snare-1.wav); poolSize: 10; on: mousedown",
+            snare2: "src: url(/sounds/snare-2.wav); poolSize: 10; on: mousedown",
+            snare3: "src: url(/sounds/snare-3.wav); poolSize: 10; on: mousedown",
+            hihat1: "src: url(/sounds/E808_CH-03.wav); poolSize: 10; on: mousedown",
+            hihat2: "src: url(/sounds/E808_CH-07.wav); poolSize: 10; on: mousedown",
+            hihat3: "src: url(/sounds/E808_OH-07.wav); poolSize: 10; on: mousedown"
+          }
+
+        });
+      }
+      if (event.target.parentEl.id === "set3") {
+        this.setState({ sounds: {
+            kick1: "src: url(/sounds/kick-1.wav); poolSize: 10; on: mousedown",
+            kick2: "src: url(/sounds/kick-2.wav); poolSize: 10; on: mousedown",
+            kick3: "src: url(/sounds/kick-3.wav); poolSize: 10; on: mousedown",
+            snare1: "src: url(/sounds/snare-1.wav); poolSize: 10; on: mousedown",
+            snare2: "src: url(/sounds/snare-2.wav); poolSize: 10; on: mousedown",
+            snare3: "src: url(/sounds/snare-3.wav); poolSize: 10; on: mousedown",
+            hihat1: "src: url(/sounds/E808_CH-03.wav); poolSize: 10; on: mousedown",
+            hihat2: "src: url(/sounds/E808_CH-07.wav); poolSize: 10; on: mousedown",
+            hihat3: "src: url(/sounds/E808_OH-07.wav); poolSize: 10; on: mousedown"
+          }
+
+        });
+      }
     }
   }]);
 
@@ -115686,6 +119353,8 @@ exports.default = Main;
 });
 
 require.alias("aframe/dist/aframe-master.js", "aframe");
+require.alias("aframe-gui/src/index.js", "aframe-gui");
+require.alias("aframe-mouse-cursor-component/dist/aframe-mouse-cursor-component.js", "aframe-mouse-cursor-component");
 require.alias("aframe-react/dist/index.js", "aframe-react");
 require.alias("animejs/anime.js", "animejs");
 require.alias("buffer/index.js", "buffer");
