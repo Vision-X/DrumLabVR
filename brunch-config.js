@@ -15,6 +15,8 @@ exports.npm = {
 }
 
 exports.plugins = {
+  off: ['uglify-js-brunch'],
+  npm: ['babel-brunch'],
   babel: {
     presets: ['latest'],
     plugins: [['transform-react-jsx', { pragma: 'h' }]]
