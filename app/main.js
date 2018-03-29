@@ -396,7 +396,7 @@ class Main extends Component {
 
         <a-gui-flex-container class="increaser" flex-direction="column" justify-content="center"
             align-items="normal" opacity="0.7" width="4.5" height="4.5"
-            position="7.5 2 -4" panel-color="blue" rotation="0 -20 0">
+            position="7.5 2 -4" panel-color="lightblue" rotation="0 -20 0">
             <a-gui-label value="Select drums: " width="4" height="0.75"></a-gui-label>
             <a-gui-flex-container class="soundset" flex-direction="row" justify-content="center" align-items= "center" height="1" width="0">
               <a-gui-button id="set1" class="clickable" width="1.3" height="0.75"
@@ -428,7 +428,7 @@ class Main extends Component {
             <a-gui-flex-container class="increaser" flex-direction="row" justify-content="center" align-items= "center" height="1" width="0">
               <a-gui-button id="quarter" class="clickable" width="1.3" height="0.75"
     				      onclick={this._handleClick}
-    				      value="1/4th"
+    				      value="1/4"
                   hover-color="purple"
     				      font-family="Arial"
     				      margin="0 0 0.05 0"
@@ -436,7 +436,7 @@ class Main extends Component {
               </a-gui-button>
               <a-gui-button id="eighth" class="clickable" width="1.3" height="0.75"
         			    onclick={this._handleClick}
-        			    value="1/8th"
+        			    value="1/8"
                   hover-color="purple"
       			      font-family="Arial"
       			      margin="0 0 0.05 0"
@@ -444,7 +444,7 @@ class Main extends Component {
               </a-gui-button>
               <a-gui-button id="sixteenth" class="clickable" width="1.3" height="0.75"
                   onclick={this._handleClick}
-                  value="1/16th"
+                  value="1/16"
                   hover-color="purple"
                   font-family="Arial"
                   margin="0 0 0.05 0"
