@@ -20,6 +20,7 @@ import 'aframe-aabb-collider-component';
 // import 'aframe-text-component';
 import 'aframe-mouse-cursor-component';
 import 'aframe-text-geometry-component';
+import 'aframe-gui';
 
 
 import { h, render } from 'preact'

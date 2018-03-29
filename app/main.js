@@ -17,8 +17,7 @@ class Main extends Component {
     this.state = {
       colorIndex: 0,
       intervalId: 0,
-      isDown: false,
-      isUp: true,
+      bpm: 80,
       inTime: 250,
       intervalLeft: 0,
       intervalRight: 0
@@ -429,6 +428,31 @@ class Main extends Component {
           <a-animation attribute="rotation" begin="mousedown" dur="100" fill="forwards" to="0 90 0"></a-animation>
         </a-entity>
 
+        <a-gui-flex-container class="increaser" flex-direction="column" justify-content="center"
+            align-items="normal" component-padding="0.1" opacity="0.7" width="3.5" height="4.5"
+            position="5.5 2 -4">
+          <a-gui-button id="quarter" class="clickable" width="2.5" height="0.75"
+				      onclick={this._handleClick}
+				      value="Set repeat to 1/4th"
+              hover-color="pink"
+				      font-family="Arial"
+				      margin="0 0 0.05 0">
+          </a-gui-button>
+          <a-gui-button id="eighth" class="clickable" width="2.5" height="0.75"
+    			    onclick={this._handleClick}
+    			    value="Set repeat to 1/8th"
+              hover-color="purple"
+  			      font-family="Arial"
+  			      margin="0 0 0.05 0">
+          </a-gui-button>
+          <a-gui-button id="sixteenth" class="clickable" width="2.5" height="0.75"
+              onclick={this._handleClick}
+              value="Set repeat to 1/16th"
+              hover-color="green"
+              font-family="Arial"
+              margin="0 0 0.05 0">
+          </a-gui-button>
+        </a-gui-flex-container>
 
     {/*    <Entity primitive="a-camera" look-controls>
           <Entity
@@ -592,8 +616,22 @@ class Main extends Component {
 
   _handleClick(event) {
     event.preventDefault();
+    console.log(event.target, "eventTarget of button");
+    console.log(event.detail.target, "target of click");
     if (event.target.classList.contains('increaser')) {
       console.log("hey");
+    }
+    if (event.target.parentEl.id === "quarter") {
+      console.log("quarter button clicked");
+      this.setState({inTime: 500})
+    }
+    if (event.target.parentEl.id === "eighth") {
+      console.log("eighth button clicked");
+      this.setState({inTime: 250})
+    }
+    if (event.target.parentEl.id === "sixteenth") {
+      console.log("sixteenth button clicked");
+      this.setState({inTime: 125})
     }
     // console.log(this.state.inTime, "__inTime state from Click event");
     // console.log("clicked");
