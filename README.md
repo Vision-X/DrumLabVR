@@ -7,6 +7,10 @@
 
 Don't just listen to music: make your own and feel it come alive in DrumLabVR.
 
+## Demo Video
+
+[![DrumLabVR](http://i68.tinypic.com/2h58lq8.png)](https://vimeo.com/267151849 "Click to watch demo")
+
 ## Features
 
 
