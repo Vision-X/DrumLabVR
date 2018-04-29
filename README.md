@@ -12,3 +12,14 @@ Don't just listen to music: make your own and feel it come alive in DrumLabVR.
 
 
 ## Usage
+
+
+
+
+## Installation/Set-up
+
+(Note: You will need an Oculus Rift and Oculus touch controllers to use this WebVR app)
+
+1. Fork/Clone this repository to your local machine.
+1. Run `npm install` to download the project dependencies.
+1. Run `npm start` to run locally, defaults to http://localhost:3333/
