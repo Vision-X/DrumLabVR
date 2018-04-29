@@ -39,3 +39,11 @@ DrumLabVR is a simple interface within a VR framework ([Mozilla's A-Frame](https
 ## Project Proposal Documentation
 
 [Capstone Proposal - DrumLabVR](https://github.com/Vision-X/capstone-docs/blob/master/proposal.md)
+
+## License
+
+MIT
+
+## Author
+
+Michael Marlow: https://github.com/Vision-X/
