@@ -18,11 +18,11 @@ VR BeatLab is a simple interface within a VR framework that provides various sou
 - Animated sound cubes
 - Huge "Other Planet" environment
 - GUI with Options for:
-  a. Custom sound banks
+  - Custom sound banks
     - 808
     - Modern
     - Classic
-  a. Note repeat intervals
+  - Note repeat intervals
     - 1/4 Note
     - 1/8 Note
     - 1/16 Note
