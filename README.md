@@ -13,12 +13,19 @@
 
 ## Features
 
+VR BeatLab is a simple interface within a VR framework that provides various sound triggers (pads). Interacting with these pads in VR will invite the user to explore visual and auditory feedback through these trigger pads. Interacting with the touch controller, the user is able to command sounds as they touch the triggers, visually see and feel the audio play, and find themselves in a world full of color and sound.
 
-
-## Usage
-
-
-
+- Animated sound cubes
+- Huge "Other Planet" environment
+- GUI with Options for:
+  a. Custom sound banks
+    - 808
+    - Modern
+    - Classic
+  a. Note repeat intervals
+    - 1/4 Note
+    - 1/8 Note
+    - 1/16 Note
 
 ## Installation/Set-up
 
